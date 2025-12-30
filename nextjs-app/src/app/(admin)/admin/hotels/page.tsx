@@ -4,18 +4,19 @@ import Link from 'next/link'
 import { Plus, Pencil } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import DeleteHotelButton from './DeleteButton'
+import { Hotel } from '@/types'
 
 export const metadata = {
   title: 'จัดการโรงแรม | Admin',
 }
 
-async function getHotels() {
+async function getHotels(): Promise<Hotel[]> {
   const supabase = await createAdminClient()
   const { data } = await supabase
     .from('hotels')
     .select('*')
     .order('created_at', { ascending: false })
-  return data || []
+  return (data || []) as Hotel[]
 }
 
 export default async function AdminHotelsPage() {

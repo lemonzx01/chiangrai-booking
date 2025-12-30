@@ -2,24 +2,33 @@ import { createAdminClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import BookingStatusSelect from './StatusSelect'
-import { Booking } from '@/types'
+import { BookingStatus } from '@/types'
 
 export const metadata = {
   title: 'จัดการการจอง | Admin',
 }
 
-interface BookingWithRelations extends Booking {
+interface BookingRow {
+  id: string
+  booking_code: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string
+  check_in_date: string
+  check_out_date: string
+  total_price: number
+  status: BookingStatus
   hotel?: { name_th: string } | null
   car?: { name_th: string } | null
 }
 
-async function getBookings(): Promise<BookingWithRelations[]> {
+async function getBookings(): Promise<BookingRow[]> {
   const supabase = await createAdminClient()
   const { data } = await supabase
     .from('bookings')
     .select('*, hotel:hotels(name_th), car:cars(name_th)')
     .order('created_at', { ascending: false })
-  return (data || []) as BookingWithRelations[]
+  return (data || []) as BookingRow[]
 }
 
 export default async function AdminBookingsPage() {

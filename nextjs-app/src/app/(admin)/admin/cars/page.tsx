@@ -4,18 +4,19 @@ import Link from 'next/link'
 import { Plus, Pencil } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import DeleteCarButton from './DeleteButton'
+import { Car } from '@/types'
 
 export const metadata = {
   title: 'จัดการรถเช่า | Admin',
 }
 
-async function getCars() {
+async function getCars(): Promise<Car[]> {
   const supabase = await createAdminClient()
   const { data } = await supabase
     .from('cars')
     .select('*')
     .order('created_at', { ascending: false })
-  return data || []
+  return (data || []) as Car[]
 }
 
 export default async function AdminCarsPage() {

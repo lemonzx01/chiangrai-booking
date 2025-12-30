@@ -2,9 +2,14 @@ import { createAdminClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import { Building2, Car, Calendar, DollarSign } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { BookingStatus } from '@/types'
 
 export const metadata = {
   title: 'Dashboard | Admin',
+}
+
+interface RevenueRow {
+  total_price: number
 }
 
 async function getStats() {
@@ -17,7 +22,8 @@ async function getStats() {
     supabase.from('bookings').select('total_price').eq('status', 'PAID'),
   ])
 
-  const totalRevenue = revenueRes.data?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0
+  const revenueData = (revenueRes.data || []) as RevenueRow[]
+  const totalRevenue = revenueData.reduce((sum: number, b: RevenueRow) => sum + Number(b.total_price), 0)
 
   return {
     totalHotels: hotelsRes.count || 0,
@@ -27,14 +33,24 @@ async function getStats() {
   }
 }
 
-async function getRecentBookings() {
+interface RecentBooking {
+  id: string
+  booking_code: string
+  customer_name: string
+  total_price: number
+  status: BookingStatus
+  hotel?: { name_th: string } | null
+  car?: { name_th: string } | null
+}
+
+async function getRecentBookings(): Promise<RecentBooking[]> {
   const supabase = await createAdminClient()
   const { data } = await supabase
     .from('bookings')
     .select('*, hotel:hotels(name_th), car:cars(name_th)')
     .order('created_at', { ascending: false })
     .limit(5)
-  return data || []
+  return (data || []) as RecentBooking[]
 }
 
 export default async function DashboardPage() {
