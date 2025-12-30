@@ -43,7 +43,7 @@ const CustomDatePicker = ({
 
   useEffect(() => {
     if (isOpen) {
-      setTempDate(value)
+      setTempDate(value ?? null)
     }
   }, [isOpen, value])
 
