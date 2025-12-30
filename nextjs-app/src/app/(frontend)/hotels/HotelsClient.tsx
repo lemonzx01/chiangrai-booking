@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Hotel } from '@/types'
 import HotelCard from '@/components/cards/HotelCard'
-import { Search, MapPin, Banknote, ChevronDown, Check } from 'lucide-react'
+import { Search, MapPin, Banknote, ChevronDown, Check, LucideIcon } from 'lucide-react'
 
 interface HotelsClientProps {
   hotels: Hotel[]
@@ -27,7 +27,7 @@ function CustomDropdown({
   value: string
   onChange: (value: string) => void
   placeholder: string
-  icon: React.ComponentType<{ className?: string; size?: number }>
+  icon: LucideIcon
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
