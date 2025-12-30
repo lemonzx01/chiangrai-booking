@@ -40,7 +40,7 @@ export async function sendBookingConfirmationEmail(
 </head>
 <body style="font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">Waygo Thailand</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">TravelEase</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Booking Confirmation</p>
   </div>
 
@@ -94,7 +94,7 @@ export async function sendBookingConfirmationEmail(
 
   <div style="background: #1e293b; padding: 20px; border-radius: 0 0 16px 16px; text-align: center;">
     <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 12px;">
-      © 2024 Waygo Thailand. All rights reserved.
+      © 2024 TravelEase. All rights reserved.
     </p>
   </div>
 </body>
@@ -103,7 +103,7 @@ export async function sendBookingConfirmationEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'Waygo Thailand <noreply@waygothailand.com>',
+      from: process.env.EMAIL_FROM || 'TravelEase <noreply@waygothailand.com>',
       to: booking.customer_email,
       subject: `Booking Confirmed - ${booking.booking_code}`,
       html: emailHtml,

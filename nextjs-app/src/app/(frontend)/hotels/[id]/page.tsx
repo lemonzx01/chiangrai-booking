@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: Props) {
 
   if (!hotel) {
     return {
-      title: 'Hotel Not Found | TravelEase',
+      title: 'Hotel Not Found | Waygo Thailand',
     }
   }
 
   return {
-    title: `${hotel.name_en} | TravelEase`,
+    title: `${hotel.name_en} | Waygo Thailand`,
     description: hotel.description_en,
   }
 }
