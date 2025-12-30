@@ -1,36 +1,219 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌏 Waygo Thailand - Travel Booking Platform
 
-## Getting Started
+Next.js fullstack application สำหรับจองแพ็คเกจท่องเที่ยว รถเช่า และที่พัก
 
-First, run the development server:
+## ✨ Features
 
-```bash
+- 🏨 **Hotel Booking** - จองแพ็คเกจที่พักพร้อมรถเช่า
+- 🚗 **Car Rental** - เช่ารถหรูสำหรับทริป
+- 💳 **Payment Integration** - ระบบชำระเงินผ่าน Stripe
+- 🌐 **Multi-language** - รองรับภาษาไทยและอังกฤษ
+- 🔐 **Admin Dashboard** - ระบบจัดการหลังบ้าน
+- 📧 **Email Notifications** - แจ้งเตือนผ่าน email
+- 📱 **LINE Notify** - แจ้งเตือนผ่าน LINE
+
+## 🛠 Tech Stack
+
+- **Frontend:** Next.js 14 (App Router), React, TailwindCSS
+- **Backend:** Next.js API Routes
+- **Database:** Supabase (PostgreSQL)
+- **Authentication:** JWT (jose)
+- **Payment:** Stripe
+- **Email:** Resend
+- **Deployment:** Vercel
+
+## 🚀 Local Development
+
+### 1. Clone Repository
+
+\`\`\`bash
+git clone <repository-url>
+cd chiangrai-booking/nextjs-app
+\`\`\`
+
+### 2. ติดตั้ง Dependencies
+
+\`\`\`bash
+npm install
+\`\`\`
+
+### 3. ตั้งค่า Environment Variables
+
+สร้างไฟล์ \`.env.local\`:
+
+\`\`\`bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# JWT
+JWT_SECRET=your-secret-key-min-32-chars
+
+# Stripe (optional)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Email (optional)
+RESEND_API_KEY=re_...
+
+# LINE (optional)
+LINE_NOTIFY_TOKEN=your-token
+\`\`\`
+
+### 4. Setup Database
+
+1. สร้าง Supabase project
+2. รัน SQL จาก \`supabase/schema.sql\`
+3. สร้าง Admin user:
+
+\`\`\`sql
+-- สร้าง password hash
+-- node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('admin123', 10))"
+
+INSERT INTO admins (email, password_hash, name, role, is_active)
+VALUES (
+  'admin@waygo.com',
+  '$2a$10$xxx...your-hash-here',
+  'Admin',
+  'super_admin',
+  true
+);
+\`\`\`
+
+### 5. รัน Development Server
+
+\`\`\`bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิดเบราว์เซอร์ที่ [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+\`\`\`
+nextjs-app/
+├── src/
+│   ├── app/
+│   │   ├── (frontend)/      # หน้าเว็บหลัก
+│   │   │   ├── page.tsx     # Home
+│   │   │   ├── hotels/      # Hotels listing & detail
+│   │   │   ├── cars/        # Cars listing
+│   │   │   ├── booking/     # Booking form
+│   │   │   └── success/     # Success page
+│   │   │
+│   │   ├── (admin)/         # Admin panel
+│   │   │   └── admin/
+│   │   │       ├── login/   # Admin login
+│   │   │       ├── dashboard/
+│   │   │       ├── hotels/  # Manage hotels
+│   │   │       ├── cars/    # Manage cars
+│   │   │       └── bookings/ # Manage bookings
+│   │   │
+│   │   └── api/             # Backend APIs
+│   │       ├── hotels/      # Hotels CRUD
+│   │       ├── cars/        # Cars CRUD
+│   │       ├── bookings/    # Bookings CRUD
+│   │       ├── checkout/    # Payment
+│   │       └── admin/       # Admin auth
+│   │
+│   ├── components/
+│   │   ├── cards/           # Reusable cards
+│   │   ├── forms/           # Form components
+│   │   ├── shared/          # Navbar, Footer
+│   │   └── ui/              # UI components
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.ts       # Authentication
+│   │   └── useLocalize.ts   # i18n helper
+│   │
+│   ├── lib/
+│   │   ├── supabase/        # Database client
+│   │   ├── stripe.ts        # Payment
+│   │   └── utils.ts         # Utilities
+│   │
+│   └── i18n/                # Translations
+│       └── locales/
+│           ├── en/
+│           └── th/
+│
+└── supabase/
+    └── schema.sql           # Database schema
+\`\`\`
 
-## Learn More
+## 🔐 Admin Access
 
-To learn more about Next.js, take a look at the following resources:
+- **URL:** \`/admin/login\`
+- **Default:** ดูใน database (ตาราง \`admins\`)
+- **Features:**
+  - Dashboard with statistics
+  - Manage hotels & packages
+  - Manage cars
+  - View & update bookings
+  - View customer data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🌐 API Endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Public APIs
+- \`GET /api/hotels\` - List all hotels
+- \`GET /api/hotels/[id]\` - Hotel detail
+- \`GET /api/cars\` - List all cars
+- \`GET /api/cars/[id]\` - Car detail
+- \`POST /api/bookings\` - Create booking
+- \`GET /api/bookings/[code]\` - Get booking by code
+- \`POST /api/checkout\` - Create payment session
 
-## Deploy on Vercel
+### Admin APIs (Protected)
+- \`POST /api/admin/login\` - Admin login
+- \`GET /api/admin/auth\` - Check auth status
+- \`POST /api/hotels\` - Create hotel
+- \`PUT /api/hotels/[id]\` - Update hotel
+- \`DELETE /api/hotels/[id]\` - Delete hotel
+- (Similar for cars and bookings)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Test Frontend
+\`\`\`bash
+# Home page
+curl http://localhost:3000
+
+# Hotels API
+curl http://localhost:3000/api/hotels
+
+# Cars API
+curl http://localhost:3000/api/cars
+\`\`\`
+
+### Test Admin Login
+1. Go to \`http://localhost:3000/admin/login\`
+2. Enter credentials
+3. Should redirect to \`/admin/dashboard\`
+
+## 📦 Deployment
+
+ดูรายละเอียดใน [DEPLOYMENT.md](../DEPLOYMENT.md)
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create feature branch: \`git checkout -b feature/my-feature\`
+3. Commit changes: \`git commit -am 'Add feature'\`
+4. Push to branch: \`git push origin feature/my-feature\`
+5. Submit Pull Request
+
+## 📝 License
+
+MIT License - see LICENSE file
+
+## 📞 Support
+
+- Email: support@waygo-thailand.com
+- Documentation: /docs
+- Issues: GitHub Issues
+
+---
+
+Made with ❤️ by Waygo Thailand Team
+\`\`\`
