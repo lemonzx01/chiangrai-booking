@@ -74,7 +74,7 @@ const CustomDatePicker = ({
   return (
     <DatePicker
       selected={tempDate}
-      onChange={(date) => setTempDate(date)}
+      onChange={(date: Date | null) => setTempDate(date)}
       open={isOpen}
       onInputClick={() => setIsOpen(true)}
       onClickOutside={handleCancel}
