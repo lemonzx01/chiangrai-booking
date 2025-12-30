@@ -1,16 +1,19 @@
 'use client'
 
 import { forwardRef, useState, useEffect } from 'react'
-import DatePicker, { DatePickerProps } from 'react-datepicker'
+import DatePicker from 'react-datepicker'
 import { X, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getMonth, getYear } from 'date-fns'
 import { useTranslation } from 'react-i18next'
+import { Locale } from 'date-fns'
 
-interface CustomDatePickerProps extends Omit<DatePickerProps, 'onChange'> {
+interface CustomDatePickerProps {
   value?: Date | null
   onChange: (date: Date | null) => void
   placeholder?: string
   onClose?: () => void
+  minDate?: Date
+  locale?: Locale
 }
 
 const CustomInput = forwardRef<HTMLButtonElement, any>(({ value, onClick, placeholder }, ref) => (
@@ -33,7 +36,6 @@ const CustomDatePicker = ({
   minDate,
   locale,
   onClose,
-  ...props
 }: CustomDatePickerProps) => {
   const { t, i18n } = useTranslation()
   const [tempDate, setTempDate] = useState<Date | null>(value || null)
@@ -139,7 +141,6 @@ const CustomDatePicker = ({
           </button>
         </div>
       )}
-      {...props}
     >
       <div className="border-t border-slate-200 px-4 py-3 flex items-center justify-between">
         <button
