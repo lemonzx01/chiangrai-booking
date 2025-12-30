@@ -45,17 +45,21 @@ function CustomDropdown({
   }, [])
 
   return (
-    <div ref={dropdownRef} className="relative min-w-[180px]">
+    <div ref={dropdownRef} className="relative min-w-[200px]">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 ${isOpen ? 'border-indigo-500 bg-white' : 'border-transparent'}`}
+        className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-200 ${
+          isOpen 
+            ? 'bg-white ring-2 ring-indigo-500 shadow-lg' 
+            : 'bg-slate-50 hover:bg-white hover:shadow-md'
+        }`}
       >
-        <Icon className="text-slate-400 flex-shrink-0" size={20} />
-        <span className={`flex-1 text-left font-medium ${selectedOption ? 'text-slate-800' : 'text-slate-400'}`}>
+        <Icon className={`flex-shrink-0 transition-colors ${isOpen ? 'text-indigo-600' : 'text-slate-400'}`} size={20} />
+        <span className={`flex-1 text-left font-medium ${selectedOption?.value ? 'text-slate-800' : 'text-slate-400'}`}>
           {selectedOption?.label || placeholder}
         </span>
-        <ChevronDown className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} size={18} />
+        <ChevronDown className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} size={18} />
       </button>
       
       {isOpen && (
