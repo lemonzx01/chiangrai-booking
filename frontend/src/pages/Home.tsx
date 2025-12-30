@@ -2,10 +2,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ArrowRight } from 'lucide-react';
-import SearchBar from '../components/SearchBar';
-import { MOCK_HOTELS } from '../constants';
+import { useTranslation } from 'react-i18next';
+import { useLocalize } from '../lib/localize';
+import SearchBar from '../components/shared/SearchBar';
+import { MOCK_HOTELS } from '../lib/constants';
 
 const Home = () => {
+  const { t } = useTranslation();
+  const localize = useLocalize();
+
   return (
     <div className="space-y-16 md:space-y-24 pb-24 overflow-hidden">
       <section className="relative min-h-[90vh] md:h-screen flex items-center justify-center pt-24 px-6">
@@ -44,17 +49,17 @@ const Home = () => {
             {MOCK_HOTELS.map((item) => (
               <Link to={`/hotels/${item.id}`} key={item.id} className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={item.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt={item.name} />
+                  <img src={item.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt={localize(item.name)} />
                   <div className="absolute top-5 right-5 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-1.5 shadow-xl">
                     <Star size={14} className="text-amber-400 fill-amber-400" /> {item.star_rating}.0
                   </div>
                 </div>
                 <div className="p-8 flex flex-col flex-1">
-                  <h3 className="font-black text-xl text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">{item.name}</h3>
-                  <p className="text-slate-500 text-sm mb-8 font-medium line-clamp-2">{item.description}</p>
+                  <h3 className="font-black text-xl text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">{localize(item.name)}</h3>
+                  <p className="text-slate-500 text-sm mb-8 font-medium line-clamp-2">{localize(item.description)}</p>
                   <div className="mt-auto flex justify-between items-center pt-6 border-t border-slate-50">
                     <div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Package Start</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('home.weeklyDeals.packageStart')}</span>
                       <p className="font-black text-2xl text-slate-900 tracking-tight">฿{item.price_per_night.toLocaleString()}</p>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
@@ -72,3 +77,4 @@ const Home = () => {
 };
 
 export default Home;
+

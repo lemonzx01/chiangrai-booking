@@ -1,4 +1,3 @@
-
 export enum BookingStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
@@ -12,28 +11,38 @@ export enum BookingType {
   COMBO = 'COMBO'
 }
 
+export type LocalizedString = {
+  th: string;
+  en: string;
+};
+
+export type LocalizedArray = {
+  th: string[];
+  en: string[];
+};
+
 export interface Hotel {
   id: string;
-  name: string;
-  description: string;
+  name: LocalizedString;
+  description: LocalizedString;
   location: string;
   star_rating: number;
   price_per_night: number;
   max_guests: number;
-  room_type: string;
-  amenities: string[];
+  room_type: LocalizedString;
+  amenities: LocalizedArray;
   images: string[];
   is_active: boolean;
 }
 
 export interface Car {
   id: string;
-  name: string;
-  description: string;
-  car_type: string;
+  name: LocalizedString;
+  description: LocalizedString;
+  car_type: LocalizedString;
   max_passengers: number;
   price_per_day: number;
-  includes: string[];
+  includes: LocalizedArray;
   images: string[];
   is_active: boolean;
 }

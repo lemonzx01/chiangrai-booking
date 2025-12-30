@@ -1,18 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Compass } from 'lucide-react';
-import { NAVIGATION } from '../constants';
+import { NAVIGATION } from '../../lib/constants';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
-// Fixed missing default export and completed the truncated component
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const { t } = useTranslation();
   
-  // ใน HashRouter, location.pathname จะเป็น path หลังเครื่องหมาย #
-  // หน้าหลักควรเป็น "/"
+  // In HashRouter, location.pathname will be the path after the #
+  // Home page should be "/"
   const isHome = location.pathname === '/';
 
   useEffect(() => {
@@ -27,8 +28,8 @@ const Navbar = () => {
 
   if (isAdmin) return null;
 
-  // ถ้าเป็นหน้าหลัก (/) ให้เป็น Transparent ถ้ายังไม่ Scroll
-  // ถ้าเป็นหน้าอื่น (/hotels, /cars, ฯลฯ) ให้เป็นสีขาวตลอดเวลา
+  // If it's the home page, make it transparent if not scrolled
+  // For other pages, keep it white all the time
   const activeLightMode = scrolled || !isHome;
 
   return (
@@ -54,7 +55,7 @@ const Navbar = () => {
             <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
               {NAVIGATION.map((item) => (
                 <Link
-                  key={item.name}
+                  key={item.key}
                   to={item.path}
                   className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
                     location.pathname === item.path 
@@ -62,14 +63,15 @@ const Navbar = () => {
                       : activeLightMode ? 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50' : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {item.name}
+                  {t(`navbar.${item.key}` as any)}
                 </Link>
               ))}
               <div className={`w-px h-5 mx-2 ${activeLightMode ? 'bg-slate-200' : 'bg-white/20'}`}></div>
+              <LanguageSwitcher light={activeLightMode} />
               <Link to="/hotels" className={`px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap ${
                 activeLightMode ? 'bg-indigo-600 text-white' : 'bg-white text-slate-900'
               }`}>
-                จองตอนนี้
+                {t('navbar.bookNow', 'จองตอนนี้')}
               </Link>
             </div>
 
@@ -93,18 +95,21 @@ const Navbar = () => {
           <div className="pt-24 px-8 flex flex-col gap-8">
             {NAVIGATION.map((item) => (
               <Link
-                key={item.name}
+                key={item.key}
                 to={item.path}
                 className="text-3xl font-black text-slate-900 hover:text-indigo-600 transition-colors"
               >
-                {item.name}
+                {t(`navbar.${item.key}` as any)}
               </Link>
             ))}
+            <div className="mt-4 flex justify-center">
+              <LanguageSwitcher light={activeLightMode} />
+            </div>
             <Link 
               to="/hotels" 
               className="mt-4 bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl text-center shadow-xl active:scale-95 transition-all"
             >
-              จองแพ็คเกจเลย
+              {t('navbar.bookPackage', 'จองแพ็คเกจเลย')}
             </Link>
           </div>
         </div>
