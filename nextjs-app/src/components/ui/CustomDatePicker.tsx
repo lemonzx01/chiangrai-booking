@@ -1,12 +1,12 @@
 'use client'
 
 import { forwardRef, useState, useEffect } from 'react'
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker'
+import DatePicker, { DatePickerProps } from 'react-datepicker'
 import { X, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getMonth, getYear } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 
-interface CustomDatePickerProps extends Omit<ReactDatePickerProps, 'onChange'> {
+interface CustomDatePickerProps extends Omit<DatePickerProps, 'onChange'> {
   value?: Date | null
   onChange: (date: Date | null) => void
   placeholder?: string
