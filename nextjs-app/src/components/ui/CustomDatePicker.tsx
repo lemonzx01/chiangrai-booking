@@ -67,7 +67,7 @@ const CustomDatePicker = ({
   }
 
   const handleCancel = () => {
-    setTempDate(value)
+    setTempDate(value ?? null)
     setIsOpen(false)
   }
 
