@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React DatePicker */
+@import 'react-datepicker/dist/react-datepicker.css';
+
 :root {
   --background: #fafbfc;
   --foreground: #0f172a;
@@ -136,10 +139,75 @@ body {
 }
 
 /* Form inputs focus state */
-input:focus,
-textarea:focus,
-select:focus {
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
+textarea:focus {
   @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+}
+
+/* Search inputs - no ring */
+input[type="text"]:focus,
+input[type="search"]:focus {
+  @apply outline-none;
+}
+
+/* Custom select styling */
+select {
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+}
+
+select:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* Dropdown options styling */
+select option {
+  padding: 10px 14px;
+  background-color: white;
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 40px;
+}
+
+select option:first-child {
+  border-top: none;
+}
+
+select option:hover {
+  background-color: #f8fafc;
+  color: #4f46e5;
+}
+
+select option:checked {
+  background: linear-gradient(to right, #eef2ff 0%, #e0e7ff 100%);
+  color: #4338ca;
+  font-weight: 600;
+}
+
+/* Better dropdown box */
+select:focus {
+  outline: none;
+}
+
+/* For WebKit browsers (Chrome, Safari) */
+select option:checked {
+  background: #e0e7ff linear-gradient(0deg, #e0e7ff 0%, #e0e7ff 100%);
+  color: #4338ca;
+}
+
+select option:hover:not(:checked) {
+  background-color: #f1f5f9;
 }
 
 /* Button loading state */

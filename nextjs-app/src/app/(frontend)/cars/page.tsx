@@ -3,7 +3,7 @@ import CarsClient from './CarsClient'
 import { MOCK_CARS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Car Rentals | TravelEase',
+  title: 'Car Rentals | Waygo Thailand',
   description: 'Browse our premium car rental collection',
 }
 

@@ -63,9 +63,9 @@ export default function Navbar() {
                   activeLightMode ? 'text-slate-900' : 'text-white'
                 }`}
               >
-                Travel
+                Waygo
                 <span className={activeLightMode ? 'text-indigo-600' : 'text-indigo-400'}>
-                  Ease
+                  {' '}Thailand
                 </span>
               </span>
             </Link>

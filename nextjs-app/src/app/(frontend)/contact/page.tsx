@@ -45,8 +45,8 @@ export default function ContactPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">ส่งข้อความสำเร็จ!</h2>
-                <p className="text-slate-500">เราจะติดต่อกลับโดยเร็วที่สุด</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('contact.form.successTitle')}</h2>
+                <p className="text-slate-500">{t('contact.form.successMessage')}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -54,7 +54,7 @@ export default function ContactPage() {
                   label={t('contact.form.name')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="กรอกชื่อของคุณ"
+                  placeholder={t('contact.form.namePlaceholder')}
                   required
                 />
                 <Input
@@ -79,7 +79,7 @@ export default function ContactPage() {
                   <textarea
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="เขียนข้อความของคุณ..."
+                    placeholder={t('contact.form.messagePlaceholder')}
                     rows={5}
                     required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -95,7 +95,7 @@ export default function ContactPage() {
           {/* Contact Info */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">ข้อมูลติดต่อ</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-6">{t('contact.infoTitle')}</h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">

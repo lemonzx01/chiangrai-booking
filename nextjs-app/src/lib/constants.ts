@@ -78,24 +78,24 @@ export const DEFAULT_PAGE_SIZE = 10
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 // App Info
-export const APP_NAME = 'TravelEase'
+export const APP_NAME = 'Waygo Thailand'
 export const APP_DESCRIPTION = 'Premium Travel Booking Platform - Book luxury cars with exclusive villa packages'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 // Contact Info
 export const CONTACT_INFO = {
   phone: '+66 2123 4567',
-  email: 'hello@travelease.com',
-  line: '@travelease',
+  email: 'hello@waygothailand.com',
+  line: '@waygothailand',
   address: 'Thailand',
   workingHours: '09:00 - 18:00 (Mon-Sat)',
 }
 
 // Social Links
 export const SOCIAL_LINKS = {
-  facebook: 'https://facebook.com/travelease',
-  instagram: 'https://instagram.com/travelease',
-  line: 'https://line.me/ti/p/@travelease',
+  facebook: 'https://facebook.com/waygothailand',
+  instagram: 'https://instagram.com/waygothailand',
+  line: 'https://line.me/ti/p/@waygothailand',
 }
 
 // Mock Data (for development/demo)
@@ -160,7 +160,7 @@ export const MOCK_HOTELS = [
     room_type_th: 'Sedan + Riverside Suite',
     room_type_en: 'Sedan + Riverside Suite',
     images: [
-      'https://images.unsplash.com/photo-1552432552-06c099fb3435?w=1200',
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200',
       'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800',
       'https://images.unsplash.com/photo-1563911546344-647715ed5d76?w=800',
     ],

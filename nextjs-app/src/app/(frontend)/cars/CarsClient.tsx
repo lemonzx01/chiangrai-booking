@@ -41,22 +41,32 @@ export default function CarsClient({ cars }: CarsClientProps) {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 -mt-8">
         {/* Search */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
+            <Search className="text-slate-400 flex-shrink-0" size={20} />
             <input
               type="text"
               placeholder={t('common.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 bg-transparent outline-none border-none text-slate-800 font-medium placeholder:text-slate-400"
             />
           </div>
         </div>
 
         {/* Results Count */}
-        <p className="text-slate-500 mb-6">
-          พบ {filteredCars.length} รถ
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-slate-600 font-medium">
+            {t('common.found')} <span className="text-indigo-600 font-semibold">{filteredCars.length}</span> {t('common.cars')}
+          </p>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"
+            >
+              {t('common.clearSearch')} ✕
+            </button>
+          )}
+        </div>
 
         {/* Cars Grid */}
         {filteredCars.length > 0 ? (

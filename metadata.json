@@ -1,5 +1,5 @@
 {
-  "name": "TravelEase - Hotel & Car Booking Platform",
+  "name": "Waygo Thailand - Hotel & Car Booking Platform",
   "description": "A comprehensive Next.js-inspired booking system for hotels and car rentals with admin dashboard and integrated payment workflows.",
   "requestFramePermissions": [
     "geolocation"

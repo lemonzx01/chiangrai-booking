@@ -1,23 +1,118 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Hotel } from '@/types'
 import HotelCard from '@/components/cards/HotelCard'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search, MapPin, Banknote, ChevronDown, Check } from 'lucide-react'
 
 interface HotelsClientProps {
   hotels: Hotel[]
 }
 
+// Custom Dropdown Component
+interface DropdownOption {
+  value: string
+  label: string
+}
+
+function CustomDropdown({ 
+  options, 
+  value, 
+  onChange, 
+  placeholder,
+  icon: Icon
+}: { 
+  options: DropdownOption[]
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+  icon: React.ComponentType<{ className?: string; size?: number }>
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  const selectedOption = options.find(opt => opt.value === value)
+  
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={dropdownRef} className="relative min-w-[180px]">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 ${isOpen ? 'border-indigo-500 bg-white' : 'border-transparent'}`}
+      >
+        <Icon className="text-slate-400 flex-shrink-0" size={20} />
+        <span className={`flex-1 text-left font-medium ${selectedOption ? 'text-slate-800' : 'text-slate-400'}`}>
+          {selectedOption?.label || placeholder}
+        </span>
+        <ChevronDown className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} size={18} />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-50 max-h-72 overflow-auto">
+          {options.map((option, index) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value)
+                setIsOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-5 py-3.5 transition-all text-left group
+                ${value === option.value 
+                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }
+                ${index === 0 ? 'rounded-t-lg' : ''}
+                ${index === options.length - 1 ? 'rounded-b-lg' : ''}
+              `}
+            >
+              <span className={`${value === option.value ? 'font-semibold' : 'font-medium'}`}>
+                {option.label}
+              </span>
+              {value === option.value && (
+                <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
+                  <Check size={12} className="text-white" strokeWidth={3} />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function HotelsClient({ hotels }: HotelsClientProps) {
   const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000])
+  const [priceFilter, setPriceFilter] = useState('all')
   const [selectedLocation, setSelectedLocation] = useState('')
 
   // Get unique locations
   const locations = [...new Set(hotels.map((h) => h.location))]
+
+  // Price ranges
+  const getPriceRange = (filter: string): [number, number] => {
+    switch (filter) {
+      case 'low': return [0, 20000]
+      case 'mid': return [20000, 40000]
+      case 'high': return [40000, 100000]
+      default: return [0, 100000]
+    }
+  }
+
+  const priceRange = getPriceRange(priceFilter)
 
   // Filter hotels
   const filteredHotels = hotels.filter((hotel) => {
@@ -33,6 +128,19 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
 
     return matchesSearch && matchesPrice && matchesLocation
   })
+
+  // Dropdown options
+  const locationOptions: DropdownOption[] = [
+    { value: '', label: t('common.allLocations') },
+    ...locations.map(loc => ({ value: loc, label: loc }))
+  ]
+
+  const priceOptions: DropdownOption[] = [
+    { value: 'all', label: t('common.allPrices') },
+    { value: 'low', label: t('common.priceLow') },
+    { value: 'mid', label: t('common.priceMid') },
+    { value: 'high', label: t('common.priceHigh') },
+  ]
 
   return (
     <div className="min-h-screen pt-24 pb-12">
@@ -51,59 +159,57 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 -mt-8">
         {/* Filters */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
+              <Search className="text-slate-400 flex-shrink-0" size={20} />
               <input
                 type="text"
                 placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 bg-transparent outline-none border-none text-slate-800 font-medium placeholder:text-slate-400"
               />
             </div>
 
-            {/* Location Filter */}
-            <select
+            {/* Location Dropdown */}
+            <CustomDropdown
+              options={locationOptions}
               value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-            >
-              <option value="">ทุกพื้นที่</option>
-              {locations.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedLocation}
+              placeholder={t('common.allLocations')}
+              icon={MapPin}
+            />
 
-            {/* Price Filter */}
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal size={20} className="text-slate-400" />
-              <select
-                onChange={(e) => {
-                  const value = e.target.value
-                  if (value === 'all') setPriceRange([0, 100000])
-                  else if (value === 'low') setPriceRange([0, 20000])
-                  else if (value === 'mid') setPriceRange([20000, 40000])
-                  else if (value === 'high') setPriceRange([40000, 100000])
-                }}
-                className="px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              >
-                <option value="all">ราคาทั้งหมด</option>
-                <option value="low">ต่ำกว่า ฿20,000</option>
-                <option value="mid">฿20,000 - ฿40,000</option>
-                <option value="high">มากกว่า ฿40,000</option>
-              </select>
-            </div>
+            {/* Price Dropdown */}
+            <CustomDropdown
+              options={priceOptions}
+              value={priceFilter}
+              onChange={setPriceFilter}
+              placeholder={t('common.allPrices')}
+              icon={Banknote}
+            />
           </div>
         </div>
 
         {/* Results Count */}
-        <p className="text-slate-500 mb-6">
-          พบ {filteredHotels.length} แพ็คเกจ
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-slate-600 font-medium">
+            {t('common.found')} <span className="text-indigo-600 font-semibold">{filteredHotels.length}</span> {t('common.packages')}
+          </p>
+          {(searchTerm || selectedLocation || priceFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedLocation('')
+                setPriceFilter('all')
+              }}
+              className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"
+            >
+              {t('common.clearFilters')} ✕
+            </button>
+          )}
+        </div>
 
         {/* Hotels Grid */}
         {filteredHotels.length > 0 ? (
