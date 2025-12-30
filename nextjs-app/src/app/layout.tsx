@@ -9,12 +9,12 @@ const font = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Waygo Thailand | Premium Travel Booking Platform',
+  title: 'TravelEase | Premium Travel Booking Platform',
   description: 'Book premium cars with exclusive villa packages. Experience luxury travel in Chiang Rai, Thailand.',
   keywords: ['travel', 'booking', 'hotel', 'car rental', 'chiang rai', 'thailand', 'vacation'],
-  authors: [{ name: 'Waygo Thailand' }],
+  authors: [{ name: 'TravelEase' }],
   openGraph: {
-    title: 'Waygo Thailand | Premium Travel Booking Platform',
+    title: 'TravelEase | Premium Travel Booking Platform',
     description: 'Book premium cars with exclusive villa packages in Chiang Rai',
     type: 'website',
   },

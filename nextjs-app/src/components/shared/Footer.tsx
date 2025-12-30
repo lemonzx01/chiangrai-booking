@@ -17,7 +17,9 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-8">
               <Compass size={28} className="text-indigo-400" />
-              <span className="text-2xl font-black text-white tracking-tight">Waygo Thailand</span>
+              <span className="text-2xl font-black text-white tracking-tight">
+                Travel<span className="text-indigo-400">Ease</span>
+              </span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
               จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน
@@ -68,7 +70,7 @@ export default function Footer() {
         </div>
         <div className="pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
-            © 2024 Waygo Thailand. All Rights Reserved.
+            © 2024 TravelEase. All Rights Reserved.
           </div>
         </div>
       </div>

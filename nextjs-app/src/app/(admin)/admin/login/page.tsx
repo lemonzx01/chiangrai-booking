@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
             <div className="p-3 bg-indigo-600 rounded-xl">
               <Compass size={28} className="text-white" />
             </div>
-            <span className="text-3xl font-black text-white">Waygo Thailand</span>
+            <span className="text-3xl font-black text-white">TravelEase</span>
           </div>
           <p className="text-slate-400">Admin Dashboard</p>
         </div>
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
         </div>
 
         <p className="text-center text-slate-500 text-sm mt-6">
-          © 2024 Waygo Thailand. All rights reserved.
+          © 2024 TravelEase. All rights reserved.
         </p>
       </div>
     </div>

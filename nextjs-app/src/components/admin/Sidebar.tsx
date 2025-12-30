@@ -28,7 +28,7 @@ export default function AdminSidebar() {
           <div className="p-2 bg-indigo-600 rounded-xl">
             <Compass size={24} />
           </div>
-          <span className="text-xl font-bold">Waygo Thailand</span>
+          <span className="text-xl font-bold">TravelEase</span>
         </Link>
       </div>
 

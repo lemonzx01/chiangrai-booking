@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import CarsClient from './CarsClient'
+import { MOCK_CARS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Car Rentals | Waygo Thailand',
+  title: 'Car Rentals | TravelEase',
   description: 'Browse our premium car rental collection',
 }
 
@@ -15,5 +16,8 @@ export default async function CarsPage() {
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  return <CarsClient cars={cars || []} />
+  // Use mock data if database is empty
+  const displayCars = (cars && cars.length > 0) ? cars : MOCK_CARS
+
+  return <CarsClient cars={displayCars} />
 }
