@@ -77,9 +77,9 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </div>
 
           {/* Search Box */}
-          <div className="mt-14 max-w-6xl mx-auto animate-slide-up px-4">
-            <div className="bg-white rounded-3xl shadow-2xl px-4 py-4 sm:px-6 sm:py-5">
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4">
+          <div className="mt-14 max-w-7xl mx-auto animate-slide-up px-4">
+            <div className="bg-white rounded-3xl shadow-2xl px-6 py-5 sm:px-10 sm:py-6">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6">
                 {/* Destination */}
                 <div className="flex items-center gap-4 px-5 py-4 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200">
                   <MapPin className="text-indigo-600 flex-shrink-0" size={24} />
