@@ -29,6 +29,7 @@ export default function RootLayout({
     <html lang="th" suppressHydrationWarning>
       <body className={`${font.variable} font-sans bg-[#fafbfc] text-slate-900 antialiased`}>
         {children}
+        <div id="datepicker-root" />
       </body>
     </html>
   )

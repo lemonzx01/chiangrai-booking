@@ -10,6 +10,7 @@ import { Hotel, Car } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import useLocalize from '@/hooks/useLocalize'
 import CustomDatePicker from '@/components/ui/CustomDatePicker'
+import CustomSelect from '@/components/ui/CustomSelect'
 import { th } from 'date-fns/locale'
 
 interface HomeClientProps {
@@ -87,15 +88,15 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
                       {t('home.search.destination')}
                     </label>
-                    <select
+                    <CustomSelect
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      className="w-full text-lg text-slate-800 font-semibold bg-transparent outline-none cursor-pointer"
-                    >
-                      <option value="">{i18n.language === 'th' ? 'เลือกจังหวัด' : 'Select province'}</option>
-                      <option value="Chiang Rai">{i18n.language === 'th' ? 'เชียงราย' : 'Chiang Rai'}</option>
-                      <option value="Chiang Mai">{i18n.language === 'th' ? 'เชียงใหม่' : 'Chiang Mai'}</option>
-                    </select>
+                      onChange={setDestination}
+                      placeholder={i18n.language === 'th' ? 'เลือกจังหวัด' : 'Select province'}
+                      options={[
+                        { value: 'Chiang Rai', label: i18n.language === 'th' ? 'เชียงราย' : 'Chiang Rai' },
+                        { value: 'Chiang Mai', label: i18n.language === 'th' ? 'เชียงใหม่' : 'Chiang Mai' },
+                      ]}
+                    />
                   </div>
                 </div>
 

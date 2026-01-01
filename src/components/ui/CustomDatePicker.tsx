@@ -83,9 +83,8 @@ const CustomDatePicker = ({
       minDate={minDate}
       locale={locale}
       customInput={<CustomInput />}
-      showPopperArrow={false}
-      popperPlacement="bottom-start"
-      popperClassName="datepicker-popper-bottom"
+      withPortal
+      portalId="datepicker-root"
       renderCustomHeader={({
         date,
         changeYear,
