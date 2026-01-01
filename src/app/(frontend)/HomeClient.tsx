@@ -10,7 +10,6 @@ import { Hotel, Car } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import useLocalize from '@/hooks/useLocalize'
 import CustomDatePicker from '@/components/ui/CustomDatePicker'
-import '@/styles/datepicker.css'
 import { th } from 'date-fns/locale'
 
 interface HomeClientProps {
