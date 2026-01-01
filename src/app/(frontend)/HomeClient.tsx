@@ -87,13 +87,15 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">
                       {t('home.search.destination')}
                     </label>
-                    <input
-                      type="text"
-                      placeholder={t('home.search.destinationPlaceholder')}
+                    <select
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
-                      className="w-full text-base text-slate-800 font-semibold bg-transparent outline-none placeholder:text-slate-400"
-                    />
+                      className="w-full text-base text-slate-800 font-semibold bg-transparent outline-none cursor-pointer"
+                    >
+                      <option value="">{i18n.language === 'th' ? 'เลือกจังหวัด' : 'Select province'}</option>
+                      <option value="Chiang Rai">{i18n.language === 'th' ? 'เชียงราย' : 'Chiang Rai'}</option>
+                      <option value="Chiang Mai">{i18n.language === 'th' ? 'เชียงใหม่' : 'Chiang Mai'}</option>
+                    </select>
                   </div>
                 </div>
 
