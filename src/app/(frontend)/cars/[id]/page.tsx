@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: Props) {
 
   if (!car) {
     return {
-      title: 'Car Not Found | Waygo Thailand',
+      title: 'Car Not Found | Got Journey Thailand',
     }
   }
 
   return {
-    title: `${car.name_en} | Waygo Thailand`,
+    title: `${car.name_en} | Got Journey Thailand`,
     description: car.description_en,
   }
 }

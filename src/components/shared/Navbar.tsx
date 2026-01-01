@@ -63,7 +63,7 @@ export default function Navbar() {
                   activeLightMode ? 'text-slate-900' : 'text-white'
                 }`}
               >
-                Waygo
+                Got Journey
                 <span className={activeLightMode ? 'text-indigo-600' : 'text-indigo-400'}>
                   {' '}Thailand
                 </span>

@@ -78,24 +78,24 @@ export const DEFAULT_PAGE_SIZE = 10
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 // App Info
-export const APP_NAME = 'Waygo Thailand'
+export const APP_NAME = 'Got Journey Thailand'
 export const APP_DESCRIPTION = 'Premium Travel Booking Platform - Book luxury cars with exclusive villa packages'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 // Contact Info
 export const CONTACT_INFO = {
   phone: '+66 2123 4567',
-  email: 'hello@waygothailand.com',
-  line: '@waygothailand',
+  email: 'hello@gotjourneythailand.com',
+  line: '@gotjourneythailand',
   address: 'Thailand',
   workingHours: '09:00 - 18:00 (Mon-Sat)',
 }
 
 // Social Links
 export const SOCIAL_LINKS = {
-  facebook: 'https://facebook.com/waygothailand',
-  instagram: 'https://instagram.com/waygothailand',
-  line: 'https://line.me/ti/p/@waygothailand',
+  facebook: 'https://facebook.com/gotjourneythailand',
+  instagram: 'https://instagram.com/gotjourneythailand',
+  line: 'https://line.me/ti/p/@gotjourneythailand',
 }
 
 // Mock Data (for development/demo)

@@ -3,7 +3,7 @@ import HotelsClient from './HotelsClient'
 import { MOCK_HOTELS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Hotels & Packages | Waygo Thailand',
+  title: 'Hotels & Packages | Got Journey Thailand',
   description: 'Browse our exclusive hotel packages and villa stays',
 }
 

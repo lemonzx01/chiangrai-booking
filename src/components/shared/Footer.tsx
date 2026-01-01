@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-8">
               <Compass size={28} className="text-indigo-400" />
-              <span className="text-2xl font-black text-white tracking-tight">Waygo Thailand</span>
+              <span className="text-2xl font-black text-white tracking-tight">Got Journey Thailand</span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
               จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน
@@ -47,7 +47,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-4 text-sm font-bold">
               <li className="flex justify-center sm:justify-start gap-4 items-center hover:text-white transition-colors">
-                <Mail size={18} className="text-indigo-500" /> hello@waygothailand.com
+                <Mail size={18} className="text-indigo-500" /> hello@gotjourneythailand.com
               </li>
               <li className="flex justify-center sm:justify-start gap-4 items-center hover:text-white transition-colors">
                 <Phone size={18} className="text-indigo-500" /> +66 2 123 4567
@@ -68,7 +68,7 @@ export default function Footer() {
         </div>
         <div className="pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
-            © 2024 Waygo Thailand. All Rights Reserved.
+            © 2024 Got Journey Thailand. All Rights Reserved.
           </div>
         </div>
       </div>
