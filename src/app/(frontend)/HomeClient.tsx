@@ -81,16 +81,16 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             <div className="bg-white rounded-3xl shadow-2xl px-6 py-5 sm:px-10 sm:py-6">
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6">
                 {/* Destination */}
-                <div className="flex items-center gap-4 px-5 py-4 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200">
+                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200 min-w-[180px]">
                   <MapPin className="text-indigo-600 flex-shrink-0" size={24} />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
                       {t('home.search.destination')}
                     </label>
                     <select
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
-                      className="w-full text-base text-slate-800 font-semibold bg-transparent outline-none cursor-pointer"
+                      className="w-full text-lg text-slate-800 font-semibold bg-transparent outline-none cursor-pointer"
                     >
                       <option value="">{i18n.language === 'th' ? 'เลือกจังหวัด' : 'Select province'}</option>
                       <option value="Chiang Rai">{i18n.language === 'th' ? 'เชียงราย' : 'Chiang Rai'}</option>
@@ -100,10 +100,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Date */}
-                <div className="flex items-center gap-4 px-5 py-4 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200">
+                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200 min-w-[180px]">
                   <Calendar className="text-indigo-600 flex-shrink-0" size={24} />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
                       {t('home.search.date')}
                     </label>
                     <CustomDatePicker
@@ -117,10 +117,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Guests */}
-                <div className="flex items-center gap-4 px-5 py-4 flex-1 hover:bg-slate-50 rounded-2xl transition-colors">
+                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors min-w-[160px]">
                   <Users className="text-indigo-600 flex-shrink-0" size={24} />
                   <div className="flex-1">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
                       {t('home.search.guests')}
                     </label>
                     <div className="flex items-center gap-3">
