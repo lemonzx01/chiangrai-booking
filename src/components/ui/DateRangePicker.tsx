@@ -249,7 +249,7 @@ const DateRangePicker = ({
 
       {/* Calendar Popup */}
       {isOpen && (
-        <div className="absolute top-full -left-12 mt-3 z-50 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-up w-full md:w-auto md:min-w-[680px]">
+        <div className="absolute top-full -left-12 mt-3 z-50 bg-white rounded-xl shadow-2xl border-2 border-indigo-500 overflow-hidden animate-scale-up w-full md:w-auto md:min-w-[680px]">
           {/* Header with selected dates */}
           <div className="bg-white border-b border-slate-200 px-6 py-4">
             <div className="flex items-center gap-6">

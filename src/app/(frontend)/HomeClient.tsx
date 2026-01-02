@@ -94,11 +94,11 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
 
           {/* Search Box */}
           <div className="mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
-            <div className="bg-[#ffffff] rounded-2xl shadow-2xl p-3 overflow-visible backdrop-blur-none">
-              <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-2 lg:gap-0 overflow-visible items-center">
+            <div className="bg-[#ffffff] rounded-2xl shadow-2xl overflow-visible backdrop-blur-none border-2 border-slate-200">
+              <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-0 overflow-visible items-stretch">
                 {/* Destination */}
-                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200 overflow-visible relative z-30">
-                  <MapPin className="text-indigo-600 flex-shrink-0" size={20} />
+                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-slate-200 cursor-pointer group">
+                  <MapPin className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="overflow-visible min-w-[140px]">
                     <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.destination')}
@@ -118,8 +118,8 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Date Range */}
-                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200">
-                  <Calendar className="text-indigo-600 flex-shrink-0" size={20} />
+                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 cursor-pointer group">
+                  <Calendar className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="flex-1 min-w-0">
                     <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {lang === 'th' ? 'วันที่เข้าพัก - คืน' : 'Check-in - Check-out'}
@@ -136,28 +136,28 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Guests */}
-                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200">
-                  <Users className="text-indigo-600 flex-shrink-0" size={20} />
-                  <div className="min-w-[100px]">
+                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 group">
+                  <Users className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
+                  <div className="min-w-[120px]">
                     <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.guests')}
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed font-bold"
                         disabled={guests <= 1}
                       >
-                        <Minus size={14} />
+                        <Minus size={16} />
                       </button>
-                      <span className="text-base text-slate-800 font-bold min-w-[24px] text-center">
+                      <span className="text-lg text-slate-900 font-bold min-w-[32px] text-center">
                         {guests}
                       </span>
                       <button
                         onClick={() => setGuests(guests + 1)}
-                        className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center font-bold"
                       >
-                        <Plus size={14} />
+                        <Plus size={16} />
                       </button>
                     </div>
                   </div>
@@ -166,9 +166,9 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/30 lg:ml-2 h-[60px]"
+                  className="flex items-center justify-center gap-2 px-8 py-4 m-2 bg-indigo-600 text-white rounded-xl font-bold text-base hover:bg-indigo-700 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[70px]"
                 >
-                  <Search size={18} className="flex-shrink-0" />
+                  <Search size={20} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('home.search.button')}</span>
                 </button>
               </div>

@@ -55,7 +55,7 @@ export default function CustomSelect({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full -left-12 mt-3 bg-white rounded-xl z-50 w-[240px] border border-slate-200 shadow-2xl overflow-hidden animate-scale-up">
+        <div className="absolute top-full -left-12 mt-3 bg-white rounded-xl z-50 w-[240px] border-2 border-indigo-500 shadow-2xl overflow-hidden animate-scale-up">
           <div className="p-2">
             <div className="flex flex-col gap-1">
               {options.map((option) => (
