@@ -93,14 +93,14 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </div>
 
           {/* Search Box */}
-          <div className="mt-14 max-w-4xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
-            <div className="bg-[#ffffff] rounded-2xl shadow-2xl p-4 overflow-visible backdrop-blur-none">
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1fr_auto] gap-2 lg:gap-0 overflow-visible">
+          <div className="mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
+            <div className="bg-[#ffffff] rounded-2xl shadow-2xl p-3 overflow-visible backdrop-blur-none">
+              <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-2 lg:gap-0 overflow-visible items-center">
                 {/* Destination */}
                 <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200 overflow-visible relative z-30">
                   <MapPin className="text-indigo-600 flex-shrink-0" size={20} />
-                  <div className="flex-1 min-w-0 overflow-visible">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                  <div className="overflow-visible min-w-[140px]">
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.destination')}
                     </label>
                     <CustomSelect
@@ -121,7 +121,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200">
                   <Calendar className="text-indigo-600 flex-shrink-0" size={20} />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {lang === 'th' ? 'วันที่เข้าพัก - คืน' : 'Check-in - Check-out'}
                     </label>
                     <DateRangePicker
@@ -136,10 +136,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Guests */}
-                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors">
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200">
                   <Users className="text-indigo-600 flex-shrink-0" size={20} />
-                  <div className="flex-1">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                  <div className="min-w-[100px]">
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.guests')}
                     </label>
                     <div className="flex items-center gap-2">
@@ -166,10 +166,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/30 whitespace-nowrap lg:ml-2"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/30 lg:ml-2 h-[60px]"
                 >
-                  <Search size={18} />
-                  <span>{t('home.search.button')}</span>
+                  <Search size={18} className="flex-shrink-0" />
+                  <span className="whitespace-nowrap">{t('home.search.button')}</span>
                 </button>
               </div>
             </div>
