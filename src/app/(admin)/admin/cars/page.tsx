@@ -5,6 +5,7 @@ import { Plus, Pencil } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import DeleteCarButton from './DeleteButton'
 import { Car } from '@/types'
+import { MOCK_CARS } from '@/lib/constants'
 
 export const metadata = {
   title: 'จัดการรถเช่า | Admin',
@@ -16,6 +17,15 @@ async function getCars(): Promise<Car[]> {
     .from('cars')
     .select('*')
     .order('created_at', { ascending: false })
+  
+  // Use Mock Data if no data from Supabase
+  if (!data || data.length === 0) {
+    return MOCK_CARS.map(car => ({
+      ...car,
+      updated_at: car.created_at,
+    })) as Car[]
+  }
+
   return (data || []) as Car[]
 }
 

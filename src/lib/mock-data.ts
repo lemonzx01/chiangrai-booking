@@ -1,0 +1,298 @@
+import type { Admin, Booking, Payment, DashboardStats } from '@/types'
+import { BookingStatus, BookingType, PaymentStatus } from '@/types'
+import { MOCK_HOTELS, MOCK_CARS } from './constants'
+
+// Mock Admin User
+// Password: admin123
+export const MOCK_ADMINS: Admin[] = [
+  {
+    id: 'mock-admin-1',
+    email: 'admin@gotjourneythailand.com',
+    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    name: 'Admin User',
+    role: 'admin',
+    is_active: true,
+    last_login: new Date().toISOString(),
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+    updated_at: new Date().toISOString(),
+  },
+]
+
+// Helper to generate booking code
+function generateBookingCode(): string {
+  const date = new Date()
+  const dateStr = date.toISOString().slice(2, 10).replace(/-/g, '')
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+  return `TE${dateStr}-${random}`
+}
+
+// Helper to calculate nights/days
+function calculateNights(checkIn: string, checkOut: string): number {
+  const start = new Date(checkIn)
+  const end = new Date(checkOut)
+  return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+// Mock Bookings
+export const MOCK_BOOKINGS: Booking[] = [
+  {
+    id: 'mock-booking-1',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.HOTEL,
+    hotel_id: MOCK_HOTELS[0].id,
+    check_in_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+    check_out_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 10 days from now
+    number_of_guests: 2,
+    customer_name: 'สมชาย ใจดี',
+    customer_email: 'somchai@example.com',
+    customer_phone: '+66 81 234 5678',
+    customer_line: '@somchai123',
+    special_requests: 'ต้องการห้องที่มองเห็นทะเล',
+    total_price: MOCK_HOTELS[0].price_per_night * 3,
+    status: BookingStatus.CONFIRMED,
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    hotel: MOCK_HOTELS[0],
+  },
+  {
+    id: 'mock-booking-2',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.CAR,
+    car_id: MOCK_CARS[0].id,
+    check_in_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now
+    check_out_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6 days from now
+    number_of_guests: 2,
+    customer_name: 'John Smith',
+    customer_email: 'john.smith@example.com',
+    customer_phone: '+66 82 345 6789',
+    total_price: MOCK_CARS[0].price_per_day * 3,
+    status: BookingStatus.PAID,
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+    updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+    car: MOCK_CARS[0],
+  },
+  {
+    id: 'mock-booking-3',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.HOTEL,
+    hotel_id: MOCK_HOTELS[1].id,
+    check_in_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
+    check_out_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 2 days ago
+    number_of_guests: 4,
+    customer_name: 'มานะ ขยันดี',
+    customer_email: 'mana@example.com',
+    customer_phone: '+66 83 456 7890',
+    total_price: MOCK_HOTELS[1].price_per_night * 3,
+    status: BookingStatus.COMPLETED,
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    hotel: MOCK_HOTELS[1],
+  },
+  {
+    id: 'mock-booking-4',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.COMBO,
+    hotel_id: MOCK_HOTELS[2].id,
+    car_id: MOCK_CARS[1].id,
+    check_in_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 14 days from now
+    check_out_date: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 18 days from now
+    number_of_guests: 2,
+    customer_name: 'Sarah Johnson',
+    customer_email: 'sarah.j@example.com',
+    customer_phone: '+66 84 567 8901',
+    customer_line: '@sarahj',
+    special_requests: 'Honeymoon package - please arrange flowers',
+    total_price: (MOCK_HOTELS[2].price_per_night * 4) + (MOCK_CARS[1].price_per_day * 4),
+    status: BookingStatus.PENDING,
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    hotel: MOCK_HOTELS[2],
+    car: MOCK_CARS[1],
+  },
+  {
+    id: 'mock-booking-5',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.CAR,
+    car_id: MOCK_CARS[1].id,
+    check_in_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 10 days ago
+    check_out_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
+    number_of_guests: 7,
+    customer_name: 'ครอบครัว สุขสันต์',
+    customer_email: 'family@example.com',
+    customer_phone: '+66 85 678 9012',
+    total_price: MOCK_CARS[1].price_per_day * 3,
+    status: BookingStatus.COMPLETED,
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    car: MOCK_CARS[1],
+  },
+  {
+    id: 'mock-booking-6',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.HOTEL,
+    hotel_id: MOCK_HOTELS[0].id,
+    check_in_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 21 days from now
+    check_out_date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 25 days from now
+    number_of_guests: 2,
+    customer_name: 'David Lee',
+    customer_email: 'david.lee@example.com',
+    customer_phone: '+66 86 789 0123',
+    total_price: MOCK_HOTELS[0].price_per_night * 4,
+    status: BookingStatus.CONFIRMED,
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    hotel: MOCK_HOTELS[0],
+  },
+  {
+    id: 'mock-booking-7',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.CAR,
+    car_id: MOCK_CARS[0].id,
+    check_in_date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 20 days ago
+    check_out_date: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 18 days ago
+    number_of_guests: 2,
+    customer_name: 'นิดา รักสวย',
+    customer_email: 'nida@example.com',
+    customer_phone: '+66 87 890 1234',
+    total_price: MOCK_CARS[0].price_per_day * 2,
+    status: BookingStatus.CANCELLED,
+    created_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+    updated_at: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString(), // 19 days ago
+    car: MOCK_CARS[0],
+  },
+  {
+    id: 'mock-booking-8',
+    booking_code: generateBookingCode(),
+    booking_type: BookingType.HOTEL,
+    hotel_id: MOCK_HOTELS[1].id,
+    check_in_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+    check_out_date: new Date(Date.now() + 33 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 33 days from now
+    number_of_guests: 4,
+    customer_name: 'วิไล ใจกว้าง',
+    customer_email: 'wilai@example.com',
+    customer_phone: '+66 88 901 2345',
+    total_price: MOCK_HOTELS[1].price_per_night * 3,
+    status: BookingStatus.PENDING,
+    created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    hotel: MOCK_HOTELS[1],
+  },
+]
+
+// Mock Payments
+export const MOCK_PAYMENTS: Payment[] = [
+  {
+    id: 'mock-payment-1',
+    booking_id: MOCK_BOOKINGS[1].id, // John Smith's booking
+    stripe_checkout_session_id: 'cs_test_1234567890',
+    amount: MOCK_BOOKINGS[1].total_price,
+    currency: 'THB',
+    status: PaymentStatus.SUCCEEDED,
+    paid_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+    updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+    booking: MOCK_BOOKINGS[1],
+  },
+  {
+    id: 'mock-payment-2',
+    booking_id: MOCK_BOOKINGS[2].id, // มานะ's booking
+    stripe_checkout_session_id: 'cs_test_0987654321',
+    amount: MOCK_BOOKINGS[2].total_price,
+    currency: 'THB',
+    status: PaymentStatus.SUCCEEDED,
+    paid_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+    updated_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+    booking: MOCK_BOOKINGS[2],
+  },
+  {
+    id: 'mock-payment-3',
+    booking_id: MOCK_BOOKINGS[4].id, // ครอบครัว สุขสันต์'s booking
+    stripe_checkout_session_id: 'cs_test_1122334455',
+    amount: MOCK_BOOKINGS[4].total_price,
+    currency: 'THB',
+    status: PaymentStatus.SUCCEEDED,
+    paid_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+    updated_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+    booking: MOCK_BOOKINGS[4],
+  },
+  {
+    id: 'mock-payment-4',
+    booking_id: MOCK_BOOKINGS[5].id, // David Lee's booking
+    stripe_checkout_session_id: 'cs_test_5566778899',
+    amount: MOCK_BOOKINGS[5].total_price,
+    currency: 'THB',
+    status: PaymentStatus.PENDING,
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    booking: MOCK_BOOKINGS[5],
+  },
+]
+
+// Calculate Dashboard Stats from Mock Data
+export function calculateMockStats(): DashboardStats {
+  const totalBookings = MOCK_BOOKINGS.length
+  const totalRevenue = MOCK_PAYMENTS
+    .filter(p => p.status === PaymentStatus.SUCCEEDED)
+    .reduce((sum, p) => sum + p.amount, 0)
+  
+  const pendingBookings = MOCK_BOOKINGS.filter(
+    b => b.status === BookingStatus.PENDING
+  ).length
+  
+  const confirmedBookings = MOCK_BOOKINGS.filter(
+    b => b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.PAID
+  ).length
+  
+  const totalHotels = MOCK_HOTELS.length
+  const totalCars = MOCK_CARS.length
+
+  return {
+    totalBookings,
+    totalRevenue,
+    pendingBookings,
+    confirmedBookings,
+    totalHotels,
+    totalCars,
+  }
+}
+
+// Helper function to find admin by email (for mock login)
+export function findMockAdmin(email: string): Admin | undefined {
+  return MOCK_ADMINS.find(admin => admin.email === email && admin.is_active)
+}
+
+// Helper function to find booking by code
+export function findMockBookingByCode(code: string): Booking | undefined {
+  return MOCK_BOOKINGS.find(booking => booking.booking_code === code)
+}
+
+// Helper function to get bookings with filters
+export function getMockBookings(filters?: {
+  status?: BookingStatus
+  booking_type?: BookingType
+  limit?: number
+  offset?: number
+}): Booking[] {
+  let bookings = [...MOCK_BOOKINGS]
+
+  if (filters?.status) {
+    bookings = bookings.filter(b => b.status === filters.status)
+  }
+
+  if (filters?.booking_type) {
+    bookings = bookings.filter(b => b.booking_type === filters.booking_type)
+  }
+
+  // Sort by created_at descending (newest first)
+  bookings.sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
+  const offset = filters?.offset || 0
+  const limit = filters?.limit || bookings.length
+
+  return bookings.slice(offset, offset + limit)
+}
+

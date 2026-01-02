@@ -1,6 +1,7 @@
 'use client'
 
 import { createBrowserClient } from '@supabase/ssr'
+import { createMockSupabaseClient } from './mock-client'
 
 // Check if Supabase is configured
 const isSupabaseConfigured = () => {
@@ -11,43 +12,10 @@ const isSupabaseConfigured = () => {
   )
 }
 
-// Mock client for browser
-const createMockClient = () => {
-  return {
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          order: () => ({
-            limit: () => Promise.resolve({ data: [], error: null }),
-            single: () => Promise.resolve({ data: null, error: null }),
-          }),
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-        order: () => ({
-          limit: () => Promise.resolve({ data: [], error: null }),
-        }),
-        single: () => Promise.resolve({ data: null, error: null }),
-      }),
-      insert: () => ({
-        select: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-      }),
-      update: () => ({
-        eq: () => Promise.resolve({ data: null, error: null }),
-      }),
-    }),
-    auth: {
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    },
-  }
-}
-
 export function createClient() {
   if (!isSupabaseConfigured()) {
     console.log('⚠️ Supabase not configured - using mock browser client')
-    return createMockClient() as any
+    return createMockSupabaseClient() as any
   }
 
   return createBrowserClient(

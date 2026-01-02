@@ -1,8 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
-import { Building2, Car, Calendar, DollarSign } from 'lucide-react'
+import { Building2, Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { BookingStatus } from '@/types'
+import { calculateMockStats, MOCK_BOOKINGS, MOCK_HOTELS, MOCK_CARS } from '@/lib/mock-data'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Dashboard | Admin',
@@ -21,6 +23,17 @@ async function getStats() {
     supabase.from('bookings').select('*', { count: 'exact', head: true }),
     supabase.from('bookings').select('total_price').eq('status', 'PAID'),
   ])
+
+  // Use Mock Data if no data from Supabase
+  if (!hotelsRes.count && !carsRes.count && !bookingsRes.count) {
+    const mockStats = calculateMockStats()
+    return {
+      totalHotels: mockStats.totalHotels,
+      totalCars: mockStats.totalCars,
+      totalBookings: mockStats.totalBookings,
+      totalRevenue: mockStats.totalRevenue,
+    }
+  }
 
   const revenueData = (revenueRes.data || []) as RevenueRow[]
   const totalRevenue = revenueData.reduce((sum: number, b: RevenueRow) => sum + Number(b.total_price), 0)
@@ -50,6 +63,20 @@ async function getRecentBookings(): Promise<RecentBooking[]> {
     .select('*, hotel:hotels(name_th), car:cars(name_th)')
     .order('created_at', { ascending: false })
     .limit(5)
+
+  // Use Mock Data if no data from Supabase
+  if (!data || data.length === 0) {
+    return MOCK_BOOKINGS.slice(0, 5).map(booking => ({
+      id: booking.id,
+      booking_code: booking.booking_code,
+      customer_name: booking.customer_name,
+      total_price: booking.total_price,
+      status: booking.status,
+      hotel: booking.hotel ? { name_th: booking.hotel.name_th } : null,
+      car: booking.car ? { name_th: booking.car.name_th } : null,
+    }))
+  }
+
   return (data || []) as RecentBooking[]
 }
 
@@ -88,27 +115,64 @@ export default async function DashboardPage() {
     <div className="flex">
       <AdminSidebar />
       <main className="flex-1 ml-64 p-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">Dashboard</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+            <p className="text-slate-500 mt-1">ภาพรวมระบบและการจองล่าสุด</p>
+          </div>
+          <div className="flex gap-3">
+            <Link
+              href="/admin/hotels"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+            >
+              <Plus size={18} />
+              เพิ่มโรงแรม
+            </Link>
+            <Link
+              href="/admin/cars"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+            >
+              <Plus size={18} />
+              เพิ่มรถ
+            </Link>
+          </div>
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((stat) => (
-            <div key={stat.title} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <Link
+              key={stat.title}
+              href={
+                stat.title.includes('โรงแรม') ? '/admin/hotels' :
+                stat.title.includes('รถ') ? '/admin/cars' :
+                '/admin/bookings'
+              }
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
+            >
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.color}`}>
+                <div className={`p-3 rounded-xl ${stat.color} group-hover:scale-110 transition-transform`}>
                   <stat.icon size={24} className="text-white" />
                 </div>
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
               </div>
               <p className="text-slate-500 text-sm mb-1">{stat.title}</p>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-            </div>
+              <p className="text-2xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{stat.value}</p>
+            </Link>
           ))}
         </div>
 
         {/* Recent Bookings */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
-          <div className="p-6 border-b border-slate-100">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900">การจองล่าสุด</h2>
+            <Link
+              href="/admin/bookings"
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+            >
+              ดูทั้งหมด
+              <ArrowRight size={14} />
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -123,25 +187,32 @@ export default async function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {recentBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm font-medium text-indigo-600">
-                      {booking.booking_code}
+                  <tr key={booking.id} className="hover:bg-indigo-50/50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium">
+                      <Link href="/admin/bookings" className="text-indigo-600 hover:text-indigo-700">
+                        {booking.booking_code}
+                      </Link>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">{booking.customer_name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500">
+                    <td className="px-6 py-4 text-sm text-slate-900 font-medium">{booking.customer_name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
                       {booking.hotel?.name_th || booking.car?.name_th || '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900">
                       {formatCurrency(booking.total_price)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-bold ${
                         booking.status === 'PAID' ? 'bg-green-100 text-green-700' :
                         booking.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-700' :
                         booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-red-100 text-red-700'
                       }`}>
-                        {booking.status}
+                        {booking.status === 'PAID' ? 'ชำระแล้ว' :
+                         booking.status === 'CONFIRMED' ? 'ยืนยันแล้ว' :
+                         booking.status === 'PENDING' ? 'รอดำเนินการ' :
+                         booking.status === 'CANCELLED' ? 'ยกเลิก' :
+                         booking.status === 'COMPLETED' ? 'เสร็จสิ้น' :
+                         booking.status}
                       </span>
                     </td>
                   </tr>

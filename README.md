@@ -1,4 +1,4 @@
-# 🌏 Waygo Thailand - Travel Booking Platform
+# 🌏 Got Journey Thailand - Travel Booking Platform
 
 Next.js fullstack application สำหรับจองแพ็คเกจท่องเที่ยว รถเช่า และที่พัก
 
@@ -74,7 +74,7 @@ LINE_NOTIFY_TOKEN=your-token
 
 INSERT INTO admins (email, password_hash, name, role, is_active)
 VALUES (
-  'admin@waygo.com',
+  'admin@gotjourneythailand.com',
   '$2a$10$xxx...your-hash-here',
   'Admin',
   'super_admin',
@@ -209,11 +209,11 @@ MIT License - see LICENSE file
 
 ## 📞 Support
 
-- Email: support@waygo-thailand.com
+- Email: support@gotjourneythailand.com
 - Documentation: /docs
 - Issues: GitHub Issues
 
 ---
 
-Made with ❤️ by Waygo Thailand Team
+Made with ❤️ by Got Journey Thailand Team
 \`\`\`

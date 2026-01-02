@@ -21,7 +21,9 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+      const secret = new TextEncoder().encode(
+        process.env.JWT_SECRET || 'development-secret-key-12345'
+      )
       await jwtVerify(token, secret)
     } catch {
       // Token is invalid or expired

@@ -59,25 +59,25 @@ export default function CustomSelect({
           <div className="p-2">
             <div className="flex flex-col gap-1">
               {options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value)
-                    setIsOpen(false)
-                  }}
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value)
+                setIsOpen(false)
+              }}
                   className={`flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-all ${
-                    value === option.value
+                value === option.value
                       ? 'bg-indigo-600 text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
-                >
+            >
                   <MapPin size={16} className={`flex-shrink-0 ${value === option.value ? 'text-white' : 'text-indigo-600'}`} />
                   <span className="text-sm font-semibold">{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+            </button>
+          ))}
+        </div>
+      </div>
         </div>
       )}
     </div>

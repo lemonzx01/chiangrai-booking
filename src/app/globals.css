@@ -161,54 +161,40 @@ select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border: none;
 }
 
-select:focus {
-  outline: none;
-  border: none;
-  box-shadow: none;
-}
-
-/* Dropdown options styling */
+/* Dropdown options styling - Modern and clean */
 select option {
-  padding: 10px 14px;
+  padding: 12px 16px;
   background-color: white;
   color: #1e293b;
   font-weight: 500;
-  font-size: 14px;
-  line-height: 1.6;
-  min-height: 40px;
-}
-
-select option:first-child {
-  border-top: none;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 44px;
 }
 
 select option:hover {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
   color: #4f46e5;
 }
 
-select option:checked {
-  background: linear-gradient(to right, #eef2ff 0%, #e0e7ff 100%);
-  color: #4338ca;
+select option:checked,
+select option:focus {
+  background-color: #4f46e5;
+  color: white;
   font-weight: 600;
 }
 
-/* Better dropdown box */
-select:focus {
-  outline: none;
-}
-
-/* For WebKit browsers (Chrome, Safari) */
+/* For WebKit browsers (Chrome, Safari) - Better dropdown appearance */
 select option:checked {
-  background: #e0e7ff linear-gradient(0deg, #e0e7ff 0%, #e0e7ff 100%);
-  color: #4338ca;
+  background-color: #4f46e5 !important;
+  color: white !important;
 }
 
 select option:hover:not(:checked) {
   background-color: #f1f5f9;
+  color: #1e293b;
 }
 
 /* Button loading state */

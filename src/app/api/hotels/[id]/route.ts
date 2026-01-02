@@ -27,13 +27,32 @@ export async function GET(request: Request, { params }: Params) {
   }
 }
 
+// Check if we're in mock mode
+const isMockMode = () => {
+  return !(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
+  )
+}
+
 // PUT /api/hotels/[id] - Update hotel (admin only)
 export async function PUT(request: Request, { params }: Params) {
   try {
     const { id } = await params
-    const supabase = await createAdminClient()
     const body = await request.json()
 
+    // Mock Mode: Just return success
+    if (isMockMode()) {
+      return NextResponse.json({
+        ...body,
+        id,
+        updated_at: new Date().toISOString(),
+      })
+    }
+
+    // Production Mode: Use Supabase
+    const supabase = await createAdminClient()
     const { data, error } = await supabase
       .from('hotels')
       .update(body)
@@ -46,8 +65,9 @@ export async function PUT(request: Request, { params }: Params) {
     }
 
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Update hotel error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 

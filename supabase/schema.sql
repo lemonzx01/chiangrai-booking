@@ -314,7 +314,7 @@ INSERT INTO cars (name_th, name_en, description_th, description_en, car_type_th,
   true
 );
 
--- Insert default admin (password: admin123 - CHANGE THIS IN PRODUCTION!)
--- Password hash for 'admin123' using bcrypt
-INSERT INTO admins (email, password_hash, name, role, is_active) VALUES
-('admin@travelease.com', '$2a$10$rQnM1jLvKxV5rQnM1jLvKeXvHvT5K5vQnM1jLvKxV5rQnM1jLvKeX', 'Admin', 'admin', true);
+-- ===========================================
+-- NOTE: Seed data has been moved to seed-data.sql
+-- Run schema.sql first, then run seed-data.sql
+-- ===========================================

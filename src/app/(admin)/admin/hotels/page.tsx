@@ -5,6 +5,7 @@ import { Plus, Pencil } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import DeleteHotelButton from './DeleteButton'
 import { Hotel } from '@/types'
+import { MOCK_HOTELS } from '@/lib/constants'
 
 export const metadata = {
   title: 'จัดการโรงแรม | Admin',
@@ -16,6 +17,16 @@ async function getHotels(): Promise<Hotel[]> {
     .from('hotels')
     .select('*')
     .order('created_at', { ascending: false })
+  
+  // Use Mock Data if no data from Supabase
+  if (!data || data.length === 0) {
+    return MOCK_HOTELS.map(hotel => ({
+      ...hotel,
+      location: hotel.location_th || hotel.location_en || '',
+      updated_at: hotel.created_at,
+    })) as Hotel[]
+  }
+
   return (data || []) as Hotel[]
 }
 

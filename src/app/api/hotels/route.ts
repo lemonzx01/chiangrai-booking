@@ -38,12 +38,33 @@ export async function GET(request: Request) {
   }
 }
 
+// Check if we're in mock mode
+const isMockMode = () => {
+  return !(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
+  )
+}
+
 // POST /api/hotels - Create new hotel (admin only)
 export async function POST(request: Request) {
   try {
-    const supabase = await createAdminClient()
     const body = await request.json()
 
+    // Mock Mode: Just return success with generated ID
+    if (isMockMode()) {
+      const newHotel = {
+        id: `mock-hotel-${Date.now()}`,
+        ...body,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      return NextResponse.json(newHotel, { status: 201 })
+    }
+
+    // Production Mode: Use Supabase
+    const supabase = await createAdminClient()
     const { data, error } = await supabase
       .from('hotels')
       .insert(body)
@@ -55,7 +76,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(data, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Create hotel error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

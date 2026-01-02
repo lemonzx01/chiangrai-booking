@@ -3,6 +3,7 @@ import AdminSidebar from '@/components/admin/Sidebar'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import BookingStatusSelect from './StatusSelect'
 import { BookingStatus } from '@/types'
+import { MOCK_BOOKINGS } from '@/lib/mock-data'
 
 export const metadata = {
   title: 'จัดการการจอง | Admin',
@@ -28,6 +29,24 @@ async function getBookings(): Promise<BookingRow[]> {
     .from('bookings')
     .select('*, hotel:hotels(name_th), car:cars(name_th)')
     .order('created_at', { ascending: false })
+
+  // Use Mock Data if no data from Supabase
+  if (!data || data.length === 0) {
+    return MOCK_BOOKINGS.map(booking => ({
+      id: booking.id,
+      booking_code: booking.booking_code,
+      customer_name: booking.customer_name,
+      customer_email: booking.customer_email,
+      customer_phone: booking.customer_phone,
+      check_in_date: booking.check_in_date,
+      check_out_date: booking.check_out_date,
+      total_price: booking.total_price,
+      status: booking.status,
+      hotel: booking.hotel ? { name_th: booking.hotel.name_th } : null,
+      car: booking.car ? { name_th: booking.car.name_th } : null,
+    }))
+  }
+
   return (data || []) as BookingRow[]
 }
 

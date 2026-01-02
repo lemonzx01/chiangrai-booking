@@ -122,20 +122,20 @@ const DateRangePicker = ({
     const weeks: Date[][] = []
     for (let i = 0; i < days.length; i += 7) {
       weeks.push(days.slice(i, i + 7))
-    }
+  }
 
-    return (
+  return (
       <div className="flex-1 min-w-[280px]">
         {/* Month Header */}
         <div className="flex items-center justify-between px-5 py-4 bg-white">
           {monthOffset === 0 ? (
-            <button
-              type="button"
+          <button
+            type="button"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
               className="p-2 hover:bg-slate-100 rounded-lg transition-all"
-            >
+          >
               <ChevronLeft size={20} className="text-slate-600" />
-            </button>
+          </button>
           ) : (
             <div className="w-10" />
           )}
@@ -289,15 +289,15 @@ const DateRangePicker = ({
             >
               {lang === 'th' ? 'ล้างข้อมูล' : 'Clear'}
             </button>
-            <button
-              type="button"
+          <button
+            type="button"
               onClick={handleConfirm}
               disabled={!tempStartDate || !tempEndDate}
               className="flex items-center gap-2 px-8 py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all shadow-lg"
-            >
+          >
               <Search size={18} />
               {lang === 'th' ? 'ค้นหา' : 'Search'}
-            </button>
+          </button>
           </div>
         </div>
       )}

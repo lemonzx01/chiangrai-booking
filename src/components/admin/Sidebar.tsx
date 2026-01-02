@@ -16,8 +16,11 @@ export default function AdminSidebar() {
   const router = useRouter()
 
   const handleLogout = async () => {
-    await fetch('/api/admin/auth', { method: 'DELETE' })
-    router.push('/admin/login')
+    if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+      await fetch('/api/admin/auth', { method: 'DELETE' })
+      router.push('/admin/login')
+      router.refresh()
+    }
   }
 
   return (

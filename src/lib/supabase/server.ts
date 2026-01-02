@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createMockSupabaseClient } from './mock-client'
 
 // Check if Supabase is configured
 const isSupabaseConfigured = () => {
@@ -10,56 +11,11 @@ const isSupabaseConfigured = () => {
   )
 }
 
-// Mock Supabase client for when credentials are not available
-const createMockClient = () => {
-  return {
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          order: () => ({
-            limit: () => Promise.resolve({ data: [], error: null }),
-            single: () => Promise.resolve({ data: null, error: null }),
-          }),
-          single: () => Promise.resolve({ data: null, error: null }),
-          limit: () => Promise.resolve({ data: [], error: null }),
-        }),
-        order: () => ({
-          limit: () => Promise.resolve({ data: [], error: null }),
-        }),
-        single: () => Promise.resolve({ data: null, error: null }),
-        limit: () => Promise.resolve({ data: [], error: null }),
-      }),
-      insert: () => ({
-        select: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-      }),
-      update: () => ({
-        eq: () => Promise.resolve({ data: null, error: null }),
-      }),
-      delete: () => ({
-        eq: () => Promise.resolve({ data: null, error: null }),
-      }),
-    }),
-    auth: {
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Mock mode - no auth' } }),
-      signOut: () => Promise.resolve({ error: null }),
-    },
-    storage: {
-      from: () => ({
-        upload: () => Promise.resolve({ data: null, error: null }),
-        getPublicUrl: () => ({ data: { publicUrl: '' } }),
-      }),
-    },
-  }
-}
-
 export async function createClient() {
   // Return mock client if Supabase is not configured
   if (!isSupabaseConfigured()) {
     console.log('⚠️ Supabase not configured - using mock client')
-    return createMockClient() as any
+    return createMockSupabaseClient() as any
   }
 
   const cookieStore = await cookies()
@@ -96,7 +52,7 @@ export async function createAdminClient() {
   // Return mock client if Supabase is not configured
   if (!isSupabaseConfigured()) {
     console.log('⚠️ Supabase not configured - using mock admin client')
-    return createMockClient() as any
+    return createMockSupabaseClient() as any
   }
 
   const cookieStore = await cookies()
