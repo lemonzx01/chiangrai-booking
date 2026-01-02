@@ -15,7 +15,7 @@ const resources = {
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: typeof window !== 'undefined' ? localStorage.getItem('lng') || 'th' : 'th',
+  lng: 'th', // Always start with Thai to prevent hydration mismatch
   fallbackLng: 'th',
   defaultNS: 'common',
   interpolation: {

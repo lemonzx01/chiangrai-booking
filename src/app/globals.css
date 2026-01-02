@@ -225,6 +225,16 @@ select option:hover:not(:checked) {
   z-index: 9999 !important;
 }
 
+.react-datepicker-popper[data-placement^="bottom"] {
+  padding-top: 5px !important;
+  margin-top: 5px !important;
+  margin-left: -30px !important;
+}
+
+.react-datepicker-popper[data-placement^="top"] {
+  padding-bottom: 4px !important;
+}
+
 .react-datepicker {
   font-family: inherit !important;
   border: none !important;
@@ -293,8 +303,10 @@ select option:hover:not(:checked) {
   color: #4f46e5 !important;
 }
 
-.react-datepicker__day--today.react-datepicker__day--selected {
+.react-datepicker__day--today.react-datepicker__day--selected,
+.react-datepicker__day--today.react-datepicker__day--keyboard-selected {
   color: white !important;
+  background-color: #4f46e5 !important;
 }
 
 .react-datepicker__day--disabled {

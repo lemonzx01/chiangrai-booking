@@ -6,6 +6,7 @@ import { ChevronDown, Check } from 'lucide-react'
 interface Option {
   value: string
   label: string
+  code?: string
 }
 
 interface CustomSelectProps {
@@ -41,22 +42,24 @@ export default function CustomSelect({
 
   return (
     <div ref={selectRef} className={`relative ${className}`}>
+      {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-lg text-slate-800 font-semibold bg-transparent outline-none cursor-pointer text-left"
+        className="w-full flex items-center justify-between text-base text-slate-800 font-semibold bg-transparent outline-none cursor-pointer text-left gap-2"
       >
-        <span className={selectedOption ? 'text-slate-800' : 'text-slate-400'}>
+        <span className={selectedOption ? 'text-indigo-600' : 'text-slate-400'}>
           {selectedOption?.label || placeholder}
         </span>
         <ChevronDown
-          size={18}
-          className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          size={16}
+          className={`text-indigo-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
+      {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 min-w-[200px] animate-scale-up origin-top">
+        <div className="absolute top-full -left-12 mt-1 bg-white rounded-lg z-50 min-w-[180px] border-2 border-indigo-500 shadow-lg overflow-hidden">
           {options.map((option) => (
             <button
               key={option.value}
@@ -65,13 +68,15 @@ export default function CustomSelect({
                 onChange(option.value)
                 setIsOpen(false)
               }}
-              className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                value === option.value ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700'
+              className={`w-full flex items-center justify-between px-4 py-3 text-left transition-all duration-150 ${
+                value === option.value
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <span className="font-medium">{option.label}</span>
+              <span className="text-sm font-medium">{option.label}</span>
               {value === option.value && (
-                <Check size={16} className="text-indigo-600" />
+                <Check size={16} className="text-white flex-shrink-0" />
               )}
             </button>
           ))}

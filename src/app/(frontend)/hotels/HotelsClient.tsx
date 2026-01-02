@@ -63,7 +63,7 @@ function CustomDropdown({
       </button>
       
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-50 max-h-72 overflow-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border-2 border-indigo-500 z-50 overflow-visible">
           {options.map((option, index) => (
             <button
               key={option.value}
@@ -72,10 +72,10 @@ function CustomDropdown({
                 onChange(option.value)
                 setIsOpen(false)
               }}
-              className={`w-full flex items-center justify-between px-5 py-3.5 transition-all text-left group
+              className={`w-full flex items-center justify-between px-4 py-3 transition-all text-left group
                 ${value === option.value 
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white' 
+                  : 'text-slate-700 hover:bg-slate-50'
                 }
                 ${index === 0 ? 'rounded-t-lg' : ''}
                 ${index === options.length - 1 ? 'rounded-b-lg' : ''}
@@ -85,9 +85,7 @@ function CustomDropdown({
                 {option.label}
               </span>
               {value === option.value && (
-                <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <Check size={12} className="text-white" strokeWidth={3} />
-                </div>
+                <Check size={16} className="text-white" strokeWidth={3} />
               )}
             </button>
           ))}
@@ -162,8 +160,8 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 -mt-8">
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="relative bg-white rounded-2xl shadow-xl p-6 mb-8 overflow-visible z-20">
+          <div className="flex flex-col lg:flex-row gap-4 overflow-visible">
             {/* Search */}
             <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
               <Search className="text-slate-400 flex-shrink-0" size={20} />

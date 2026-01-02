@@ -3,38 +3,56 @@
 import { forwardRef, useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMonth, getYear } from 'date-fns'
+import { getMonth, getYear, format } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { Locale } from 'date-fns'
 
-interface CustomDatePickerProps {
-  value?: Date | null
-  onChange: (date: Date | null) => void
+interface DateRangePickerProps {
+  startDate: Date | null
+  endDate: Date | null
+  onChange: (dates: [Date | null, Date | null]) => void
   placeholder?: string
   minDate?: Date
   locale?: Locale
 }
 
-const CustomInput = forwardRef<HTMLButtonElement, any>(({ value, onClick, placeholder }, ref) => (
-  <button
-    type="button"
-    onClick={onClick}
-    ref={ref}
-    className="w-full text-base text-slate-800 font-semibold bg-transparent outline-none cursor-pointer text-left flex items-center gap-2"
-  >
-    <span className="flex-1">{value || <span className="text-slate-400 font-semibold">{placeholder}</span>}</span>
-  </button>
-))
+const CustomInput = forwardRef<HTMLButtonElement, any>(({ value, onClick, placeholder, startDate, endDate }, ref) => {
+  const formatDisplay = () => {
+    if (startDate && endDate) {
+      return `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`
+    }
+    if (startDate) {
+      return `${format(startDate, 'dd/MM/yyyy')} - ?`
+    }
+    return null
+  }
+
+  const displayValue = formatDisplay()
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      ref={ref}
+      className="w-full text-base text-slate-800 font-semibold bg-transparent outline-none cursor-pointer text-left flex items-center gap-2"
+    >
+      <span className="flex-1">
+        {displayValue || <span className="text-slate-400 font-semibold">{placeholder}</span>}
+      </span>
+    </button>
+  )
+})
 
 CustomInput.displayName = 'CustomInput'
 
-const CustomDatePicker = ({
-  value,
+const DateRangePicker = ({
+  startDate,
+  endDate,
   onChange,
   placeholder = 'เลือกวันที่',
   minDate,
   locale,
-}: CustomDatePickerProps) => {
+}: DateRangePickerProps) => {
   const { i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -59,15 +77,21 @@ const CustomDatePicker = ({
 
   const months = lang === 'th' ? monthsTh : monthsEn
 
-  const handleDateSelect = (date: Date | null) => {
-    onChange(date)
-    setIsOpen(false)
+  const handleDateChange = (dates: [Date | null, Date | null]) => {
+    const [start, end] = dates
+    onChange(dates)
+    if (start && end) {
+      setIsOpen(false)
+    }
   }
 
   return (
     <DatePicker
-      selected={value}
-      onChange={handleDateSelect}
+      selected={startDate}
+      onChange={handleDateChange}
+      startDate={startDate}
+      endDate={endDate}
+      selectsRange
       open={isOpen}
       onInputClick={() => setIsOpen(true)}
       onClickOutside={() => setIsOpen(false)}
@@ -75,7 +99,7 @@ const CustomDatePicker = ({
       placeholderText={placeholder}
       minDate={minDate}
       locale={locale}
-      customInput={<CustomInput />}
+      customInput={<CustomInput startDate={startDate} endDate={endDate} />}
       showPopperArrow={false}
       popperPlacement="bottom-start"
       popperProps={{
@@ -140,4 +164,4 @@ const CustomDatePicker = ({
   )
 }
 
-export default CustomDatePicker
+export default DateRangePicker

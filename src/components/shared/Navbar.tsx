@@ -17,6 +17,7 @@ const NAVIGATION = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const { t } = useTranslation()
 
@@ -24,7 +25,12 @@ export default function Navbar() {
   const isHome = pathname === '/'
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
+    handleScroll() // Check initial scroll position
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -36,6 +42,21 @@ export default function Navbar() {
   if (isAdmin) return null
 
   const activeLightMode = scrolled || !isHome
+
+  // Default Thai translations for SSR to prevent hydration mismatch
+  const defaultLabels: Record<string, string> = {
+    home: 'หน้าแรก',
+    packages: 'แพ็คเกจ',
+    cars: 'รถเช่า',
+    contact: 'ติดต่อ',
+    bookNow: 'จองเลย',
+    bookPackage: 'จองแพ็คเกจ',
+  }
+
+  const getLabel = (key: string) => {
+    if (!mounted) return defaultLabels[key] || key
+    return t(`navbar.${key}`)
+  }
 
   return (
     <>
@@ -70,12 +91,12 @@ export default function Navbar() {
               </span>
             </Link>
 
-            <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+            <div className="hidden lg:flex items-center gap-1 xl:gap-2">
               {NAVIGATION.map((item) => (
                 <Link
                   key={item.key}
                   href={item.path}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  className={`px-3 xl:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${
                     pathname === item.path
                       ? activeLightMode
                         ? 'text-indigo-600 bg-indigo-50/80'
@@ -85,28 +106,28 @@ export default function Navbar() {
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {t(`navbar.${item.key}`)}
+                  {getLabel(item.key)}
                 </Link>
               ))}
               <div
-                className={`w-px h-5 mx-2 ${
+                className={`w-px h-5 mx-1 xl:mx-2 ${
                   activeLightMode ? 'bg-slate-200' : 'bg-white/20'
                 }`}
               ></div>
               <LanguageSwitcher light={activeLightMode} />
               <Link
                 href="/hotels"
-                className={`px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap ${
+                className={`ml-1 px-4 xl:px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap ${
                   activeLightMode ? 'bg-indigo-600 text-white' : 'bg-white text-slate-900'
                 }`}
               >
-                {t('navbar.bookNow')}
+                {getLabel('bookNow')}
               </Link>
             </div>
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 rounded-xl transition-colors"
+              className="lg:hidden p-2 rounded-xl transition-colors"
             >
               {isOpen ? (
                 <X size={24} className={activeLightMode ? 'text-slate-900' : 'text-white'} />
@@ -119,7 +140,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Overlay */}
         <div
-          className={`md:hidden fixed inset-0 bg-white z-40 transition-transform duration-500 ease-in-out ${
+          className={`lg:hidden fixed inset-0 bg-white z-40 transition-transform duration-500 ease-in-out ${
             isOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
@@ -130,7 +151,7 @@ export default function Navbar() {
                 href={item.path}
                 className="text-3xl font-black text-slate-900 hover:text-indigo-600 transition-colors"
               >
-                {t(`navbar.${item.key}`)}
+                {getLabel(item.key)}
               </Link>
             ))}
             <div className="mt-4 flex justify-center">
@@ -140,7 +161,7 @@ export default function Navbar() {
               href="/hotels"
               className="mt-4 bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl text-center shadow-xl active:scale-95 transition-all"
             >
-              {t('navbar.bookPackage')}
+              {getLabel('bookPackage')}
             </Link>
           </div>
         </div>

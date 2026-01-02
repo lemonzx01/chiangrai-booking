@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
@@ -8,7 +9,13 @@ interface Props {
 
 export default function LanguageSwitcher({ light = true }: Props) {
   const { i18n } = useTranslation()
-  const currentLanguage = i18n.language
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const currentLanguage = mounted ? i18n.language : 'th'
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ import { ArrowRight, Star, MapPin, Users, Search, Calendar, Minus, Plus } from '
 import { Hotel, Car } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import useLocalize from '@/hooks/useLocalize'
-import CustomDatePicker from '@/components/ui/CustomDatePicker'
+import DateRangePicker from '@/components/ui/DateRangePicker'
 import CustomSelect from '@/components/ui/CustomSelect'
 import { th } from 'date-fns/locale'
 
@@ -24,12 +24,27 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
   const router = useRouter()
   const [guests, setGuests] = useState(2)
   const [destination, setDestination] = useState('')
-  const [travelDate, setTravelDate] = useState<Date | null>(null)
+  const [startDate, setStartDate] = useState<Date | null>(null)
+  const [endDate, setEndDate] = useState<Date | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const lang = mounted ? i18n.language : 'th'
+
+  const handleDateChange = (dates: [Date | null, Date | null]) => {
+    const [start, end] = dates
+    setStartDate(start)
+    setEndDate(end)
+  }
 
   const handleSearch = () => {
     const params = new URLSearchParams()
     if (destination) params.set('destination', destination)
-    if (travelDate) params.set('date', travelDate.toISOString())
+    if (startDate) params.set('date', startDate.toISOString())
+    if (endDate) params.set('returnDate', endDate.toISOString())
     if (guests) params.set('guests', guests.toString())
     router.push(`/hotels?${params.toString()}`)
   }
@@ -37,7 +52,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
+      <section className="relative min-h-screen flex items-center justify-center overflow-visible pt-24">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -78,68 +93,71 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </div>
 
           {/* Search Box */}
-          <div className="mt-14 max-w-7xl mx-auto animate-slide-up px-4">
-            <div className="bg-white rounded-3xl shadow-2xl px-6 py-5 sm:px-10 sm:py-6">
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6">
+          <div className="mt-14 max-w-4xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
+            <div className="bg-[#ffffff] rounded-2xl shadow-2xl p-4 overflow-visible backdrop-blur-none">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1fr_auto] gap-2 lg:gap-0 overflow-visible">
                 {/* Destination */}
-                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200 min-w-[180px]">
-                  <MapPin className="text-indigo-600 flex-shrink-0" size={24} />
-                  <div className="flex-1 min-w-0">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200 overflow-visible relative z-30">
+                  <MapPin className="text-indigo-600 flex-shrink-0" size={20} />
+                  <div className="flex-1 min-w-0 overflow-visible">
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
                       {t('home.search.destination')}
                     </label>
                     <CustomSelect
                       value={destination}
                       onChange={setDestination}
-                      placeholder={i18n.language === 'th' ? 'เลือกจังหวัด' : 'Select province'}
+                      placeholder={lang === 'th' ? 'เลือกจังหวัด' : 'Select province'}
                       options={[
-                        { value: 'Chiang Rai', label: i18n.language === 'th' ? 'เชียงราย' : 'Chiang Rai' },
-                        { value: 'Chiang Mai', label: i18n.language === 'th' ? 'เชียงใหม่' : 'Chiang Mai' },
+                        { value: 'Chiang Rai', label: lang === 'th' ? 'เชียงราย' : 'Chiang Rai', code: 'CRI' },
+                        { value: 'Chiang Mai', label: lang === 'th' ? 'เชียงใหม่' : 'Chiang Mai', code: 'CNX' },
+                        { value: 'Phuket', label: lang === 'th' ? 'ภูเก็ต' : 'Phuket', code: 'HKT' },
+                        { value: 'Bangkok', label: lang === 'th' ? 'กรุงเทพฯ' : 'Bangkok', code: 'BKK' },
                       ]}
                     />
                   </div>
                 </div>
 
-                {/* Date */}
-                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors lg:border-r border-slate-200 min-w-[180px]">
-                  <Calendar className="text-indigo-600 flex-shrink-0" size={24} />
+                {/* Date Range */}
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors lg:border-r border-slate-200">
+                  <Calendar className="text-indigo-600 flex-shrink-0" size={20} />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
-                      {t('home.search.date')}
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
+                      {lang === 'th' ? 'วันที่เข้าพัก - คืน' : 'Check-in - Check-out'}
                     </label>
-                    <CustomDatePicker
-                      value={travelDate}
-                      onChange={(date) => setTravelDate(date)}
-                      placeholder={i18n.language === 'th' ? 'เลือกวันที่' : 'Select date'}
+                    <DateRangePicker
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={handleDateChange}
+                      placeholder={lang === 'th' ? 'เลือกวันที่' : 'Select dates'}
                       minDate={new Date()}
-                      locale={i18n.language === 'th' ? th : undefined}
+                      locale={lang === 'th' ? th : undefined}
                     />
                   </div>
                 </div>
 
                 {/* Guests */}
-                <div className="flex items-center gap-4 px-6 py-5 flex-1 hover:bg-slate-50 rounded-2xl transition-colors min-w-[160px]">
-                  <Users className="text-indigo-600 flex-shrink-0" size={24} />
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors">
+                  <Users className="text-indigo-600 flex-shrink-0" size={20} />
                   <div className="flex-1">
-                    <label className="block text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">
+                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1">
                       {t('home.search.guests')}
                     </label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={guests <= 1}
                       >
-                        <Minus size={18} />
+                        <Minus size={14} />
                       </button>
-                      <span className="text-lg text-slate-800 font-bold min-w-[28px] text-center">
+                      <span className="text-base text-slate-800 font-bold min-w-[24px] text-center">
                         {guests}
                       </span>
                       <button
                         onClick={() => setGuests(guests + 1)}
-                        className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center"
+                        className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all active:scale-90 flex items-center justify-center"
                       >
-                        <Plus size={18} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
@@ -148,9 +166,9 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-base hover:bg-indigo-700 transition-all active:scale-95 shadow-xl shadow-indigo-600/30 whitespace-nowrap"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/30 whitespace-nowrap lg:ml-2"
                 >
-                  <Search size={22} />
+                  <Search size={18} />
                   <span>{t('home.search.button')}</span>
                 </button>
               </div>
