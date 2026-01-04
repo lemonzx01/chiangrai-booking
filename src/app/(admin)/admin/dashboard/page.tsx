@@ -115,23 +115,23 @@ export default async function DashboardPage() {
   return (
     <div className="flex">
       <AdminSidebar />
-      <main className="flex-1 ml-64 p-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-slate-500 mt-1">ภาพรวมระบบและการจองล่าสุด</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard</h1>
+            <p className="text-slate-500 mt-1 text-sm sm:text-base">ภาพรวมระบบและการจองล่าสุด</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             <Link
               href="/admin/hotels"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base"
             >
               <Plus size={18} />
               เพิ่มโรงแรม
             </Link>
             <Link
               href="/admin/cars"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors text-sm sm:text-base"
             >
               <Plus size={18} />
               เพิ่มรถ

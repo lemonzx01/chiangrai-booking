@@ -34,17 +34,17 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
 
   return (
     <div className="min-h-screen pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link
           href="/cars"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-4 sm:mb-6 transition-colors"
         >
           <ArrowLeft size={20} />
           <span className="font-medium">{t('common.back')}</span>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           {/* Image Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
@@ -96,14 +96,14 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
               {carType}
             </span>
 
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4">{name}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4">{name}</h1>
 
-            <p className="text-slate-600 leading-relaxed mb-8">{description}</p>
+            <p className="text-slate-600 leading-relaxed mb-6 sm:mb-8 text-sm sm:text-base">{description}</p>
 
             {/* Includes */}
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">รวมในแพ็คเกจ</h3>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">รวมในแพ็คเกจ</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {includes?.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 text-slate-600">
                     <Check size={18} className="text-green-500" />
@@ -114,24 +114,24 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
             </div>
 
             {/* Info */}
-            <div className="flex items-center gap-6 mb-8 pb-8 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-slate-600 text-sm sm:text-base">
                 <Users size={18} />
                 <span>สูงสุด {car.max_passengers} ที่นั่ง</span>
               </div>
             </div>
 
             {/* Price & Book */}
-            <div className="flex items-end justify-between bg-slate-50 rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
               <div>
-                <p className="text-slate-500 text-sm mb-1">ราคาต่อวัน</p>
-                <p className="text-3xl font-black text-indigo-600">
+                <p className="text-slate-500 text-xs sm:text-sm mb-1">ราคาต่อวัน</p>
+                <p className="text-2xl sm:text-3xl font-black text-indigo-600">
                   {formatCurrency(car.price_per_day)}
-                  <span className="text-lg font-normal text-slate-500">{t('common.perDay')}</span>
+                  <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perDay')}</span>
                 </p>
               </div>
-              <Link href={`/booking?type=CAR&id=${car.id}`}>
-                <Button size="lg">{t('common.bookNow')}</Button>
+              <Link href={`/booking?type=CAR&id=${car.id}`} className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto">{t('common.bookNow')}</Button>
               </Link>
             </div>
           </div>

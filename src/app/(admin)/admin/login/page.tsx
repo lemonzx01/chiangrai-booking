@@ -139,12 +139,6 @@ export default function AdminLoginPage() {
             <Button type="submit" className="w-full" loading={loading} disabled={loading}>
               {t('admin.login.submit') || 'เข้าสู่ระบบ'}
             </Button>
-
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <p className="text-xs text-slate-500 text-center">
-                <strong className="text-slate-700">Mock Mode:</strong> admin@gotjourneythailand.com / admin123
-              </p>
-            </div>
           </form>
         </div>
 

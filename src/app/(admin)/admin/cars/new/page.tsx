@@ -117,7 +117,7 @@ export default function NewCarPage() {
   return (
     <div className="flex">
       <AdminSidebar />
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
         <div className="mb-8">
           <Link
             href="/admin/cars"
@@ -126,10 +126,10 @@ export default function NewCarPage() {
             <ArrowLeft size={18} />
             กลับไปหน้ารายการ
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">เพิ่มรถเช่าใหม่</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">เพิ่มรถเช่าใหม่</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 lg:p-8">
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
               <p className="text-red-600 text-sm font-medium">{error}</p>

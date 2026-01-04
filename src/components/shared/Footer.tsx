@@ -61,22 +61,22 @@ export default function Footer() {
   // ----------------------------------------------------------
 
   return (
-    <footer className="bg-slate-950 text-slate-400 pt-24 pb-16 mt-24 relative overflow-hidden">
+    <footer className="bg-slate-950 text-slate-400 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16 mt-16 sm:mt-20 lg:mt-24 relative overflow-hidden">
       {/* เส้น gradient ด้านบน */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-600 to-transparent opacity-30"></div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Grid 4 คอลัมน์ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16 mb-20 text-center sm:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-16 mb-12 sm:mb-16 lg:mb-20 text-center sm:text-left">
           {/* คอลัมน์ 1: โลโก้และรายละเอียด */}
           <div className="lg:col-span-1">
             {/* โลโก้ */}
-            <div className="flex items-center justify-center sm:justify-start gap-3 mb-8">
-              <Compass size={28} className="text-indigo-400" />
-              <span className="text-2xl font-black text-white tracking-tight">Got Journey Thailand</span>
+            <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 mb-6 sm:mb-8">
+              <Compass size={24} className="sm:w-[28px] sm:h-[28px] text-indigo-400" />
+              <span className="text-xl sm:text-2xl font-black text-white tracking-tight">Got Journey Thailand</span>
             </div>
             {/* รายละเอียดบริษัท */}
-            <p className="text-slate-500 text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
               จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน
               ทุกที่พักเราไปดิวเองกับมือ
             </p>
@@ -84,10 +84,10 @@ export default function Footer() {
 
           {/* คอลัมน์ 2: เมนู */}
           <div>
-            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-8">
+            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
               Menu
             </h4>
-            <ul className="space-y-4 text-sm font-bold tracking-widest uppercase">
+            <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm font-bold tracking-widest uppercase">
               <li>
                 <Link href="/hotels" className="hover:text-indigo-400 transition-colors">
                   แพ็คเกจทริป
@@ -103,29 +103,31 @@ export default function Footer() {
 
           {/* คอลัมน์ 3: ข้อมูลติดต่อ */}
           <div>
-            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-8">
+            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
               Support
             </h4>
-            <ul className="space-y-4 text-sm font-bold">
+            <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm font-bold">
               {/* อีเมล */}
-              <li className="flex justify-center sm:justify-start gap-4 items-center hover:text-white transition-colors">
-                <Mail size={18} className="text-indigo-500" /> hello@gotjourneythailand.com
+              <li className="flex justify-center sm:justify-start gap-3 sm:gap-4 items-center hover:text-white transition-colors break-all">
+                <Mail size={16} className="sm:w-[18px] sm:h-[18px] text-indigo-500 flex-shrink-0" /> 
+                <span className="break-words">hello@gotjourneythailand.com</span>
               </li>
               {/* โทรศัพท์ */}
-              <li className="flex justify-center sm:justify-start gap-4 items-center hover:text-white transition-colors">
-                <Phone size={18} className="text-indigo-500" /> +66 2 123 4567
+              <li className="flex justify-center sm:justify-start gap-3 sm:gap-4 items-center hover:text-white transition-colors">
+                <Phone size={16} className="sm:w-[18px] sm:h-[18px] text-indigo-500 flex-shrink-0" /> 
+                <span>+66 2 123 4567</span>
               </li>
             </ul>
           </div>
 
           {/* คอลัมน์ 4: พาร์ทเนอร์ */}
           <div>
-            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-8">
+            <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
               Partner
             </h4>
             <Link
               href="/contact"
-              className="inline-block bg-white/5 border border-white/10 px-8 py-3 rounded-xl font-black text-xs uppercase text-white hover:bg-white hover:text-slate-950 transition-all"
+              className="inline-block bg-white/5 border border-white/10 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-black text-xs uppercase text-white hover:bg-white hover:text-slate-950 transition-all text-center w-full sm:w-auto"
             >
               ร่วมเป็นพาร์ทเนอร์
             </Link>
@@ -133,8 +135,8 @@ export default function Footer() {
         </div>
 
         {/* ลิขสิทธิ์ */}
-        <div className="pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
+        <div className="pt-8 sm:pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+          <div className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase tracking-[0.3em] sm:tracking-[0.4em]">
             © 2024 Got Journey Thailand. All Rights Reserved.
           </div>
         </div>

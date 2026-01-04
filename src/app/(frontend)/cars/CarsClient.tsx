@@ -38,17 +38,17 @@ export default function CarsClient({ cars }: CarsClientProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 -mt-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8">
         {/* Search */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
-            <Search className="text-slate-400 flex-shrink-0" size={20} />
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
+            <Search className="text-slate-400 flex-shrink-0" size={18} />
             <input
               type="text"
               placeholder={t('common.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent outline-none border-none text-slate-800 font-medium placeholder:text-slate-400"
+              className="flex-1 bg-transparent outline-none border-none text-sm sm:text-base text-slate-800 font-medium placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function CarsClient({ cars }: CarsClientProps) {
 
         {/* Cars Grid */}
         {filteredCars.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredCars.map((car) => (
               <CarCard key={car.id} car={car} />
             ))}

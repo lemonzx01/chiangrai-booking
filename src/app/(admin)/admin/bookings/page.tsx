@@ -56,12 +56,12 @@ export default async function AdminBookingsPage() {
   return (
     <div className="flex">
       <AdminSidebar />
-      <main className="flex-1 ml-64 p-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">จัดการการจอง</h1>
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">จัดการการจอง</h1>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">รหัส</th>

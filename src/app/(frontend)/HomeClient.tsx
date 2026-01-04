@@ -86,14 +86,14 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </div>
 
           {/* Search Box */}
-          <div className="mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
+          <div className="mt-8 sm:mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
             <div className="bg-[#ffffff] rounded-2xl shadow-2xl overflow-visible backdrop-blur-none border-2 border-slate-200">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-0 overflow-visible items-stretch">
                 {/* Destination */}
-                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-slate-200 cursor-pointer group">
+                <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group">
                   <MapPin className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
-                  <div className="overflow-visible min-w-[140px]">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
+                  <div className="overflow-visible flex-1 lg:min-w-[140px]">
+                    <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.destination')}
                     </label>
                     <CustomSelect
@@ -111,10 +111,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Date Range */}
-                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 cursor-pointer group overflow-visible">
+                <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group overflow-visible">
                   <Calendar className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
-                  <div className="min-w-[180px] overflow-visible">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
+                  <div className="flex-1 lg:min-w-[180px] overflow-visible">
+                    <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {lang === 'th' ? 'วันเข้าพัก - คืนห้อง' : 'Check-in - Check-out'}
                     </label>
                     <DateRangePicker
@@ -126,15 +126,30 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                       }}
                       placeholder={lang === 'th' ? 'เลือกวันที่' : 'Select dates'}
                       minDate={new Date()}
+                      getPriceForDate={(date) => {
+                        // Generate mock price based on date (for demo)
+                        // In production, this would fetch from API
+                        const basePrice = 15000
+                        const dayOfWeek = date.getDay()
+                        const dayOfMonth = date.getDate()
+                        
+                        // Weekend prices are higher
+                        const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1
+                        
+                        // Random variation based on day
+                        const variation = (dayOfMonth % 7) * 500
+                        
+                        return Math.round(basePrice * weekendMultiplier + variation)
+                      }}
                     />
                   </div>
                 </div>
 
                 {/* Guests */}
-                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 group">
+                <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-b lg:border-b-0 border-slate-200 group">
                   <Users className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
-                  <div className="min-w-[120px]">
-                    <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
+                  <div className="flex-1 lg:min-w-[120px]">
+                    <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.guests')}
                     </label>
                     <div className="flex items-center gap-3">
@@ -161,7 +176,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-8 py-4 m-2 bg-indigo-600 text-white rounded-xl font-bold text-base hover:bg-indigo-700 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[70px]"
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-indigo-600 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-indigo-700 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[60px] sm:min-h-[70px]"
                 >
                   <Search size={20} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('home.search.button')}</span>
@@ -188,7 +203,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {hotels.map((hotel) => (
               <Link key={hotel.id} href={`/hotels/${hotel.id}`}>
                 <div className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -259,7 +274,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {cars.map((car) => (
                 <Link key={car.id} href={`/cars/${car.id}`}>
                   <div className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col md:flex-row">

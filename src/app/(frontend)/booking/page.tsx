@@ -155,19 +155,19 @@ function BookingContent() {
           <span className="font-medium">{t('common.back')}</span>
         </Link>
 
-        <h1 className="text-3xl font-black text-slate-900 mb-8">{t('booking.title')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 sm:mb-8">{t('booking.title')}</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {/* Dates */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <Calendar size={20} className="text-indigo-600" />
                   วันที่เข้าพัก
                 </h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     type="date"
                     label={t('booking.checkIn')}
@@ -188,7 +188,7 @@ function BookingContent() {
               </div>
 
               {/* Guests */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <Users size={20} className="text-indigo-600" />
                   {t('booking.guests')}
@@ -204,7 +204,7 @@ function BookingContent() {
               </div>
 
               {/* Customer Info */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4">{t('booking.customerInfo')}</h2>
                 <div className="space-y-4">
                   <Input
@@ -262,8 +262,8 @@ function BookingContent() {
           </div>
 
           {/* Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 sticky top-24">
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6 lg:sticky lg:top-24">
               <h2 className="text-lg font-bold text-slate-900 mb-4">{t('booking.summary')}</h2>
 
               <div className="relative h-40 rounded-xl overflow-hidden mb-4">
@@ -275,20 +275,20 @@ function BookingContent() {
                 />
               </div>
 
-              <h3 className="font-bold text-slate-900 mb-4">{name}</h3>
+              <h3 className="font-bold text-slate-900 mb-4 break-words">{name}</h3>
 
               <div className="space-y-3 text-sm border-t border-slate-100 pt-4">
                 {nights > 0 && (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">
+                    <div className="flex justify-between gap-2">
+                      <span className="text-slate-500 text-xs sm:text-sm break-words">
                         {formatCurrency(pricePerUnit)} x {nights} {type === 'HOTEL' ? t('booking.nights') : t('booking.days')}
                       </span>
-                      <span className="font-medium">{formatCurrency(totalPrice)}</span>
+                      <span className="font-medium text-xs sm:text-sm whitespace-nowrap">{formatCurrency(totalPrice)}</span>
                     </div>
-                    <div className="flex justify-between pt-3 border-t border-slate-100">
-                      <span className="font-bold text-slate-900">{t('booking.totalPrice')}</span>
-                      <span className="font-bold text-xl text-indigo-600">{formatCurrency(totalPrice)}</span>
+                    <div className="flex justify-between items-center gap-2 pt-3 border-t border-slate-100">
+                      <span className="font-bold text-slate-900 text-sm sm:text-base">{t('booking.totalPrice')}</span>
+                      <span className="font-bold text-lg sm:text-xl text-indigo-600 whitespace-nowrap">{formatCurrency(totalPrice)}</span>
                     </div>
                   </>
                 )}

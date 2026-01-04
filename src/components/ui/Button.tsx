@@ -74,7 +74,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // ----------------------------------------------------------
 
     /** สไตล์พื้นฐานสำหรับทุกปุ่ม */
-    const baseStyles = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100'
+    const baseStyles = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation min-h-[44px] sm:min-h-0'
 
     /** สไตล์ตามรูปแบบ (variant) */
     const variants = {
@@ -93,11 +93,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     /** ขนาดปุ่มตาม size prop */
     const sizes = {
       /** ปุ่มเล็ก */
-      sm: 'px-4 py-2 text-sm',
+      sm: 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm',
       /** ปุ่มปกติ */
-      md: 'px-6 py-3 text-sm',
+      md: 'px-4 sm:px-6 py-2.5 sm:py-3 text-sm',
       /** ปุ่มใหญ่ */
-      lg: 'px-8 py-4 text-base',
+      lg: 'px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base',
     }
 
     // ----------------------------------------------------------

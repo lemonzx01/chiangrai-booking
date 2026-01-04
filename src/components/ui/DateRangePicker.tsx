@@ -24,8 +24,8 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, X, Search } from 'lucide-react'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isAfter, isBefore, isWithinInterval } from 'date-fns'
+import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isAfter, isBefore, isWithinInterval, differenceInDays } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 
 // ============================================================
@@ -48,6 +48,8 @@ interface DateRangePickerProps {
   minDate?: Date
   /** Locale สำหรับ date-fns */
   locale?: any
+  /** ฟังก์ชันสำหรับดึงราคาตามวันที่ (optional) */
+  getPriceForDate?: (date: Date) => number | null
 }
 
 // ============================================================
@@ -78,6 +80,7 @@ const DateRangePicker = ({
   onChange,
   placeholder = 'เลือกวันที่',
   minDate,
+  getPriceForDate,
 }: DateRangePickerProps) => {
   // ----------------------------------------------------------
   // Hooks
@@ -107,6 +110,9 @@ const DateRangePicker = ({
   /** วันที่ hover (สำหรับแสดง preview ช่วง) */
   const [hoverDate, setHoverDate] = useState<Date | null>(null)
 
+  /** ตรวจสอบว่าเป็น mobile หรือไม่ */
+  const [isMobile, setIsMobile] = useState(false)
+
   // ----------------------------------------------------------
   // Refs
   // ----------------------------------------------------------
@@ -121,6 +127,13 @@ const DateRangePicker = ({
   /** ตั้ง mounted เป็น true เมื่อ component mount */
   useEffect(() => {
     setMounted(true)
+    // ตรวจสอบว่าเป็น mobile หรือไม่
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   /** Sync tempStartDate และ tempEndDate เมื่อเปิด popup */
@@ -232,6 +245,17 @@ const DateRangePicker = ({
     })
   }
 
+  /**
+   * Format ราคาให้เป็นรูปแบบ "XX.XXk" หรือ "XX,XXX"
+   */
+  const formatPrice = (price: number | null): string | null => {
+    if (price === null || price === undefined) return null
+    if (price >= 1000) {
+      return `${(price / 1000).toFixed(2)}k`
+    }
+    return price.toLocaleString('en-US')
+  }
+
   /** ตรวจสอบว่าเป็นวันเริ่มต้นหรือไม่ */
   const isRangeStart = (day: Date) => tempStartDate && isSameDay(day, tempStartDate)
 
@@ -264,52 +288,44 @@ const DateRangePicker = ({
     }
 
     return (
-      <div className="flex-1 min-w-[280px]">
+      <div className={`flex-1 ${isMobile ? 'w-full' : 'min-w-[300px]'}`}>
         {/* Header เดือน */}
-        <div className="flex items-center justify-between px-5 py-4 bg-white">
-          {/* ปุ่มเดือนก่อนหน้า (แสดงเฉพาะเดือนซ้าย) */}
-          {monthOffset === 0 ? (
-            <button
-              type="button"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-all"
-            >
-              <ChevronLeft size={20} className="text-slate-600" />
-            </button>
-          ) : (
-            <div className="w-10" />
-          )}
+        <div className={`flex items-center justify-between ${isMobile ? 'px-4 py-3' : 'px-6 py-4'} bg-white border-b border-slate-100`}>
+          {/* ปุ่มเดือนก่อนหน้า */}
+          <button
+            type="button"
+            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all"
+          >
+            <ChevronLeft size={isMobile ? 18 : 20} className="text-slate-600" />
+          </button>
 
           {/* ชื่อเดือน ปี */}
-          <h3 className="text-base font-bold text-slate-900">
+          <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-slate-900`}>
             {months[month.getMonth()]} {lang === 'th' ? month.getFullYear() + 543 : month.getFullYear()}
           </h3>
 
-          {/* ปุ่มเดือนถัดไป (แสดงเฉพาะเดือนขวา) */}
-          {monthOffset === 1 ? (
-            <button
-              type="button"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-all"
-            >
-              <ChevronRight size={20} className="text-slate-600" />
-            </button>
-          ) : (
-            <div className="w-10" />
-          )}
+          {/* ปุ่มเดือนถัดไป */}
+          <button
+            type="button"
+            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all"
+          >
+            <ChevronRight size={isMobile ? 18 : 20} className="text-slate-600" />
+          </button>
         </div>
 
         {/* ชื่อวันในสัปดาห์ */}
         <div className="grid grid-cols-7 py-3 bg-white border-b border-slate-100">
           {dayNames.map((name, i) => (
-            <div key={i} className="text-center text-xs font-bold text-slate-600">
+            <div key={i} className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">
               {name}
             </div>
           ))}
         </div>
 
         {/* วันที่ */}
-        <div className="px-4 py-3">
+        <div className={`${isMobile ? 'px-2 py-2' : 'px-3 py-4'}`}>
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7">
               {week.map((day, dayIndex) => {
@@ -324,10 +340,8 @@ const DateRangePicker = ({
                   <div
                     key={dayIndex}
                     className={`
-                      relative flex items-center justify-center
-                      ${inRange ? 'bg-indigo-100' : ''}
-                      ${isStart && !isEnd ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-100' : ''}
-                      ${isEnd && !isStart ? 'bg-gradient-to-l from-indigo-600 via-indigo-600 to-indigo-100' : ''}
+                      relative flex flex-col items-center justify-center
+                      ${inRange ? 'bg-emerald-50' : ''}
                     `}
                   >
                     <button
@@ -337,15 +351,16 @@ const DateRangePicker = ({
                       onMouseLeave={() => setHoverDate(null)}
                       disabled={isDisabled || !isCurrentMonth}
                       className={`
-                        relative w-full h-11 text-sm font-semibold transition-all z-10
+                        relative w-full ${isMobile ? 'h-12' : 'h-14'} flex items-center justify-center rounded-lg transition-all z-10
                         ${!isCurrentMonth ? 'text-slate-300 cursor-default' : ''}
-                        ${isStart || isEnd ? 'bg-indigo-600 text-white shadow-md' : ''}
-                        ${!isStart && !isEnd && isCurrentMonth && !isDisabled ? 'hover:bg-indigo-200' : ''}
-                        ${!isStart && !isEnd && isCurrentMonth && !isDisabled ? 'text-slate-700' : ''}
+                        ${isStart || isEnd ? 'bg-indigo-600 text-white shadow-lg font-bold' : ''}
+                        ${inRange && !isStart && !isEnd ? 'bg-emerald-50 text-slate-700' : ''}
+                        ${!isStart && !isEnd && !inRange && isCurrentMonth && !isDisabled ? 'hover:bg-slate-50 text-slate-700' : ''}
                         ${isDisabled ? 'text-slate-300 cursor-not-allowed' : ''}
+                        ${!isStart && !isEnd && !inRange && isCurrentMonth && !isDisabled ? 'font-medium' : ''}
                       `}
                     >
-                      {day.getDate()}
+                      <span className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold leading-none`}>{day.getDate()}</span>
                     </button>
                   </div>
                 )
@@ -401,73 +416,115 @@ const DateRangePicker = ({
 
       {/* Calendar Popup */}
       {isOpen && (
-        <div className="absolute top-full -left-12 mt-3 z-50 bg-white rounded-xl shadow-2xl border-2 border-indigo-500 overflow-hidden animate-scale-up w-full md:w-auto md:min-w-[680px]">
-          {/* Header แสดงวันที่เลือก */}
-          <div className="bg-white border-b border-slate-200 px-6 py-4">
-            <div className="flex items-center gap-6">
-              {/* วันเช็คอิน */}
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-slate-600 mb-2">
-                  {lang === 'th' ? 'วันเข้าพัก' : 'Check-in'}
-                </p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {formatDisplayDate(tempStartDate)}
-                </p>
-              </div>
-
-              {/* ลูกศร */}
-              <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0">
-                <ChevronRight size={20} className="text-slate-600" />
-              </div>
-
-              {/* วันเช็คเอาท์ */}
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-slate-600 mb-2">
-                  {lang === 'th' ? 'วันคืนห้อง' : 'Check-out'}
-                </p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {formatDisplayDate(tempEndDate)}
-                </p>
-              </div>
+        <div className={`fixed inset-0 z-50 ${isMobile ? 'flex flex-col' : 'flex items-center justify-center p-4'} bg-black/50`} onClick={() => setIsOpen(false)}>
+          <div className={`bg-white ${isMobile ? 'flex-1 flex flex-col' : 'rounded-2xl shadow-2xl overflow-hidden animate-scale-up w-full max-w-4xl max-h-[90vh] overflow-y-auto'}`} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className={`flex items-center justify-between ${isMobile ? 'px-4 py-3' : 'px-6 py-4'} border-b border-slate-200 bg-white ${isMobile ? '' : 'sticky top-0 z-10'}`}>
+              {!isMobile && (
+                <h2 className="text-xl font-bold text-slate-900">
+                  {lang === 'th' ? 'เลือกวันที่' : 'Select Dates'}
+                </h2>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className={`${isMobile ? 'ml-auto' : ''} p-2 hover:bg-slate-100 rounded-lg transition-colors`}
+              >
+                <X size={isMobile ? 18 : 20} className="text-slate-600" />
+              </button>
             </div>
 
-            {/* แสดงจำนวนคืน */}
-            {tempStartDate && tempEndDate && (
-              <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-                <span className="text-sm font-semibold text-indigo-600">
-                  {Math.ceil((tempEndDate.getTime() - tempStartDate.getTime()) / (1000 * 60 * 60 * 24))} {lang === 'th' ? 'คืน' : 'nights'}
-                </span>
+            {/* ปฏิทิน */}
+            <div className={`${isMobile ? 'flex-1 overflow-y-auto' : ''} flex ${isMobile ? 'flex-col' : 'flex-col lg:flex-row'} ${isMobile ? '' : 'divide-y lg:divide-y-0 lg:divide-x divide-slate-200'}`}>
+              {isMobile ? (
+                // Mobile: แสดงเดือนเดียว
+                renderCalendar(0)
+              ) : (
+                // Desktop: แสดง 2 เดือน
+                <>
+                  {renderCalendar(0)}
+                  {renderCalendar(1)}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            {!isMobile && (
+              <div className="border-t border-slate-200 bg-white sticky bottom-0">
+                {/* วันที่เลือกและจำนวนวัน */}
+                <div className="flex items-center justify-between px-6 py-4">
+                  {/* วันที่เลือก */}
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">
+                        {lang === 'th' ? 'วันเช็คอิน' : 'Check-in'}
+                      </p>
+                      <p className={`text-base font-bold ${tempStartDate ? 'text-indigo-600' : 'text-slate-400'}`}>
+                        {tempStartDate 
+                          ? format(tempStartDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
+                          : '—'
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">
+                        {lang === 'th' ? 'วันเช็คเอาท์' : 'Check-out'}
+                      </p>
+                      <p className={`text-base font-bold ${tempEndDate ? 'text-indigo-600' : 'text-slate-400'}`}>
+                        {tempEndDate 
+                          ? format(tempEndDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
+                          : '—'
+                        }
+                      </p>
+                    </div>
+                    {tempStartDate && tempEndDate && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">
+                          {lang === 'th' ? 'จำนวนคืน' : 'Nights'}
+                        </p>
+                        <p className="text-base font-bold text-indigo-600">
+                          {differenceInDays(tempEndDate, tempStartDate)} {lang === 'th' ? 'คืน' : 'nights'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ปุ่ม Done */}
+                  <button
+                    type="button"
+                    onClick={handleConfirm}
+                    disabled={!tempStartDate || !tempEndDate}
+                    className="px-8 py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg"
+                  >
+                    {lang === 'th' ? 'เสร็จสิ้น' : 'Done'}
+                  </button>
+                </div>
               </div>
             )}
-          </div>
 
-          {/* ปฏิทิน 2 เดือน */}
-          <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-200">
-            {renderCalendar(0)}
-            {renderCalendar(1)}
-          </div>
-
-          {/* Footer พร้อมปุ่ม */}
-          <div className="flex items-center justify-end gap-3 px-6 py-5 border-t border-slate-200 bg-white">
-            {/* ปุ่มล้าง */}
-            <button
-              type="button"
-              onClick={handleClear}
-              className="px-6 py-3 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
-            >
-              {lang === 'th' ? 'ล้างข้อมูล' : 'Clear'}
-            </button>
-
-            {/* ปุ่มค้นหา */}
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={!tempStartDate || !tempEndDate}
-              className="flex items-center gap-2 px-8 py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all shadow-lg"
-            >
-              <Search size={18} />
-              {lang === 'th' ? 'ค้นหา' : 'Search'}
-            </button>
+            {/* Mobile Footer - แสดงจำนวนวันและปุ่ม Done ด้านล่าง */}
+            {isMobile && (
+              <div className="border-t border-slate-200 bg-white px-4 py-3">
+                {tempStartDate && tempEndDate && (
+                  <div className="mb-3 text-center">
+                    <p className="text-xs text-slate-500 mb-1">
+                      {lang === 'th' ? 'จำนวนคืน' : 'Nights'}
+                    </p>
+                    <p className="text-lg font-bold text-indigo-600">
+                      {differenceInDays(tempEndDate, tempStartDate)} {lang === 'th' ? 'คืน' : 'nights'}
+                    </p>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!tempStartDate || !tempEndDate}
+                  className="w-full py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
+                >
+                  {lang === 'th' ? 'เสร็จสิ้น' : 'Done'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

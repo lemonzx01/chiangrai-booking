@@ -36,12 +36,12 @@ export default async function AdminHotelsPage() {
   return (
     <div className="flex">
       <AdminSidebar />
-      <main className="flex-1 ml-64 p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">จัดการโรงแรม/แพ็คเกจ</h1>
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">จัดการโรงแรม/แพ็คเกจ</h1>
           <Link
             href="/admin/hotels/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base w-full sm:w-auto"
           >
             <Plus size={20} />
             เพิ่มโรงแรม
@@ -49,7 +49,8 @@ export default async function AdminHotelsPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">ชื่อ</th>
@@ -99,6 +100,7 @@ export default async function AdminHotelsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </main>
     </div>

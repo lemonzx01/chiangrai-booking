@@ -38,9 +38,9 @@ export default function CarCard({ car }: CarCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-5">
-          <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-1">{name}</h3>
-          <p className="text-slate-500 text-sm line-clamp-2 mb-4">{description}</p>
+        <div className="p-4 sm:p-5">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 line-clamp-1">{name}</h3>
+          <p className="text-slate-500 text-xs sm:text-sm line-clamp-2 mb-3 sm:mb-4">{description}</p>
 
           {/* Includes */}
           <div className="flex flex-wrap gap-2 mb-4">
@@ -55,18 +55,18 @@ export default function CarCard({ car }: CarCardProps) {
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
-              <Users size={14} />
+          <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-xs sm:text-sm">
+              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
               <span>
                 {car.max_passengers} {t('common.passengers')}
               </span>
             </div>
             <div className="text-right">
-              <span className="text-lg font-bold text-indigo-600">
+              <span className="text-base sm:text-lg font-bold text-indigo-600">
                 {formatCurrency(car.price_per_day)}
               </span>
-              <span className="text-slate-500 text-sm">{t('common.perDay')}</span>
+              <span className="text-slate-500 text-xs sm:text-sm">{t('common.perDay')}</span>
             </div>
           </div>
         </div>

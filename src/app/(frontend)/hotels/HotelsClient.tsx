@@ -45,21 +45,21 @@ function CustomDropdown({
   }, [])
 
   return (
-    <div ref={dropdownRef} className="relative min-w-[200px]">
+    <div ref={dropdownRef} className="relative w-full lg:min-w-[200px]">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-200 ${
+        className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl transition-all duration-200 text-sm sm:text-base ${
           isOpen 
             ? 'bg-white ring-2 ring-indigo-500 shadow-lg' 
             : 'bg-slate-50 hover:bg-white hover:shadow-md'
         }`}
       >
-        <Icon className={`flex-shrink-0 transition-colors ${isOpen ? 'text-indigo-600' : 'text-slate-400'}`} size={20} />
+        <Icon className={`flex-shrink-0 transition-colors ${isOpen ? 'text-indigo-600' : 'text-slate-400'}`} size={18} />
         <span className={`flex-1 text-left font-medium ${selectedOption?.value ? 'text-slate-800' : 'text-slate-400'}`}>
           {selectedOption?.label || placeholder}
         </span>
-        <ChevronDown className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} size={18} />
+        <ChevronDown className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} size={16} />
       </button>
       
       {isOpen && (
@@ -159,19 +159,19 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 -mt-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8">
         {/* Filters */}
-        <div className="relative bg-white rounded-2xl shadow-xl p-6 mb-8 overflow-visible z-20">
-          <div className="flex flex-col lg:flex-row gap-4 overflow-visible">
+        <div className="relative bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 sm:mb-8 overflow-visible z-20">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 overflow-visible">
             {/* Search */}
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
-              <Search className="text-slate-400 flex-shrink-0" size={20} />
+            <div className="flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
+              <Search className="text-slate-400 flex-shrink-0" size={18} />
               <input
                 type="text"
                 placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent outline-none border-none text-slate-800 font-medium placeholder:text-slate-400"
+                className="flex-1 bg-transparent outline-none border-none text-sm sm:text-base text-slate-800 font-medium placeholder:text-slate-400"
               />
             </div>
 
@@ -216,7 +216,7 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
 
         {/* Hotels Grid */}
         {filteredHotels.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredHotels.map((hotel) => (
               <HotelCard key={hotel.id} hotel={hotel} />
             ))}

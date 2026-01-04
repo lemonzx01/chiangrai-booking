@@ -40,12 +40,22 @@ function LoginContent() {
         body: JSON.stringify(formData),
       })
 
-      const data = await res.json()
-
+      // Check if response is ok before parsing JSON
       if (!res.ok) {
-        setError(data.error || (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred'))
+        let errorMessage = lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = res.statusText || errorMessage
+        }
+        setError(errorMessage)
+        setLoading(false)
         return
       }
+
+      const data = await res.json()
 
       // Success - redirect based on role
       if (data.user?.role === 'admin') {
@@ -57,9 +67,9 @@ function LoginContent() {
         router.push(redirect)
         router.refresh()
       }
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error)
       setError(lang === 'th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'An error occurred. Please try again.')
-    } finally {
       setLoading(false)
     }
   }
@@ -141,17 +151,6 @@ function LoginContent() {
             </p>
           </div>
 
-          {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-slate-50 rounded-xl space-y-2">
-            <p className="text-sm text-slate-500 text-center">
-              <strong>{lang === 'th' ? 'ทดสอบ (ผู้ใช้):' : 'Demo (User):'}</strong><br />
-              user@example.com / user123
-            </p>
-            <p className="text-sm text-slate-500 text-center">
-              <strong>{lang === 'th' ? 'ทดสอบ (แอดมิน):' : 'Demo (Admin):'}</strong><br />
-              admin@gotjourneythailand.com / admin123
-            </p>
-          </div>
         </div>
       </div>
     </div>

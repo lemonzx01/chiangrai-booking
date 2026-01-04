@@ -98,6 +98,34 @@ export default function Navbar() {
   /** ตรวจสอบว่า component mount แล้ว (ป้องกัน hydration mismatch) */
   const [mounted, setMounted] = useState(false)
 
+  /** Lock body scroll when mobile menu is open */
+  useEffect(() => {
+    const isMobileView = window.innerWidth < 1024
+    if (isOpen && isMobileView) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      document.body.style.overflow = 'hidden'
+      
+      return () => {
+        const scrollY = document.body.style.top
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        document.body.style.overflow = ''
+        if (scrollY) {
+          window.scrollTo(0, parseInt(scrollY || '0') * -1)
+        }
+      }
+    } else {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   /** ข้อมูลผู้ใช้ที่ล็อกอิน */
   const [user, setUser] = useState<UserData | null>(null)
 
@@ -122,6 +150,9 @@ export default function Navbar() {
   useEffect(() => {
     setMounted(true)
     checkAuth()
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:150',message:'Navbar mounted',data:{pathname,isOpen},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
+    // #endregion
   }, [])
 
   /** ติดตาม scroll event */
@@ -134,8 +165,55 @@ export default function Navbar() {
 
   /** ปิดเมนู mobile เมื่อเปลี่ยนหน้า */
   useEffect(() => {
+    // #region agent log
+    if (isOpen) {
+      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:163',message:'Pathname changed - closing menu',data:{pathname,isOpenBefore:isOpen},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
+    }
+    // #endregion
+    
+    // Reset body scroll lock
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.width = ''
+    document.body.style.overflow = ''
+    
     setIsOpen(false)
+    
+    // #region agent log
+    setTimeout(() => {
+      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:177',message:'Menu closed after pathname change',data:{pathname,isOpenAfter:false,bodyPosition:document.body.style.position,bodyOverflow:document.body.style.overflow},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
+    }, 100)
+    // #endregion
   }, [pathname])
+
+  /** Lock body scroll when mobile menu is open */
+  useEffect(() => {
+    const isMobileView = window.innerWidth < 1024
+    
+    if (isOpen && isMobileView) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      document.body.style.overflow = 'hidden'
+      
+      return () => {
+        const scrollY = document.body.style.top
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        document.body.style.overflow = ''
+        if (scrollY) {
+          window.scrollTo(0, parseInt(scrollY || '0') * -1)
+        }
+      }
+    } else {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   // ----------------------------------------------------------
   // Auth Functions
@@ -228,7 +306,7 @@ export default function Navbar() {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           activeLightMode
             ? 'bg-white/95 backdrop-blur-md shadow-sm py-3'
-            : 'bg-transparent py-5 md:py-8'
+            : 'bg-transparent py-4 sm:py-5 md:py-8'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -344,7 +422,18 @@ export default function Navbar() {
 
             {/* ปุ่มเปิด/ปิดเมนู Mobile */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={(e) => {
+                e.stopPropagation()
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:425',message:'Toggle button clicked',data:{isOpenBefore:isOpen,pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
+                // #endregion
+                setIsOpen(!isOpen)
+                // #region agent log
+                setTimeout(() => {
+                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:430',message:'State updated after toggle',data:{isOpenAfter:!isOpen,pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
+                }, 0)
+                // #endregion
+              }}
               className="lg:hidden p-2 rounded-xl transition-colors"
             >
               {isOpen ? (
@@ -357,78 +446,135 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Overlay */}
-        <div
-          className={`lg:hidden fixed inset-0 bg-white z-40 transition-transform duration-500 ease-in-out ${
-            isOpen ? 'translate-y-0' : '-translate-y-full'
-          }`}
-        >
-          <div className="pt-24 px-8 flex flex-col gap-8">
+        {isOpen && (
+          <div
+            className="lg:hidden fixed top-0 left-0 right-0 bottom-0 bg-white z-[60] flex flex-col"
+            style={{ height: '100vh', width: '100vw' }}
+            ref={(el) => {
+              // #region agent log
+              if (el) {
+                // Use requestAnimationFrame to ensure layout is complete
+                requestAnimationFrame(() => {
+                  const rect = el.getBoundingClientRect()
+                  const computedStyle = window.getComputedStyle(el)
+                  const viewportHeight = window.innerHeight
+                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:443',message:'Mobile menu overlay render',data:{isOpen,pathname,height:rect.height,width:rect.width,display:computedStyle.display,viewportHeight,top:rect.top,left:rect.left,styleHeight:el.style.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
+                })
+              }
+              // #endregion
+            }}
+          >
+            {/* Header with back button - Fixed */}
+            <div className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsOpen(false)
+              }}
+              className="flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors -ml-1"
+            >
+              <X size={20} />
+              <span className="text-sm font-semibold">{mounted ? t('common.back') : 'กลับ'}</span>
+            </button>
+            <h2 className="text-base font-bold text-slate-900">เมนู</h2>
+            <div className="w-16"></div>
+          </div>
+
+          {/* Scrollable content */}
+          <div 
+            className="flex-1 overflow-y-auto px-4 pb-6 flex flex-col gap-1"
+            style={{ 
+              minHeight: 0,
+              height: 'calc(100vh - 64px)',
+              flex: '1 1 auto'
+            }}
+            ref={(el) => {
+              // #region agent log
+              if (el && isOpen) {
+                // Use requestAnimationFrame to ensure layout is complete
+                requestAnimationFrame(() => {
+                  const rect = el.getBoundingClientRect()
+                  const computedStyle = window.getComputedStyle(el)
+                  const parentRect = el.parentElement?.getBoundingClientRect()
+                  const viewportHeight = window.innerHeight
+                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:478',message:'Mobile menu content area',data:{isOpen,pathname,height:rect.height,width:rect.width,display:computedStyle.display,visibility:computedStyle.visibility,opacity:computedStyle.opacity,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,childrenCount:el.children.length,parentHeight:parentRect?.height,parentWidth:parentRect?.width,flex:computedStyle.flex,minHeight:computedStyle.minHeight,viewportHeight,headerHeight:parentRect ? parentRect.height - rect.height : null,styleHeight:el.style.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
+                })
+              }
+              // #endregion
+            }}
+          >
             {/* ลิงก์เมนู Mobile */}
             {NAVIGATION.map((item) => (
               <Link
                 key={item.key}
                 href={item.path}
-                className="text-3xl font-black text-slate-900 hover:text-indigo-600 transition-colors"
+                className="text-base font-bold text-slate-900 hover:text-indigo-600 transition-colors min-h-[44px] py-3 px-2 rounded-lg hover:bg-slate-50 flex items-center"
               >
                 {getLabel(item.key)}
               </Link>
             ))}
 
+            {/* Divider */}
+            <div className="h-px bg-slate-200 my-2"></div>
+
             {/* ปุ่มสลับภาษา Mobile */}
-            <div className="mt-4 flex justify-center">
+            <div className="px-2 py-2">
               <LanguageSwitcher light={true} />
             </div>
+
+            {/* Divider */}
+            <div className="h-px bg-slate-200 my-2"></div>
 
             {/* ปุ่มจองแพ็คเกจ */}
             <Link
               href="/hotels"
-              className="mt-4 bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl text-center shadow-xl active:scale-95 transition-all"
+              className="mx-2 mt-2 bg-indigo-600 text-white min-h-[44px] py-3 rounded-lg font-bold text-base text-center shadow-md active:scale-95 transition-all flex items-center justify-center"
             >
               {getLabel('bookPackage')}
             </Link>
 
             {/* เมนูผู้ใช้ Mobile */}
-            <div className="mt-6 pt-6 border-t border-slate-200">
+            <div className="mt-2 pt-2 border-t border-slate-200">
               {user ? (
-                <div className="space-y-4">
+                <div className="space-y-2 px-2">
                   {/* ข้อมูลผู้ใช้ */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <User size={24} className="text-indigo-600" />
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User size={16} className="text-indigo-600" />
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900">{user.name}</p>
-                      <p className="text-sm text-slate-500">{user.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm text-slate-900 truncate">{user.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
                   </div>
                   {/* ลิงก์โปรไฟล์ */}
                   <Link
                     href="/profile"
-                    className="block text-center py-3 bg-slate-100 rounded-xl font-bold text-slate-700"
+                    className="block text-center min-h-[44px] py-2.5 bg-slate-100 rounded-lg font-semibold text-sm text-slate-700 flex items-center justify-center"
                   >
                     {mounted ? t('navbar.profile') : 'โปรไฟล์'}
                   </Link>
                   {/* ปุ่มล็อกเอาท์ */}
                   <button
                     onClick={handleLogout}
-                    className="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold"
+                    className="w-full min-h-[44px] py-2.5 bg-red-50 text-red-600 rounded-lg font-semibold text-sm flex items-center justify-center"
                   >
                     {mounted ? t('navbar.logout') : 'ออกจากระบบ'}
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 px-2">
                   {/* ปุ่มล็อกอิน */}
                   <Link
                     href="/login"
-                    className="block text-center py-4 bg-slate-100 rounded-xl font-bold text-slate-700"
+                    className="block text-center min-h-[44px] py-2.5 bg-slate-100 rounded-lg font-semibold text-sm text-slate-700 flex items-center justify-center"
                   >
                     {mounted ? t('navbar.login') : 'เข้าสู่ระบบ'}
                   </Link>
                   {/* ปุ่มสมัครสมาชิก */}
                   <Link
                     href="/register"
-                    className="block text-center py-4 bg-indigo-100 text-indigo-700 rounded-xl font-bold"
+                    className="block text-center min-h-[44px] py-2.5 bg-indigo-100 text-indigo-700 rounded-lg font-semibold text-sm flex items-center justify-center"
                   >
                     {mounted ? t('navbar.register') : 'สมัครสมาชิก'}
                   </Link>
@@ -437,6 +583,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+        )}
       </nav>
     </>
   )

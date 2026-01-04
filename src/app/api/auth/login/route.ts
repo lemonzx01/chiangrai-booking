@@ -80,11 +80,33 @@ export async function POST(request: Request) {
         )
       }
 
-      // Check user password (mock mode: user123 or hashed)
-      const isValidPassword = password === 'user123' ||
-        await bcrypt.compare(password, mockUser.password_hash).catch(() => false)
+      // Check user password (mock mode: user123 for default user, or hashed for registered users)
+      let isValidPassword = false
+      
+      // For default mock user (user@example.com), accept plain password 'user123'
+      if (mockUser.email === 'user@example.com' && password === 'user123') {
+        isValidPassword = true
+      } else {
+        // For registered users, compare with hashed password
+        if (!mockUser.password_hash) {
+          console.error('User has no password_hash:', { email: mockUser.email })
+          return NextResponse.json(
+            { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
+            { status: 401 }
+          )
+        }
+        isValidPassword = await bcrypt.compare(password, mockUser.password_hash).catch((err) => {
+          console.error('bcrypt.compare error:', err)
+          return false
+        })
+      }
 
       if (!isValidPassword) {
+        console.error('Login failed:', { 
+          email, 
+          hasPasswordHash: !!mockUser.password_hash,
+          passwordLength: password.length 
+        })
         return NextResponse.json(
           { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
           { status: 401 }
@@ -237,8 +259,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Login error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด'
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาด' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

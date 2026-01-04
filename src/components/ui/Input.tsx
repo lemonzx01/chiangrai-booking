@@ -86,7 +86,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full">
         {/* Label ด้านบน */}
         {label && (
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
+          <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
             {label}
           </label>
         )}
@@ -98,11 +98,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             type={isPassword ? (showPassword ? 'text' : 'password') : type}
             className={cn(
               // สไตล์พื้นฐาน
-              'w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400',
+              'w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white text-sm sm:text-base text-slate-900 placeholder:text-slate-400',
               // สไตล์ focus และ hover
               'focus:border-indigo-500 hover:border-slate-300 transition-all duration-200',
               // เพิ่ม padding ขวาถ้าเป็น password (สำหรับปุ่มตา)
-              isPassword && 'pr-12',
+              isPassword && 'pr-10 sm:pr-12',
               // สไตล์ error
               error && 'border-red-500 focus:border-red-500',
               className
@@ -115,13 +115,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-1 text-slate-400 hover:text-slate-600 transition-colors touch-manipulation"
               tabIndex={-1}
             >
               {showPassword ? (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
               ) : (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
             </button>
           )}
@@ -129,7 +129,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* ข้อความ Error */}
         {error && (
-          <p className="mt-1 text-sm text-red-500">{error}</p>
+          <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
         )}
       </div>
     )
