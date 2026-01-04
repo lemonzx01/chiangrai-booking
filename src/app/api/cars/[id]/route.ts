@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { verifyAdminToken, unauthorizedResponse, isMockMode } from '@/lib/auth'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -27,18 +28,15 @@ export async function GET(request: Request, { params }: Params) {
   }
 }
 
-// Check if we're in mock mode
-const isMockMode = () => {
-  return !(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
-  )
-}
-
 // PUT /api/cars/[id] - Update car (admin only)
 export async function PUT(request: Request, { params }: Params) {
   try {
+    // Verify admin authorization
+    const auth = await verifyAdminToken()
+    if (!auth.success) {
+      return unauthorizedResponse('Admin access required')
+    }
+
     const { id } = await params
     const body = await request.json()
 
@@ -74,6 +72,12 @@ export async function PUT(request: Request, { params }: Params) {
 // DELETE /api/cars/[id] - Delete car (admin only)
 export async function DELETE(request: Request, { params }: Params) {
   try {
+    // Verify admin authorization
+    const auth = await verifyAdminToken()
+    if (!auth.success) {
+      return unauthorizedResponse('Admin access required')
+    }
+
     const { id } = await params
     const supabase = await createAdminClient()
 

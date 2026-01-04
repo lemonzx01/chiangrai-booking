@@ -1,26 +1,43 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Trash2, Loader2 } from 'lucide-react'
 
 export default function DeleteCarButton({ id }: { id: string }) {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
     if (!confirm('คุณต้องการลบรถนี้หรือไม่?')) return
 
-    const res = await fetch(`/api/cars/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      router.refresh()
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/cars/${id}`, { method: 'DELETE' })
+
+      if (res.ok) {
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'ไม่สามารถลบรถได้ กรุณาลองใหม่อีกครั้ง')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <button
       onClick={handleDelete}
-      className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+      disabled={loading}
+      className={`p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ${
+        loading ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
     >
-      <Trash2 size={18} />
+      {loading ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
     </button>
   )
 }

@@ -5,7 +5,11 @@
     "cars": "Cars",
     "contact": "Contact",
     "bookNow": "Book Now",
-    "bookPackage": "Book Package"
+    "bookPackage": "Book Package",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile",
+    "register": "Register"
   },
   "home": {
     "hero": {
@@ -84,7 +88,8 @@
     "title": "Booking Successful!",
     "bookingCode": "Booking Code",
     "message": "Thank you for your booking. Please check your email for booking details.",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "downloadInvoice": "Download Invoice"
   },
   "contact": {
     "title": "Contact Us",

@@ -1,4 +1,4 @@
-import type { Admin, Booking, Payment, DashboardStats } from '@/types'
+import type { Admin, Booking, Payment, DashboardStats, User } from '@/types'
 import { BookingStatus, BookingType, PaymentStatus } from '@/types'
 import { MOCK_HOTELS, MOCK_CARS } from './constants'
 
@@ -18,6 +18,43 @@ export const MOCK_ADMINS: Admin[] = [
   },
 ]
 
+// Mock Users (in-memory storage for demo)
+// Password: user123
+export const MOCK_USERS: User[] = [
+  {
+    id: 'mock-user-1',
+    email: 'user@example.com',
+    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    name: 'ผู้ใช้ทดสอบ',
+    phone: '+66 81 234 5678',
+    is_active: true,
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
+
+// Helper to add new user (for mock mode)
+export function addMockUser(user: User): User {
+  MOCK_USERS.push(user)
+  return user
+}
+
+// Helper to find user by email
+export function findMockUser(email: string): User | undefined {
+  return MOCK_USERS.find(user => user.email === email && user.is_active)
+}
+
+// Helper to find user by id
+export function findMockUserById(id: string): User | undefined {
+  return MOCK_USERS.find(user => user.id === id && user.is_active)
+}
+
+// Helper to get bookings by customer email
+export function getMockBookingsByEmail(email: string): Booking[] {
+  return MOCK_BOOKINGS.filter(b => b.customer_email === email)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
 // Helper to generate booking code
 function generateBookingCode(): string {
   const date = new Date()
@@ -27,7 +64,7 @@ function generateBookingCode(): string {
 }
 
 // Helper to calculate nights/days
-function calculateNights(checkIn: string, checkOut: string): number {
+export function calculateNights(checkIn: string, checkOut: string): number {
   const start = new Date(checkIn)
   const end = new Date(checkOut)
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))

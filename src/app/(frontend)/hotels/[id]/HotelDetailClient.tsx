@@ -106,7 +106,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
 
             <div className="flex items-center gap-2 text-slate-500 mb-6">
               <MapPin size={18} />
-              <span>{hotel.location}</span>
+              <span>{getField(hotel, 'location')}</span>
             </div>
 
             <p className="text-slate-600 leading-relaxed mb-8">{description}</p>

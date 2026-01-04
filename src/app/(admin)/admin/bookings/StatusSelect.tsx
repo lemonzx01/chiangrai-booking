@@ -33,9 +33,13 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Prop
 
       if (res.ok) {
         router.refresh()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง')
       }
     } catch (error) {
       console.error('Failed to update status:', error)
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
     } finally {
       setLoading(false)
     }

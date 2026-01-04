@@ -76,7 +76,7 @@ function createQueryBuilder<T>(
     range: (from: number, to: number) => {
       rangeFrom = from
       rangeTo = to
-      let result = filteredData.slice(from, to + 1)
+      const result = filteredData.slice(from, to + 1)
       return Promise.resolve({ data: result as T[], error: null })
     },
   }

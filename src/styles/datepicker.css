@@ -59,43 +59,43 @@
 }
 
 .react-datepicker__day:hover {
-  background-color: #f1f5f9 !important;
-  color: #0d9488 !important;
+  background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
 }
 
 /* Selected single day */
 .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  background-color: #0d9488 !important;
+  background-color: #4f46e5 !important;
   color: white !important;
   font-weight: 600 !important;
 }
 
 .react-datepicker__day--selected:hover,
 .react-datepicker__day--keyboard-selected:hover {
-  background-color: #0f766e !important;
+  background-color: #4338ca !important;
 }
 
 /* Range selection */
 .react-datepicker__day--in-range {
-  background-color: #ccfbf1 !important;
-  color: #0d9488 !important;
+  background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
   border-radius: 0 !important;
 }
 
 .react-datepicker__day--in-range:hover {
-  background-color: #99f6e4 !important;
+  background-color: #c7d2fe !important;
 }
 
 .react-datepicker__day--range-start {
-  background-color: #0d9488 !important;
+  background-color: #4f46e5 !important;
   color: white !important;
   border-radius: 0.5rem 0 0 0.5rem !important;
   font-weight: 600 !important;
 }
 
 .react-datepicker__day--range-end {
-  background-color: #0d9488 !important;
+  background-color: #4f46e5 !important;
   color: white !important;
   border-radius: 0 0.5rem 0.5rem 0 !important;
   font-weight: 600 !important;
@@ -106,21 +106,21 @@
 }
 
 .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range) {
-  background-color: #ccfbf1 !important;
-  color: #0d9488 !important;
+  background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
 }
 
 .react-datepicker__day--selecting-range-start {
-  background-color: #0d9488 !important;
+  background-color: #4f46e5 !important;
   color: white !important;
   border-radius: 0.5rem 0 0 0.5rem !important;
 }
 
 .react-datepicker__day--today {
-  background-color: #f0fdfa !important;
-  color: #0d9488 !important;
+  background-color: #eef2ff !important;
+  color: #4f46e5 !important;
   font-weight: 700 !important;
-  border: 2px solid #0d9488 !important;
+  border: 2px solid #4f46e5 !important;
 }
 
 .react-datepicker__day--today.react-datepicker__day--in-range {

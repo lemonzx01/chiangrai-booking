@@ -4,15 +4,7 @@ import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
 import { findMockAdmin } from '@/lib/mock-data'
-
-// Check if we're in mock mode
-const isMockMode = () => {
-  return !(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
-  )
-}
+import { getJwtSecret, isMockMode } from '@/lib/auth'
 
 // POST /api/admin/login - Admin login
 export async function POST(request: Request) {
@@ -42,9 +34,7 @@ export async function POST(request: Request) {
       }
 
       // Create JWT token
-      const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET || 'development-secret-key-12345'
-      )
+      const secret = getJwtSecret()
       const token = await new SignJWT({
         sub: mockAdmin.id,
         email: mockAdmin.email,
@@ -105,7 +95,7 @@ export async function POST(request: Request) {
       .eq('id', admin.id)
 
     // Create JWT token
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+    const secret = getJwtSecret()
     const token = await new SignJWT({
       sub: admin.id,
       email: admin.email,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
+import { getJwtSecret } from '@/lib/auth'
 
 // GET /api/admin/auth - Verify admin session
 export async function GET() {
@@ -13,12 +14,8 @@ export async function GET() {
       return NextResponse.json({ user: null })
     }
 
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'development-secret-key-12345'
-    )
-    
     try {
-      const { payload } = await jwtVerify(token, secret)
+      const { payload } = await jwtVerify(token, getJwtSecret())
 
       return NextResponse.json({
         user: {

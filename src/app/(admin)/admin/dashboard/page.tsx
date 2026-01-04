@@ -3,7 +3,8 @@ import AdminSidebar from '@/components/admin/Sidebar'
 import { Building2, Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { BookingStatus } from '@/types'
-import { calculateMockStats, MOCK_BOOKINGS, MOCK_HOTELS, MOCK_CARS } from '@/lib/mock-data'
+import { calculateMockStats, MOCK_BOOKINGS } from '@/lib/mock-data'
+import { MOCK_HOTELS, MOCK_CARS } from '@/lib/constants'
 import Link from 'next/link'
 
 export const metadata = {

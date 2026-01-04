@@ -3,7 +3,10 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(npm run build:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)"
     ]
   }
 }

@@ -44,7 +44,7 @@ export default function HotelCard({ hotel }: HotelCardProps) {
         <div className="p-5">
           <div className="flex items-center gap-2 text-slate-500 text-sm mb-2">
             <MapPin size={14} />
-            <span>{hotel.location}</span>
+            <span>{getField(hotel, 'location')}</span>
           </div>
 
           <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-1">{name}</h3>

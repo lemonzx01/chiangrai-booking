@@ -1,6 +1,36 @@
+/**
+ * ============================================================
+ * Constants - ค่าคงที่และข้อมูลตั้งต้นของระบบ
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - รวมค่าคงที่ทั้งหมดที่ใช้ในโปรเจค
+ *   - กำหนดข้อมูล Navigation และ Labels
+ *   - เก็บ Mock Data สำหรับ Development
+ *
+ * เนื้อหาหลัก:
+ *   - Navigation: เมนูหลักและเมนูแอดมิน
+ *   - Labels: สถานะการจอง, ประเภทการจอง
+ *   - App Info: ชื่อแอป, ข้อมูลติดต่อ
+ *   - Mock Data: ข้อมูลจำลองสำหรับทดสอบ
+ *
+ * ============================================================
+ */
+
+// ============================================================
+// Imports
+// ============================================================
+
 import type { NavItem } from '@/types'
 
-// Navigation Items
+// ============================================================
+// Navigation (เมนูนำทาง)
+// ============================================================
+
+/**
+ * รายการเมนูหลักสำหรับ Navbar
+ * @description เมนูที่แสดงในส่วนหัวของเว็บไซต์ฝั่งลูกค้า
+ */
 export const NAVIGATION: NavItem[] = [
   {
     label: { th: 'หน้าแรก', en: 'Home' },
@@ -20,47 +50,75 @@ export const NAVIGATION: NavItem[] = [
   },
 ]
 
-// Admin Navigation
+/**
+ * รายการเมนูสำหรับ Admin Panel
+ * @description เมนูที่แสดงใน Sidebar ของหน้าแอดมิน
+ */
 export const ADMIN_NAVIGATION = [
   {
+    /** หน้า Dashboard แสดงภาพรวม */
     label: 'Dashboard',
     href: '/admin/dashboard',
     icon: 'LayoutDashboard',
   },
   {
+    /** จัดการโรงแรม/แพ็คเกจ */
     label: 'โรงแรม/แพ็คเกจ',
     href: '/admin/hotels',
     icon: 'Building2',
   },
   {
+    /** จัดการรถเช่า */
     label: 'รถเช่า',
     href: '/admin/cars',
     icon: 'Car',
   },
   {
+    /** จัดการการจอง */
     label: 'การจอง',
     href: '/admin/bookings',
     icon: 'Calendar',
   },
 ]
 
-// Booking Status Labels
+// ============================================================
+// Status Labels (ป้ายกำกับสถานะ)
+// ============================================================
+
+/**
+ * ป้ายกำกับสถานะการจอง
+ * @description แสดงสถานะการจองพร้อมสีและข้อความ 2 ภาษา
+ */
 export const BOOKING_STATUS_LABELS = {
+  /** รอดำเนินการ - สีเหลือง */
   PENDING: { th: 'รอดำเนินการ', en: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
+  /** ยืนยันแล้ว - สีน้ำเงิน */
   CONFIRMED: { th: 'ยืนยันแล้ว', en: 'Confirmed', color: 'bg-blue-100 text-blue-800' },
+  /** ชำระเงินแล้ว - สีเขียว */
   PAID: { th: 'ชำระเงินแล้ว', en: 'Paid', color: 'bg-green-100 text-green-800' },
+  /** ยกเลิก - สีแดง */
   CANCELLED: { th: 'ยกเลิก', en: 'Cancelled', color: 'bg-red-100 text-red-800' },
+  /** เสร็จสิ้น - สีเทา */
   COMPLETED: { th: 'เสร็จสิ้น', en: 'Completed', color: 'bg-gray-100 text-gray-800' },
 }
 
-// Booking Type Labels
+/**
+ * ป้ายกำกับประเภทการจอง
+ * @description แสดงประเภทการจอง 2 ภาษา
+ */
 export const BOOKING_TYPE_LABELS = {
+  /** จองโรงแรม/แพ็คเกจ */
   HOTEL: { th: 'โรงแรม', en: 'Hotel' },
+  /** จองรถเช่า */
   CAR: { th: 'รถเช่า', en: 'Car Rental' },
+  /** แพ็คเกจรวม (โรงแรม + รถ) */
   COMBO: { th: 'แพ็คเกจรวม', en: 'Combo Package' },
 }
 
-// Star Rating Labels
+/**
+ * ตัวเลือกระดับดาว
+ * @description ใช้ในฟอร์มเลือกระดับดาวของโรงแรม
+ */
 export const STAR_RATINGS = [
   { value: 1, label: '1 ดาว' },
   { value: 2, label: '2 ดาว' },
@@ -69,36 +127,81 @@ export const STAR_RATINGS = [
   { value: 5, label: '5 ดาว' },
 ]
 
-// Default Images
+// ============================================================
+// Default Values (ค่าเริ่มต้น)
+// ============================================================
+
+/** รูปภาพเริ่มต้นสำหรับโรงแรม (ถ้าไม่มีรูป) */
 export const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'
+
+/** รูปภาพเริ่มต้นสำหรับรถ (ถ้าไม่มีรูป) */
 export const DEFAULT_CAR_IMAGE = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800'
 
-// Pagination
+// ============================================================
+// Pagination (การแบ่งหน้า)
+// ============================================================
+
+/** จำนวนรายการต่อหน้าเริ่มต้น */
 export const DEFAULT_PAGE_SIZE = 10
+
+/** ตัวเลือกจำนวนรายการต่อหน้า */
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
-// App Info
+// ============================================================
+// App Information (ข้อมูลแอปพลิเคชัน)
+// ============================================================
+
+/** ชื่อแอปพลิเคชัน */
 export const APP_NAME = 'Got Journey Thailand'
+
+/** คำอธิบายแอปพลิเคชัน (สำหรับ SEO) */
 export const APP_DESCRIPTION = 'Premium Travel Booking Platform - Book luxury cars with exclusive villa packages'
+
+/** URL ของแอปพลิเคชัน */
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-// Contact Info
+// ============================================================
+// Contact Information (ข้อมูลติดต่อ)
+// ============================================================
+
+/**
+ * ข้อมูลติดต่อบริษัท
+ * @description แสดงในหน้า Contact และ Footer
+ */
 export const CONTACT_INFO = {
+  /** เบอร์โทรศัพท์ */
   phone: '+66 2123 4567',
+  /** อีเมล */
   email: 'hello@gotjourneythailand.com',
+  /** LINE Official Account */
   line: '@gotjourneythailand',
+  /** ที่อยู่ */
   address: 'Thailand',
+  /** เวลาทำการ */
   workingHours: '09:00 - 18:00 (Mon-Sat)',
 }
 
-// Social Links
+/**
+ * ลิงก์โซเชียลมีเดีย
+ * @description ลิงก์ไปยัง Social Media ต่างๆ
+ */
 export const SOCIAL_LINKS = {
+  /** Facebook Page */
   facebook: 'https://facebook.com/gotjourneythailand',
+  /** Instagram */
   instagram: 'https://instagram.com/gotjourneythailand',
+  /** LINE Official Account */
   line: 'https://line.me/ti/p/@gotjourneythailand',
 }
 
-// Mock Data (for development/demo)
+// ============================================================
+// Mock Data - Hotels (ข้อมูลจำลองโรงแรม)
+// ============================================================
+
+/**
+ * ข้อมูลจำลองโรงแรม/แพ็คเกจ
+ * @description ใช้สำหรับ Development และ Demo
+ */
 export const MOCK_HOTELS = [
   {
     id: 'mock-hotel-1',
@@ -171,6 +274,14 @@ export const MOCK_HOTELS = [
   },
 ]
 
+// ============================================================
+// Mock Data - Cars (ข้อมูลจำลองรถ)
+// ============================================================
+
+/**
+ * ข้อมูลจำลองรถเช่า
+ * @description ใช้สำหรับ Development และ Demo
+ */
 export const MOCK_CARS = [
   {
     id: 'mock-car-1',

@@ -66,7 +66,7 @@ export default async function AdminHotelsPage() {
                     <div className="font-medium text-slate-900">{hotel.name_th}</div>
                     <div className="text-sm text-slate-500">{hotel.name_en}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-500">{hotel.location}</td>
+                  <td className="px-6 py-4 text-sm text-slate-500">{hotel.location || hotel.location_th || hotel.location_en}</td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-900">
                     {formatCurrency(hotel.price_per_night)}
                   </td>

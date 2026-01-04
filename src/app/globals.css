@@ -139,20 +139,21 @@ body {
   }
 }
 
-/* Form inputs focus state */
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="tel"]:focus,
-input[type="url"]:focus,
-input[type="number"]:focus,
+/* Form inputs focus state - use border only, no ring */
+input:focus,
 textarea:focus {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+  @apply outline-none;
 }
 
-/* Search inputs - no ring */
-input[type="text"]:focus,
-input[type="search"]:focus {
-  @apply outline-none;
+/* Hide browser's built-in password reveal button */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-clear-button {
+  display: none !important;
 }
 
 /* Custom select styling */

@@ -11,7 +11,6 @@ import { formatCurrency } from '@/lib/utils'
 import useLocalize from '@/hooks/useLocalize'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import CustomSelect from '@/components/ui/CustomSelect'
-import { th } from 'date-fns/locale'
 
 interface HomeClientProps {
   hotels: Hotel[]
@@ -33,12 +32,6 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
   }, [])
 
   const lang = mounted ? i18n.language : 'th'
-
-  const handleDateChange = (dates: [Date | null, Date | null]) => {
-    const [start, end] = dates
-    setStartDate(start)
-    setEndDate(end)
-  }
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -118,19 +111,21 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 </div>
 
                 {/* Date Range */}
-                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 cursor-pointer group">
+                <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-slate-200 cursor-pointer group overflow-visible">
                   <Calendar className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-[180px] overflow-visible">
                     <label className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
-                      {lang === 'th' ? 'วันที่เข้าพัก - คืน' : 'Check-in - Check-out'}
+                      {lang === 'th' ? 'วันเข้าพัก - คืนห้อง' : 'Check-in - Check-out'}
                     </label>
                     <DateRangePicker
                       startDate={startDate}
                       endDate={endDate}
-                      onChange={handleDateChange}
+                      onChange={(dates) => {
+                        setStartDate(dates[0])
+                        setEndDate(dates[1])
+                      }}
                       placeholder={lang === 'th' ? 'เลือกวันที่' : 'Select dates'}
                       minDate={new Date()}
-                      locale={lang === 'th' ? th : undefined}
                     />
                   </div>
                 </div>
@@ -212,7 +207,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                   <div className="p-4">
                     <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2">
                       <MapPin size={12} />
-                      <span>{hotel.location}</span>
+                      <span>{getField(hotel, 'location')}</span>
                     </div>
                     <h3 className="text-base font-bold text-slate-900 mb-3 line-clamp-1">
                       {getField(hotel, 'name')}

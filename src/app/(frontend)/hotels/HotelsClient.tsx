@@ -102,7 +102,7 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
   const [selectedLocation, setSelectedLocation] = useState('')
 
   // Get unique locations
-  const locations = [...new Set(hotels.map((h) => h.location))]
+  const locations = [...new Set(hotels.map((h) => h.location || h.location_th || h.location_en).filter(Boolean))] as string[]
 
   // Price ranges
   const getPriceRange = (filter: string): [number, number] => {
@@ -118,15 +118,16 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
 
   // Filter hotels
   const filteredHotels = hotels.filter((hotel) => {
+    const hotelLocation = hotel.location || hotel.location_th || hotel.location_en || ''
     const matchesSearch =
       hotel.name_th.toLowerCase().includes(searchTerm.toLowerCase()) ||
       hotel.name_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.location.toLowerCase().includes(searchTerm.toLowerCase())
+      hotelLocation.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesPrice =
       hotel.price_per_night >= priceRange[0] && hotel.price_per_night <= priceRange[1]
 
-    const matchesLocation = !selectedLocation || hotel.location === selectedLocation
+    const matchesLocation = !selectedLocation || hotelLocation === selectedLocation
 
     return matchesSearch && matchesPrice && matchesLocation
   })
