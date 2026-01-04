@@ -206,7 +206,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {hotels.map((hotel) => (
               <Link key={hotel.id} href={`/hotels/${hotel.id}`}>
-                <div className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className="group bg-white rounded-xl border-2 border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300">
                   <div className="relative h-52 overflow-hidden">
                     <Image
                       src={hotel.images[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}

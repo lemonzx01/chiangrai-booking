@@ -23,7 +23,7 @@ export default function CarCard({ car }: CarCardProps) {
 
   return (
     <Link href={`/cars/${car.id}`}>
-      <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div className="group bg-white rounded-2xl border-2 border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300">
         {/* Image */}
         <div className="relative h-56 overflow-hidden bg-slate-100">
           <Image
