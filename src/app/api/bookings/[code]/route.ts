@@ -1,24 +1,102 @@
+/**
+ * ============================================================
+ * Bookings Dynamic API Route - จัดการการจองตามรหัส
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - GET: ดึงข้อมูลการจองตามรหัส (พร้อมการยืนยันตัวตน)
+ *   - PATCH: อัพเดทสถานะการจอง (เฉพาะ Admin)
+ *
+ * Endpoints:
+ *   - GET   /api/bookings/[code] - ดึงข้อมูลการจอง
+ *   - PATCH /api/bookings/[code] - อัพเดทการจอง
+ *
+ * Authentication (GET):
+ *   - Admin: ดูได้ทุกการจอง
+ *   - User ที่ login: ต้องมี email ตรงกับการจอง
+ *   - Guest: ต้องระบุ email ที่ตรงกับการจอง
+ *
+ * Authentication (PATCH):
+ *   - ต้องเป็น Admin เท่านั้น
+ *
+ * ============================================================
+ */
+
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** Supabase client สำหรับ Server-side */
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+
+/** Next.js Response utility */
 import { NextResponse } from 'next/server'
+
+/** ฟังก์ชันตรวจสอบสิทธิ์ */
 import { verifyAdminToken, verifyUserToken, unauthorizedResponse, isMockMode } from '@/lib/auth'
+
+/** ข้อมูล Mock สำหรับการทดสอบ */
 import { findMockBookingByCode } from '@/lib/mock-data'
 
+// ============================================================
+// Type Definitions
+// ============================================================
+
+/**
+ * Interface สำหรับ Dynamic Route Parameters
+ *
+ * @interface Params
+ * @property {Promise<{ code: string }>} params - Promise ที่มีรหัสการจอง
+ *
+ * @note Next.js 15 ใช้ params เป็น Promise
+ */
 interface Params {
   params: Promise<{ code: string }>
 }
 
-// GET /api/bookings/[code] - Get booking by code
-// Requires: booking code + email verification OR admin token OR user token with matching email
+// ============================================================
+// GET Handler - ดึงข้อมูลการจองตามรหัส
+// ============================================================
+
+/**
+ * ดึงข้อมูลการจองตามรหัส พร้อมการยืนยันตัวตน
+ *
+ * @description
+ *   การยืนยันตัวตน 3 ระดับ:
+ *   1. Admin - ดูได้ทุกการจอง
+ *   2. User ที่ login - ต้องมี email ตรงกับการจอง
+ *   3. Guest - ต้องระบุ email query param ที่ตรงกับการจอง
+ *
+ *   รองรับ Mock Mode สำหรับการทดสอบ
+ *
+ * @param {Request} request - HTTP Request object
+ * @param {Params} params - Route parameters ที่มีรหัสการจอง
+ * @returns {Promise<NextResponse>} ข้อมูลการจอง หรือ error
+ *
+ * @example
+ *   // Admin ดูการจอง
+ *   GET /api/bookings/BK-ABC123
+ *
+ *   // Guest ดูการจอง (ต้องระบุ email)
+ *   GET /api/bookings/BK-ABC123?email=customer@example.com
+ */
 export async function GET(request: Request, { params }: Params) {
   try {
+    // ดึงรหัสการจองจาก params
     const { code } = await params
     const { searchParams } = new URL(request.url)
+
+    /** Email ที่ระบุมาสำหรับยืนยันตัวตน */
     const email = searchParams.get('email')?.toLowerCase()
 
-    // Check if admin - can view all bookings
+    // ----------------------------------------------------------
+    // ตรวจสอบสิทธิ์ Admin
+    // ----------------------------------------------------------
     const adminAuth = await verifyAdminToken()
     if (adminAuth.success) {
-      // Admin can view any booking
+      // Admin สามารถดูการจองใดๆ ก็ได้
+
+      // Mock Mode
       if (isMockMode()) {
         const booking = findMockBookingByCode(code)
         if (!booking) {
@@ -27,6 +105,7 @@ export async function GET(request: Request, { params }: Params) {
         return NextResponse.json(booking)
       }
 
+      // Production Mode
       const supabase = await createClient()
       const { data, error } = await supabase
         .from('bookings')
@@ -40,17 +119,21 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json(data)
     }
 
-    // Check if logged-in user
+    // ----------------------------------------------------------
+    // ตรวจสอบ User ที่ login
+    // ----------------------------------------------------------
     const userAuth = await verifyUserToken()
 
-    // Mock Mode
+    // ----------------------------------------------------------
+    // Mock Mode: สำหรับการทดสอบ
+    // ----------------------------------------------------------
     if (isMockMode()) {
       const booking = findMockBookingByCode(code)
       if (!booking) {
         return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
       }
 
-      // Verify email matches
+      // ใช้ email จาก user token หรือ query param
       const verifyEmail = userAuth.success ? userAuth.user?.email : email
       if (!verifyEmail) {
         return NextResponse.json(
@@ -59,6 +142,7 @@ export async function GET(request: Request, { params }: Params) {
         )
       }
 
+      // ตรวจสอบว่า email ตรงกับการจอง
       if (booking.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
         return NextResponse.json(
           { error: 'Email does not match booking record' },
@@ -66,15 +150,16 @@ export async function GET(request: Request, { params }: Params) {
         )
       }
 
-      // Return booking without sensitive internal data
+      // ซ่อน internal ID สำหรับ non-admin
       return NextResponse.json({
         ...booking,
-        // Hide internal IDs if not admin
         id: undefined,
       })
     }
 
+    // ----------------------------------------------------------
     // Production Mode
+    // ----------------------------------------------------------
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('bookings')
@@ -86,7 +171,7 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Verify email matches
+    // ใช้ email จาก user token หรือ query param
     const verifyEmail = userAuth.success ? userAuth.user?.email : email
     if (!verifyEmail) {
       return NextResponse.json(
@@ -95,6 +180,7 @@ export async function GET(request: Request, { params }: Params) {
       )
     }
 
+    // ตรวจสอบว่า email ตรงกับการจอง
     if (data.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
       return NextResponse.json(
         { error: 'Email does not match booking record' },
@@ -108,19 +194,44 @@ export async function GET(request: Request, { params }: Params) {
   }
 }
 
-// PATCH /api/bookings/[code] - Update booking status (admin only)
+// ============================================================
+// PATCH Handler - อัพเดทสถานะการจอง
+// ============================================================
+
+/**
+ * อัพเดทข้อมูลการจอง (เฉพาะ Admin)
+ *
+ * @description
+ *   - ต้องผ่านการยืนยันตัวตน Admin ก่อน
+ *   - ใช้สำหรับอัพเดทสถานะการจอง
+ *   - ใช้ Admin Client เพื่อข้าม RLS
+ *
+ * @param {Request} request - HTTP Request พร้อม body เป็นข้อมูลที่จะอัพเดท
+ * @param {Params} params - Route parameters ที่มีรหัสการจอง
+ * @returns {Promise<NextResponse>} ข้อมูลการจองที่อัพเดทแล้ว
+ *
+ * @example
+ *   PATCH /api/bookings/BK-ABC123
+ *   Body: { "status": "CONFIRMED" }
+ */
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    // Verify admin authorization
+    // ----------------------------------------------------------
+    // ตรวจสอบสิทธิ์ Admin
+    // ----------------------------------------------------------
     const auth = await verifyAdminToken()
     if (!auth.success) {
       return unauthorizedResponse('Admin access required')
     }
 
+    // ดึงรหัสการจองและข้อมูลที่จะอัพเดท
     const { code } = await params
     const supabase = await createAdminClient()
     const body = await request.json()
 
+    // ----------------------------------------------------------
+    // อัพเดทการจอง
+    // ----------------------------------------------------------
     const { data, error } = await supabase
       .from('bookings')
       .update(body)
@@ -128,6 +239,7 @@ export async function PATCH(request: Request, { params }: Params) {
       .select()
       .single()
 
+    // ตรวจสอบ Error
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }

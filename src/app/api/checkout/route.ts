@@ -1,70 +1,160 @@
+/**
+ * ============================================================
+ * Checkout API Route - สร้าง Stripe Checkout Session
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - สร้าง Stripe Checkout session สำหรับการชำระเงิน
+ *   - รองรับการชำระด้วยบัตรเครดิตและ PromptPay
+ *   - บันทึกข้อมูล payment ลง database
+ *
+ * Endpoint:
+ *   - POST /api/checkout - สร้าง Checkout session
+ *
+ * Request Body:
+ *   - booking_id: ID ของการจอง
+ *   - success_url: URL สำหรับ redirect เมื่อชำระสำเร็จ (optional)
+ *   - cancel_url: URL สำหรับ redirect เมื่อยกเลิก (optional)
+ *
+ * Response:
+ *   - session_id: Stripe Checkout session ID
+ *   - url: URL สำหรับ redirect ไปหน้าชำระเงิน
+ *
+ * ============================================================
+ */
+
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** Supabase Admin client สำหรับ Server-side */
 import { createAdminClient } from '@/lib/supabase/server'
+
+/** Stripe client instance */
 import { stripe } from '@/lib/stripe'
+
+/** Next.js Response utility */
 import { NextResponse } from 'next/server'
 
-// POST /api/checkout - Create Stripe Checkout session
+// ============================================================
+// POST Handler - สร้าง Stripe Checkout Session
+// ============================================================
+
+/**
+ * สร้าง Stripe Checkout session สำหรับการชำระเงิน
+ *
+ * @description
+ *   ขั้นตอนการทำงาน:
+ *   1. ดึงข้อมูลการจองจาก database
+ *   2. สร้าง line items สำหรับ Stripe
+ *   3. สร้าง Checkout session พร้อมกำหนดค่าต่างๆ
+ *   4. บันทึก payment record ลง database
+ *   5. ส่ง session ID และ URL กลับให้ client
+ *
+ * @param {Request} request - HTTP Request object
+ * @returns {Promise<NextResponse>} Stripe session info
+ *
+ * @example
+ *   POST /api/checkout
+ *   Body: {
+ *     "booking_id": "uuid-here",
+ *     "success_url": "https://example.com/success",
+ *     "cancel_url": "https://example.com/cancel"
+ *   }
+ *
+ *   Response: {
+ *     "session_id": "cs_xxx",
+ *     "url": "https://checkout.stripe.com/xxx"
+ *   }
+ */
 export async function POST(request: Request) {
   try {
+    // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { booking_id, success_url, cancel_url } = body
 
+    // สร้าง Supabase Admin client
     const supabase = await createAdminClient()
 
-    // Get booking details
+    // ----------------------------------------------------------
+    // ดึงข้อมูลการจอง
+    // ----------------------------------------------------------
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .select('*, hotel:hotels(*), car:cars(*)')
       .eq('id', booking_id)
       .single()
 
+    // ตรวจสอบว่าพบการจองหรือไม่
     if (bookingError || !booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Create line items for Stripe
+    // ----------------------------------------------------------
+    // สร้างชื่อรายการสินค้า
+    // ----------------------------------------------------------
+    /** ชื่อสินค้าที่จะแสดงใน Stripe */
     const itemName =
       booking.booking_type === 'HOTEL'
         ? booking.hotel?.name_en || 'Hotel Booking'
         : booking.car?.name_en || 'Car Rental'
 
-    // Create Stripe Checkout session
+    // ----------------------------------------------------------
+    // สร้าง Stripe Checkout Session
+    // ----------------------------------------------------------
     const session = await stripe.checkout.sessions.create({
+      // วิธีการชำระเงินที่รองรับ
       payment_method_types: ['card', 'promptpay'],
+
+      // รายการสินค้า
       line_items: [
         {
           price_data: {
-            currency: 'thb',
+            currency: 'thb', // สกุลเงินบาท
             product_data: {
               name: itemName,
               description: `Booking: ${booking.booking_code}`,
             },
-            unit_amount: Math.round(booking.total_price * 100), // Convert to satang
+            unit_amount: Math.round(booking.total_price * 100), // แปลงเป็นสตางค์
           },
           quantity: 1,
         },
       ],
+
+      // โหมดการชำระ (ครั้งเดียว ไม่ใช่ subscription)
       mode: 'payment',
+
+      // URL สำหรับ redirect
       success_url: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/success?code=${booking.booking_code}`,
       cancel_url: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/booking?cancelled=true`,
+
+      // Metadata สำหรับ webhook
       metadata: {
         booking_id: booking.id,
         booking_code: booking.booking_code,
       },
+
+      // กรอก email ลูกค้าล่วงหน้า
       customer_email: booking.customer_email,
     })
 
-    // Create payment record
+    // ----------------------------------------------------------
+    // บันทึก Payment Record
+    // ----------------------------------------------------------
     await supabase.from('payments').insert({
       booking_id: booking.id,
       stripe_checkout_session_id: session.id,
       amount: booking.total_price,
       currency: 'THB',
-      status: 'PENDING',
+      status: 'PENDING', // รอการชำระ
     })
 
+    // ----------------------------------------------------------
+    // ส่งกลับ Session Info
+    // ----------------------------------------------------------
     return NextResponse.json({
       session_id: session.id,
-      url: session.url,
+      url: session.url, // URL สำหรับ redirect ไปหน้า Stripe Checkout
     })
   } catch (error) {
     console.error('Checkout error:', error)

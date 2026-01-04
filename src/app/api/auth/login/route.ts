@@ -1,17 +1,91 @@
+/**
+ * ============================================================
+ * Auth Login API Route - ระบบเข้าสู่ระบบรวม
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - ระบบเข้าสู่ระบบรวมสำหรับทั้ง User และ Admin
+ *   - ตรวจสอบรหัสผ่านด้วย bcrypt
+ *   - สร้าง JWT token และเก็บใน HttpOnly cookie
+ *
+ * Endpoint:
+ *   - POST /api/auth/login - เข้าสู่ระบบ
+ *
+ * Request Body:
+ *   - email: อีเมลผู้ใช้
+ *   - password: รหัสผ่าน
+ *
+ * Flow:
+ *   1. ตรวจสอบว่าเป็น Admin หรือไม่
+ *   2. ถ้าไม่ใช่ Admin ให้ตรวจสอบว่าเป็น User หรือไม่
+ *   3. ยืนยันรหัสผ่าน
+ *   4. สร้าง JWT token
+ *   5. เก็บ token ใน cookie
+ *
+ * Security:
+ *   - Password hashing ด้วย bcrypt
+ *   - JWT token พร้อม expiration
+ *   - HttpOnly cookie ป้องกัน XSS
+ *
+ * ============================================================
+ */
+
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** Supabase Admin client สำหรับ Server-side */
 import { createAdminClient } from '@/lib/supabase/server'
+
+/** Next.js Response utility */
 import { NextResponse } from 'next/server'
+
+/** ฟังก์ชันจัดการ cookies */
 import { cookies } from 'next/headers'
+
+/** Library สำหรับ hash password */
 import bcrypt from 'bcryptjs'
+
+/** Library สำหรับสร้าง JWT */
 import { SignJWT } from 'jose'
+
+/** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '@/lib/auth'
+
+/** ข้อมูล Mock สำหรับการทดสอบ */
 import { findMockUser, findMockAdmin } from '@/lib/mock-data'
 
-// POST /api/auth/login - Unified login for both user and admin
+// ============================================================
+// POST Handler - เข้าสู่ระบบ
+// ============================================================
+
+/**
+ * ระบบเข้าสู่ระบบรวมสำหรับ User และ Admin
+ *
+ * @description
+ *   ขั้นตอนการทำงาน:
+ *   1. ตรวจสอบว่า email อยู่ในตาราง admins หรือไม่
+ *   2. ถ้าเป็น Admin: ยืนยันรหัสผ่าน สร้าง admin_token
+ *   3. ถ้าไม่ใช่: ตรวจสอบในตาราง users
+ *   4. ถ้าเป็น User: ยืนยันรหัสผ่าน สร้าง user_token
+ *   5. เก็บ token ใน HttpOnly cookie
+ *
+ * @param {Request} request - HTTP Request object
+ * @returns {Promise<NextResponse>} ข้อมูลผู้ใช้ที่ login
+ *
+ * @example
+ *   POST /api/auth/login
+ *   Body: { "email": "user@example.com", "password": "password123" }
+ */
 export async function POST(request: Request) {
   try {
+    // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { email, password } = body
 
+    // ----------------------------------------------------------
+    // ตรวจสอบข้อมูลที่จำเป็น
+    // ----------------------------------------------------------
     if (!email || !password) {
       return NextResponse.json(
         { error: 'กรุณากรอกอีเมลและรหัสผ่าน' },
@@ -19,16 +93,21 @@ export async function POST(request: Request) {
       )
     }
 
+    // เตรียม cookie store และ JWT secret
     const cookieStore = await cookies()
     const secret = getJwtSecret()
 
-    // Mock Mode
+    // ============================================================
+    // Mock Mode: ใช้ข้อมูลจำลอง
+    // ============================================================
     if (isMockMode()) {
-      // First check if it's an admin
+      // ----------------------------------------------------------
+      // ตรวจสอบว่าเป็น Admin หรือไม่
+      // ----------------------------------------------------------
       const mockAdmin = findMockAdmin(email)
 
       if (mockAdmin) {
-        // Check admin password (mock mode: admin123 or hashed)
+        // ตรวจสอบรหัสผ่าน Admin (mock mode: admin123)
         const isValidPassword = password === 'admin123' ||
           await bcrypt.compare(password, mockAdmin.password_hash).catch(() => false)
 
@@ -39,7 +118,7 @@ export async function POST(request: Request) {
           )
         }
 
-        // Create admin JWT token
+        // สร้าง JWT token สำหรับ Admin
         const token = await new SignJWT({
           sub: mockAdmin.id,
           email: mockAdmin.email,
@@ -47,16 +126,16 @@ export async function POST(request: Request) {
           role: 'admin',
         })
           .setProtectedHeader({ alg: 'HS256' })
-          .setExpirationTime('24h')
+          .setExpirationTime('24h') // หมดอายุใน 24 ชั่วโมง
           .setIssuedAt()
           .sign(secret)
 
-        // Set admin cookie
+        // เก็บ token ใน cookie
         cookieStore.set('admin_token', token, {
-          httpOnly: true,
+          httpOnly: true, // ป้องกัน XSS
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
-          maxAge: 60 * 60 * 24, // 24 hours
+          maxAge: 60 * 60 * 24, // 24 ชั่วโมง
           path: '/',
         })
 
@@ -70,7 +149,9 @@ export async function POST(request: Request) {
         })
       }
 
-      // Check if it's a regular user
+      // ----------------------------------------------------------
+      // ตรวจสอบว่าเป็น User หรือไม่
+      // ----------------------------------------------------------
       const mockUser = findMockUser(email)
 
       if (!mockUser) {
@@ -80,14 +161,14 @@ export async function POST(request: Request) {
         )
       }
 
-      // Check user password (mock mode: user123 for default user, or hashed for registered users)
+      // ตรวจสอบรหัสผ่าน User
       let isValidPassword = false
-      
-      // For default mock user (user@example.com), accept plain password 'user123'
+
+      // สำหรับ default mock user ยอมรับ 'user123'
       if (mockUser.email === 'user@example.com' && password === 'user123') {
         isValidPassword = true
       } else {
-        // For registered users, compare with hashed password
+        // สำหรับ user ที่สมัครใหม่ เทียบกับ hashed password
         if (!mockUser.password_hash) {
           console.error('User has no password_hash:', { email: mockUser.email })
           return NextResponse.json(
@@ -102,10 +183,10 @@ export async function POST(request: Request) {
       }
 
       if (!isValidPassword) {
-        console.error('Login failed:', { 
-          email, 
+        console.error('Login failed:', {
+          email,
           hasPasswordHash: !!mockUser.password_hash,
-          passwordLength: password.length 
+          passwordLength: password.length
         })
         return NextResponse.json(
           { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
@@ -113,7 +194,7 @@ export async function POST(request: Request) {
         )
       }
 
-      // Create user JWT token
+      // สร้าง JWT token สำหรับ User
       const token = await new SignJWT({
         sub: mockUser.id,
         email: mockUser.email,
@@ -121,16 +202,16 @@ export async function POST(request: Request) {
         type: 'user',
       })
         .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('7d')
+        .setExpirationTime('7d') // หมดอายุใน 7 วัน
         .setIssuedAt()
         .sign(secret)
 
-      // Set user cookie
+      // เก็บ token ใน cookie
       cookieStore.set('user_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: 60 * 60 * 24 * 7, // 7 วัน
         path: '/',
       })
 
@@ -144,10 +225,14 @@ export async function POST(request: Request) {
       })
     }
 
-    // Production Mode: Use Supabase
+    // ============================================================
+    // Production Mode: ใช้ Supabase
+    // ============================================================
     const supabase = await createAdminClient()
 
-    // First check if it's an admin
+    // ----------------------------------------------------------
+    // ตรวจสอบว่าเป็น Admin หรือไม่
+    // ----------------------------------------------------------
     const { data: admin } = await supabase
       .from('admins')
       .select('*')
@@ -156,7 +241,7 @@ export async function POST(request: Request) {
       .single()
 
     if (admin) {
-      // Verify admin password
+      // ยืนยันรหัสผ่าน Admin
       const isValidPassword = await bcrypt.compare(password, admin.password_hash)
 
       if (!isValidPassword) {
@@ -166,13 +251,13 @@ export async function POST(request: Request) {
         )
       }
 
-      // Update last login
+      // อัพเดทเวลา login ล่าสุด
       await supabase
         .from('admins')
         .update({ last_login: new Date().toISOString() })
         .eq('id', admin.id)
 
-      // Create admin JWT token
+      // สร้าง JWT token สำหรับ Admin
       const token = await new SignJWT({
         sub: admin.id,
         email: admin.email,
@@ -184,12 +269,12 @@ export async function POST(request: Request) {
         .setIssuedAt()
         .sign(secret)
 
-      // Set admin cookie
+      // เก็บ token ใน cookie
       cookieStore.set('admin_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 60 * 60 * 24, // 24 ชั่วโมง
         path: '/',
       })
 
@@ -203,7 +288,9 @@ export async function POST(request: Request) {
       })
     }
 
-    // Check if it's a regular user
+    // ----------------------------------------------------------
+    // ตรวจสอบว่าเป็น User หรือไม่
+    // ----------------------------------------------------------
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -218,7 +305,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify user password
+    // ยืนยันรหัสผ่าน User
     const isValidPassword = await bcrypt.compare(password, user.password_hash)
 
     if (!isValidPassword) {
@@ -228,7 +315,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create user JWT token
+    // สร้าง JWT token สำหรับ User
     const token = await new SignJWT({
       sub: user.id,
       email: user.email,
@@ -240,12 +327,12 @@ export async function POST(request: Request) {
       .setIssuedAt()
       .sign(secret)
 
-    // Set user cookie
+    // เก็บ token ใน cookie
     cookieStore.set('user_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7, // 7 วัน
       path: '/',
     })
 

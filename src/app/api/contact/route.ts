@@ -1,13 +1,73 @@
+/**
+ * ============================================================
+ * Contact API Route - ระบบติดต่อเรา
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - รับข้อความจากหน้าติดต่อเรา
+ *   - ส่งแจ้งเตือนไปยัง Admin ผ่าน LINE
+ *   - ตรวจสอบความถูกต้องของข้อมูล
+ *
+ * Endpoint:
+ *   - POST /api/contact - ส่งข้อความติดต่อ
+ *
+ * Request Body:
+ *   - name: ชื่อผู้ติดต่อ (required)
+ *   - email: อีเมล (required)
+ *   - phone: เบอร์โทรศัพท์ (optional)
+ *   - message: ข้อความ (required)
+ *
+ * ============================================================
+ */
+
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** Next.js Request และ Response utilities */
 import { NextRequest, NextResponse } from 'next/server'
+
+/** บริการส่งแจ้งเตือนผ่าน LINE */
 import { sendLineNotification } from '@/services/notifications/line'
+
+/** ค่าคงที่ของแอพ */
 import { APP_NAME, CONTACT_INFO } from '@/lib/constants'
 
+// ============================================================
+// POST Handler - ส่งข้อความติดต่อ
+// ============================================================
+
+/**
+ * รับและประมวลผลข้อความจากหน้าติดต่อเรา
+ *
+ * @description
+ *   ขั้นตอนการทำงาน:
+ *   1. ตรวจสอบข้อมูลที่จำเป็น (name, email, message)
+ *   2. ตรวจสอบรูปแบบอีเมล
+ *   3. ส่งแจ้งเตือนไปยัง Admin ผ่าน LINE
+ *   4. ส่ง response กลับยืนยันการรับข้อความ
+ *
+ * @param {NextRequest} request - HTTP Request object
+ * @returns {Promise<NextResponse>} ผลลัพธ์การส่งข้อความ
+ *
+ * @example
+ *   POST /api/contact
+ *   Body: {
+ *     "name": "สมชาย ใจดี",
+ *     "email": "somchai@example.com",
+ *     "phone": "081-234-5678",
+ *     "message": "สนใจจองโรงแรมครับ"
+ *   }
+ */
 export async function POST(request: NextRequest) {
   try {
+    // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { name, email, phone, message } = body
 
-    // Validate required fields
+    // ----------------------------------------------------------
+    // ตรวจสอบข้อมูลที่จำเป็น
+    // ----------------------------------------------------------
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
@@ -15,7 +75,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate email format
+    // ----------------------------------------------------------
+    // ตรวจสอบรูปแบบอีเมล
+    // ----------------------------------------------------------
+    /** Regular expression สำหรับตรวจสอบอีเมล */
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -24,7 +87,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send LINE notification to admin
+    // ----------------------------------------------------------
+    // สร้างข้อความแจ้งเตือน LINE
+    // ----------------------------------------------------------
     const lineMessage = `
 📩 ${APP_NAME} - ข้อความใหม่จากหน้าติดต่อเรา
 
@@ -36,13 +101,19 @@ export async function POST(request: NextRequest) {
 ${message}
 `
 
+    // ----------------------------------------------------------
+    // ส่งแจ้งเตือนไปยัง Admin
+    // ----------------------------------------------------------
     await sendLineNotification(lineMessage)
 
-    // TODO: You can also save to database here if needed
+    // TODO: สามารถบันทึกลง database ได้ถ้าต้องการ
     // const { data, error } = await supabase
     //   .from('contact_messages')
     //   .insert({ name, email, phone, message })
 
+    // ----------------------------------------------------------
+    // ส่ง response สำเร็จ
+    // ----------------------------------------------------------
     return NextResponse.json({
       success: true,
       message: 'ส่งข้อความสำเร็จ เราจะติดต่อกลับโดยเร็วที่สุด',

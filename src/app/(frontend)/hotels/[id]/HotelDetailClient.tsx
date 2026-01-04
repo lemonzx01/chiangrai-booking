@@ -1,41 +1,156 @@
+/**
+ * ============================================================
+ * Hotel Detail Client - หน้ารายละเอียดโรงแรม (Client Component)
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - แสดงรายละเอียดโรงแรมพร้อม Image Gallery
+ *   - รองรับการเปลี่ยนภาษา (Thai/English)
+ *   - มีปุ่มจองห้องพักที่ link ไปหน้า Booking
+ *
+ * Features:
+ *   - Image Gallery พร้อม Thumbnail
+ *   - Star Rating แสดงระดับโรงแรม
+ *   - รายการสิ่งอำนวยความสะดวก
+ *   - ข้อมูลจำนวนผู้เข้าพักสูงสุด
+ *   - ราคาต่อคืนและปุ่มจอง
+ *
+ * การใช้งาน:
+ *   <HotelDetailClient hotel={hotelData} />
+ *
+ * ============================================================
+ */
+
 'use client'
 
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** React hooks สำหรับจัดการ state */
 import { useState } from 'react'
+
+/** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
+
+/** Next.js components */
 import Link from 'next/link'
 import Image from 'next/image'
+
+/** Lucide icons สำหรับ UI */
 import { Star, MapPin, Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
+
+/** Type definition สำหรับข้อมูลโรงแรม */
 import { Hotel } from '@/types'
+
+/** Utility function สำหรับ format ราคา */
 import { formatCurrency } from '@/lib/utils'
+
+/** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
+
+/** UI Components */
 import Button from '@/components/ui/Button'
 
+// ============================================================
+// Type Definitions
+// ============================================================
+
+/**
+ * Props interface สำหรับ HotelDetailClient
+ *
+ * @property {Hotel} hotel - ข้อมูลโรงแรมที่จะแสดง
+ */
 interface HotelDetailClientProps {
   hotel: Hotel
 }
 
+// ============================================================
+// Main Component
+// ============================================================
+
+/**
+ * Client Component สำหรับแสดงรายละเอียดโรงแรม
+ *
+ * @description
+ *   Component หลักสำหรับแสดงข้อมูลโรงแรมอย่างละเอียด
+ *   มี Image Gallery ที่สลับรูปได้ และข้อมูลต่างๆ ของโรงแรม
+ *
+ *   โครงสร้าง UI:
+ *   - ปุ่มกลับไปหน้ารายการ
+ *   - Image Gallery (ซ้าย) + รายละเอียด (ขวา)
+ *   - ชื่อ, ที่ตั้ง, Star Rating, Room Type
+ *   - รายละเอียด และสิ่งอำนวยความสะดวก
+ *   - ราคาและปุ่มจอง
+ *
+ * @param {HotelDetailClientProps} props - Props ที่มีข้อมูลโรงแรม
+ * @returns {JSX.Element} Hotel detail UI
+ *
+ * @example
+ *   <HotelDetailClient hotel={hotelData} />
+ */
 export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
+  // ----------------------------------------------------------
+  // Hooks
+  // ----------------------------------------------------------
+  /** Hook สำหรับ translation */
   const { t } = useTranslation()
+
+  /** Hook สำหรับดึงข้อมูลตามภาษาปัจจุบัน */
   const { getField, getArrayField } = useLocalize()
+
+  /** State สำหรับ index ของรูปที่แสดงอยู่ */
   const [currentImage, setCurrentImage] = useState(0)
 
+  // ----------------------------------------------------------
+  // ดึงข้อมูลตามภาษาปัจจุบัน
+  // ----------------------------------------------------------
+  /** ชื่อโรงแรมตามภาษา */
   const name = getField(hotel, 'name')
+
+  /** รายละเอียดโรงแรมตามภาษา */
   const description = getField(hotel, 'description')
+
+  /** ประเภทห้องพักตามภาษา */
   const roomType = getField(hotel, 'room_type')
+
+  /** รายการสิ่งอำนวยความสะดวกตามภาษา */
   const amenities = getArrayField(hotel, 'amenities')
 
+  // ----------------------------------------------------------
+  // Image Gallery Navigation Functions
+  // ----------------------------------------------------------
+  /**
+   * ไปรูปถัดไป
+   *
+   * @description
+   *   เลื่อน index ไปรูปถัดไป
+   *   ถ้าอยู่รูปสุดท้ายจะวนกลับไปรูปแรก
+   */
   const nextImage = () => {
     setCurrentImage((prev) => (prev + 1) % hotel.images.length)
   }
 
+  /**
+   * ไปรูปก่อนหน้า
+   *
+   * @description
+   *   เลื่อน index ไปรูปก่อนหน้า
+   *   ถ้าอยู่รูปแรกจะวนกลับไปรูปสุดท้าย
+   */
   const prevImage = () => {
     setCurrentImage((prev) => (prev - 1 + hotel.images.length) % hotel.images.length)
   }
 
+  // ----------------------------------------------------------
+  // Render Component
+  // ----------------------------------------------------------
   return (
     <div className="min-h-screen pt-20 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
+        {/* ============================================================
+            ปุ่มกลับไปหน้ารายการโรงแรม
+            ============================================================ */}
         <Link
           href="/hotels"
           className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-4 sm:mb-6 transition-colors"
@@ -44,9 +159,15 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
           <span className="font-medium">{t('common.back')}</span>
         </Link>
 
+        {/* ============================================================
+            Main Content - 2 Columns Grid
+            ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
-          {/* Image Gallery */}
+          {/* ============================================================
+              คอลัมน์ซ้าย - Image Gallery
+              ============================================================ */}
           <div className="space-y-4">
+            {/* รูปหลัก */}
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
               <Image
                 src={hotel.images[currentImage] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}
@@ -54,14 +175,19 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 fill
                 className="object-cover"
               />
+
+              {/* ปุ่มเลื่อนรูป - แสดงเมื่อมีมากกว่า 1 รูป */}
               {hotel.images.length > 1 && (
                 <>
+                  {/* ปุ่มรูปก่อนหน้า */}
                   <button
                     onClick={prevImage}
                     className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
                   >
                     <ChevronLeft size={24} />
                   </button>
+
+                  {/* ปุ่มรูปถัดไป */}
                   <button
                     onClick={nextImage}
                     className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
@@ -72,7 +198,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
               )}
             </div>
 
-            {/* Thumbnail */}
+            {/* Thumbnail Gallery - แสดงเมื่อมีมากกว่า 1 รูป */}
             {hotel.images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {hotel.images.map((img, idx) => (
@@ -90,28 +216,39 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             )}
           </div>
 
-          {/* Details */}
+          {/* ============================================================
+              คอลัมน์ขวา - รายละเอียดโรงแรม
+              ============================================================ */}
           <div>
+            {/* Badge Section - Star Rating และ Room Type */}
             <div className="flex items-center gap-3 mb-4">
+              {/* Star Rating Badge */}
               <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-full">
                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                 <span className="text-sm font-bold text-slate-900">{hotel.star_rating}</span>
               </div>
+
+              {/* Room Type Badge */}
               <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
                 {roomType}
               </span>
             </div>
 
+            {/* ชื่อโรงแรม */}
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-4">{name}</h1>
 
+            {/* ที่ตั้ง */}
             <div className="flex items-center gap-2 text-slate-500 mb-4 sm:mb-6 text-sm sm:text-base">
               <MapPin size={18} />
               <span>{getField(hotel, 'location')}</span>
             </div>
 
+            {/* รายละเอียด */}
             <p className="text-slate-600 leading-relaxed mb-6 sm:mb-8 text-sm sm:text-base">{description}</p>
 
-            {/* Amenities */}
+            {/* ============================================================
+                สิ่งอำนวยความสะดวก
+                ============================================================ */}
             <div className="mb-6 sm:mb-8">
               <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
                 {t('hotel.amenities') || 'สิ่งอำนวยความสะดวก'}
@@ -126,7 +263,9 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
               </div>
             </div>
 
-            {/* Info */}
+            {/* ============================================================
+                ข้อมูลเพิ่มเติม - จำนวนผู้เข้าพักสูงสุด
+                ============================================================ */}
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-slate-100">
               <div className="flex items-center gap-2 text-slate-600 text-sm sm:text-base">
                 <Users size={18} />
@@ -136,8 +275,11 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
               </div>
             </div>
 
-            {/* Price & Book */}
+            {/* ============================================================
+                ราคาและปุ่มจอง
+                ============================================================ */}
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
+              {/* ราคาต่อคืน */}
               <div>
                 <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
                 <p className="text-2xl sm:text-3xl font-black text-indigo-600">
@@ -145,6 +287,8 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                   <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
                 </p>
               </div>
+
+              {/* ปุ่มจอง - Link ไปหน้า Booking */}
               <Link href={`/booking?type=HOTEL&id=${hotel.id}`} className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto">{t('common.bookNow')}</Button>
               </Link>
