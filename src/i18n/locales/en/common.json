@@ -9,7 +9,8 @@
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
-    "register": "Register"
+    "register": "Register",
+    "menu": "Menu"
   },
   "home": {
     "hero": {
@@ -143,5 +144,29 @@
       "title": "Manage Bookings",
       "updateStatus": "Update Status"
     }
+  },
+  "hotel": {
+    "amenities": "Amenities",
+    "pricePerNight": "Price per night",
+    "maxGuests": "Max {{count}} guests"
+  },
+  "car": {
+    "includes": "Package Includes",
+    "pricePerDay": "Price per day",
+    "maxSeats": "Max {{count}} seats"
+  },
+  "cars": {
+    "subtitle": "Premium car rental with professional driver service",
+    "noResults": "No cars found matching your criteria"
+  },
+  "hotels": {
+    "subtitle": "Handpicked premium accommodation packages at the best prices",
+    "noResults": "No packages found matching your criteria"
+  },
+  "footer": {
+    "description": "Book premium car rental trips with exclusive deals you can't find anywhere else. We personally negotiate all accommodations.",
+    "becomePartner": "Become a Partner",
+    "support": "Support",
+    "partner": "Partner"
   }
 }

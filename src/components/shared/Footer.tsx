@@ -26,6 +26,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Compass, Mail, Phone } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // ============================================================
 // Component Definition
@@ -46,6 +47,8 @@ export default function Footer() {
   // ----------------------------------------------------------
 
   const pathname = usePathname()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
 
   // ----------------------------------------------------------
   // Conditional Rendering
@@ -77,25 +80,24 @@ export default function Footer() {
             </div>
             {/* รายละเอียดบริษัท */}
             <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
-              จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน
-              ทุกที่พักเราไปดิวเองกับมือ
+              {t('footer.description') || 'จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน ทุกที่พักเราไปดิวเองกับมือ'}
             </p>
           </div>
 
           {/* คอลัมน์ 2: เมนู */}
           <div>
             <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
-              Menu
+              {t('navbar.menu') || (lang === 'th' ? 'เมนู' : 'Menu')}
             </h4>
             <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm font-bold tracking-widest uppercase">
               <li>
                 <Link href="/hotels" className="hover:text-indigo-400 transition-colors">
-                  แพ็คเกจทริป
+                  {t('navbar.packages')}
                 </Link>
               </li>
               <li>
                 <Link href="/cars" className="hover:text-indigo-400 transition-colors">
-                  รถเช่ารายวัน
+                  {t('navbar.cars')}
                 </Link>
               </li>
             </ul>
@@ -104,7 +106,7 @@ export default function Footer() {
           {/* คอลัมน์ 3: ข้อมูลติดต่อ */}
           <div>
             <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
-              Support
+              {t('footer.support') || (lang === 'th' ? 'สนับสนุน' : 'Support')}
             </h4>
             <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm font-bold">
               {/* อีเมล */}
@@ -123,13 +125,13 @@ export default function Footer() {
           {/* คอลัมน์ 4: พาร์ทเนอร์ */}
           <div>
             <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
-              Partner
+              {t('footer.partner') || (lang === 'th' ? 'พาร์ทเนอร์' : 'Partner')}
             </h4>
             <Link
               href="/contact"
               className="inline-block bg-white/5 border border-white/10 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-black text-xs uppercase text-white hover:bg-white hover:text-slate-950 transition-all text-center w-full sm:w-auto"
             >
-              ร่วมเป็นพาร์ทเนอร์
+              {t('footer.becomePartner') || 'ร่วมเป็นพาร์ทเนอร์'}
             </Link>
           </div>
         </div>
@@ -137,7 +139,9 @@ export default function Footer() {
         {/* ลิขสิทธิ์ */}
         <div className="pt-8 sm:pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
           <div className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase tracking-[0.3em] sm:tracking-[0.4em]">
-            © 2024 Got Journey Thailand. All Rights Reserved.
+            {lang === 'th' 
+              ? '© 2024 Got Journey Thailand สงวนลิขสิทธิ์' 
+              : '© 2024 Got Journey Thailand. All Rights Reserved.'}
           </div>
         </div>
       </div>

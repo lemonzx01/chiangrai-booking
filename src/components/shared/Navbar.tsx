@@ -476,7 +476,7 @@ export default function Navbar() {
               <X size={20} />
               <span className="text-sm font-semibold">{mounted ? t('common.back') : 'กลับ'}</span>
             </button>
-            <h2 className="text-base font-bold text-slate-900">เมนู</h2>
+            <h2 className="text-base font-bold text-slate-900">{mounted ? (t('navbar.menu') || 'เมนู') : 'เมนู'}</h2>
             <div className="w-16"></div>
           </div>
 

@@ -33,7 +33,7 @@ export default function CarsClient({ cars }: CarsClientProps) {
             {t('navbar.cars')}
           </h1>
           <p className="text-xl text-white/80">
-            รถเช่าพรีเมียมพร้อมบริการคนขับมืออาชีพ
+            {t('cars.subtitle') || 'รถเช่าพรีเมียมพร้อมบริการคนขับมืออาชีพ'}
           </p>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function CarsClient({ cars }: CarsClientProps) {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-slate-500 text-lg">ไม่พบรถที่ตรงกับเงื่อนไข</p>
+            <p className="text-slate-500 text-lg">{t('cars.noResults') || 'ไม่พบรถที่ตรงกับเงื่อนไข'}</p>
           </div>
         )}
       </div>

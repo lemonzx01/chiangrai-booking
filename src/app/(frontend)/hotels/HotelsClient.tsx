@@ -154,7 +154,7 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
             {t('navbar.packages')}
           </h1>
           <p className="text-xl text-white/80">
-            คัดสรรแพ็คเกจที่พักพรีเมียมในราคาที่ดีที่สุด
+            {t('hotels.subtitle') || 'คัดสรรแพ็คเกจที่พักพรีเมียมในราคาที่ดีที่สุด'}
           </p>
         </div>
       </div>
@@ -223,7 +223,7 @@ export default function HotelsClient({ hotels }: HotelsClientProps) {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-slate-500 text-lg">ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข</p>
+            <p className="text-slate-500 text-lg">{t('hotels.noResults') || 'ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข'}</p>
           </div>
         )}
       </div>

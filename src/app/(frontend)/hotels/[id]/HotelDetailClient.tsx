@@ -113,7 +113,9 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
 
             {/* Amenities */}
             <div className="mb-6 sm:mb-8">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">สิ่งอำนวยความสะดวก</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
+                {t('hotel.amenities') || 'สิ่งอำนวยความสะดวก'}
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {amenities?.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 text-slate-600">
@@ -128,14 +130,16 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-slate-100">
               <div className="flex items-center gap-2 text-slate-600 text-sm sm:text-base">
                 <Users size={18} />
-                <span>สูงสุด {hotel.max_guests} คน</span>
+                <span>
+                  {t('hotel.maxGuests', { count: hotel.max_guests }) || `สูงสุด ${hotel.max_guests} คน`}
+                </span>
               </div>
             </div>
 
             {/* Price & Book */}
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
               <div>
-                <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('home.weeklyDeals.packageStart')}</p>
+                <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
                 <p className="text-2xl sm:text-3xl font-black text-indigo-600">
                   {formatCurrency(hotel.price_per_night)}
                   <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
