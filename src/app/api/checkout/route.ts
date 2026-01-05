@@ -77,11 +77,13 @@ export async function POST(request: Request) {
     const supabase = await createAdminClient()
 
     // ----------------------------------------------------------
-    // ดึงข้อมูลการจอง
+    // ดึงข้อมูลการจองพร้อม partner information
     // ----------------------------------------------------------
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select('*, hotel:hotels(*), car:cars(*)')
+      .select(
+        '*, hotel:hotels(*, partner:partners(*)), car:cars(*, partner:partners(*))'
+      )
       .eq('id', booking_id)
       .single()
 
@@ -89,6 +91,13 @@ export async function POST(request: Request) {
     if (bookingError || !booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
+
+    // ----------------------------------------------------------
+    // ตรวจสอบว่ามีพาร์ทเนอร์หรือไม่ (สำหรับ Stripe Connect)
+    // ----------------------------------------------------------
+    const partner =
+      booking.hotel?.partner || booking.car?.partner || null
+    const partnerStripeAccountId = partner?.stripe_account_id
 
     // ----------------------------------------------------------
     // สร้างชื่อรายการสินค้า
@@ -100,9 +109,36 @@ export async function POST(request: Request) {
         : booking.car?.name_en || 'Car Rental'
 
     // ----------------------------------------------------------
+    // กำหนดสกุลเงินและแปลงราคา
+    // ----------------------------------------------------------
+    const currency = (booking.currency || 'THB').toLowerCase()
+    const amount = Math.round(booking.total_price * 100) // แปลงเป็นหน่วยเล็กที่สุด (สตางค์/เซ็นต์)
+
+    // ----------------------------------------------------------
+    // คำนวณ platform fee และ partner payout (ถ้ามี partner)
+    // ----------------------------------------------------------
+    let paymentIntentData: any = {}
+    let applicationFeeAmount: number | undefined
+
+    if (partnerStripeAccountId && partner?.commission_rate) {
+      // คำนวณ platform fee (commission rate)
+      const commissionRate = partner.commission_rate / 100
+      applicationFeeAmount = Math.round(booking.total_price * commissionRate * 100)
+
+      // ตั้งค่า payment intent data สำหรับ Connect
+      paymentIntentData = {
+        application_fee_amount: applicationFeeAmount,
+        on_behalf_of: partnerStripeAccountId,
+        transfer_data: {
+          destination: partnerStripeAccountId,
+        },
+      }
+    }
+
+    // ----------------------------------------------------------
     // สร้าง Stripe Checkout Session
     // ----------------------------------------------------------
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: any = {
       // วิธีการชำระเงินที่รองรับ
       payment_method_types: ['card', 'promptpay'],
 
@@ -110,12 +146,12 @@ export async function POST(request: Request) {
       line_items: [
         {
           price_data: {
-            currency: 'thb', // สกุลเงินบาท
+            currency,
             product_data: {
               name: itemName,
               description: `Booking: ${booking.booking_code}`,
             },
-            unit_amount: Math.round(booking.total_price * 100), // แปลงเป็นสตางค์
+            unit_amount: amount,
           },
           quantity: 1,
         },
@@ -125,18 +161,30 @@ export async function POST(request: Request) {
       mode: 'payment',
 
       // URL สำหรับ redirect
-      success_url: success_url || `${process.env.NEXT_PUBLIC_APP_URL}/success?code=${booking.booking_code}`,
-      cancel_url: cancel_url || `${process.env.NEXT_PUBLIC_APP_URL}/booking?cancelled=true`,
+      success_url:
+        success_url ||
+        `${process.env.NEXT_PUBLIC_APP_URL}/success?code=${booking.booking_code}`,
+      cancel_url:
+        cancel_url ||
+        `${process.env.NEXT_PUBLIC_APP_URL}/booking?cancelled=true`,
 
       // Metadata สำหรับ webhook
       metadata: {
         booking_id: booking.id,
         booking_code: booking.booking_code,
+        ...(partnerStripeAccountId && { partner_account_id: partnerStripeAccountId }),
       },
 
       // กรอก email ลูกค้าล่วงหน้า
       customer_email: booking.customer_email,
-    })
+    }
+
+    // เพิ่ม payment intent data ถ้ามี partner (Stripe Connect)
+    if (Object.keys(paymentIntentData).length > 0) {
+      sessionConfig.payment_intent_data = paymentIntentData
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
 
     // ----------------------------------------------------------
     // บันทึก Payment Record
@@ -145,7 +193,7 @@ export async function POST(request: Request) {
       booking_id: booking.id,
       stripe_checkout_session_id: session.id,
       amount: booking.total_price,
-      currency: 'THB',
+      currency: booking.currency || 'THB',
       status: 'PENDING', // รอการชำระ
     })
 

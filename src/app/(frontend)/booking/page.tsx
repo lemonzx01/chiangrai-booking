@@ -1,31 +1,117 @@
+/**
+ * ============================================================
+ * Booking Page - หน้าจองโรงแรม/รถ (Client Component)
+ * ============================================================
+ *
+ * วัตถุประสงค์:
+ *   - แสดงฟอร์มการจอง
+ *   - คำนวณราคาตามจำนวนคืน/วัน
+ *   - สร้างการจองและ redirect ไป Stripe Checkout
+ *
+ * Route:
+ *   - /booking?type=HOTEL&id=xxx - จองโรงแรม
+ *   - /booking?type=CAR&id=xxx - จองรถ
+ *
+ * Query Params:
+ *   - type: ประเภทการจอง (HOTEL หรือ CAR)
+ *   - id: ID ของโรงแรมหรือรถ
+ *
+ * Features:
+ *   - ฟอร์มเลือกวันที่ (Check-in / Check-out)
+ *   - ฟอร์มจำนวนผู้เข้าพัก
+ *   - ฟอร์มข้อมูลลูกค้า
+ *   - สรุปราคาแบบ real-time
+ *   - Integration กับ Stripe Checkout
+ *
+ * ============================================================
+ */
+
 'use client'
 
+// ============================================================
+// การนำเข้า Dependencies
+// ============================================================
+
+/** React hooks */
 import { Suspense, useState, useEffect } from 'react'
+
+/** Next.js hooks */
 import { useSearchParams, useRouter } from 'next/navigation'
+
+/** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
+
+/** Lucide icons สำหรับ UI */
 import { Calendar, Users, ArrowLeft, Loader2 } from 'lucide-react'
+
+/** Next.js components */
 import Link from 'next/link'
 import Image from 'next/image'
+
+/** Type definitions */
 import { Hotel, Car, BookingType } from '@/types'
+
+/** Utility functions */
 import { formatCurrency, calculateNights, calculateTotalPrice } from '@/lib/utils'
+
+/** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
+
+/** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
+// ============================================================
+// Booking Content Component
+// ============================================================
+
+/**
+ * Booking Content - เนื้อหาหลักของหน้า Booking
+ *
+ * @description
+ *   Component ที่แสดงฟอร์มการจองและสรุปราคา
+ *   แยกออกมาเพื่อใช้กับ Suspense
+ *
+ * @returns {JSX.Element} Booking form UI
+ */
 function BookingContent() {
+  // ----------------------------------------------------------
+  // Hooks
+  // ----------------------------------------------------------
+  /** Hook สำหรับ translation */
   const { t } = useTranslation()
+
+  /** Hook สำหรับดึงข้อมูลตามภาษา */
   const { getField } = useLocalize()
+
+  /** Hook สำหรับดึง URL query params */
   const searchParams = useSearchParams()
+
+  /** Hook สำหรับ navigation */
   const router = useRouter()
 
+  /** ประเภทการจองจาก URL */
   const type = searchParams.get('type') as BookingType
+
+  /** ID ของโรงแรม/รถจาก URL */
   const id = searchParams.get('id')
 
+  // ----------------------------------------------------------
+  // State
+  // ----------------------------------------------------------
+  /** State สำหรับข้อมูลโรงแรม/รถ */
   const [item, setItem] = useState<Hotel | Car | null>(null)
+
+  /** State สำหรับสถานะการโหลด */
   const [loading, setLoading] = useState(true)
+
+  /** State สำหรับสถานะการส่งฟอร์ม */
   const [submitting, setSubmitting] = useState(false)
+
+  /** State สำหรับข้อความ error */
   const [error, setError] = useState('')
 
+  /** State สำหรับข้อมูลฟอร์ม */
   const [formData, setFormData] = useState({
     check_in_date: '',
     check_out_date: '',
@@ -37,6 +123,12 @@ function BookingContent() {
     special_requests: '',
   })
 
+  // ----------------------------------------------------------
+  // Effects
+  // ----------------------------------------------------------
+  /**
+   * Effect: ดึงข้อมูลโรงแรม/รถเมื่อโหลดหน้า
+   */
   useEffect(() => {
     async function fetchItem() {
       if (!type || !id) {
@@ -44,6 +136,7 @@ function BookingContent() {
         return
       }
 
+      // เลือก endpoint ตามประเภท
       const endpoint = type === 'HOTEL' ? `/api/hotels/${id}` : `/api/cars/${id}`
       const res = await fetch(endpoint)
       if (res.ok) {
@@ -56,25 +149,44 @@ function BookingContent() {
     fetchItem()
   }, [type, id])
 
+  // ----------------------------------------------------------
+  // Computed Values
+  // ----------------------------------------------------------
+  /** จำนวนคืน/วัน */
   const nights = formData.check_in_date && formData.check_out_date
     ? calculateNights(formData.check_in_date, formData.check_out_date)
     : 0
 
+  /** ราคาต่อหน่วย (คืน/วัน) */
   const pricePerUnit = item
     ? type === 'HOTEL'
       ? (item as Hotel).price_per_night
       : (item as Car).price_per_day
     : 0
 
+  /** ราคารวม */
   const totalPrice = calculateTotalPrice(pricePerUnit, nights)
 
+  // ----------------------------------------------------------
+  // Event Handlers
+  // ----------------------------------------------------------
+  /**
+   * จัดการการ submit ฟอร์ม
+   *
+   * ขั้นตอน:
+   * 1. สร้างการจองผ่าน /api/bookings
+   * 2. สร้าง Checkout Session ผ่าน /api/checkout
+   * 3. Redirect ไป Stripe Checkout หรือ Success page
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     setError('')
 
     try {
-      // Create booking
+      // ----------------------------------------------------------
+      // 1. สร้างการจอง
+      // ----------------------------------------------------------
       const bookingRes = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,7 +205,9 @@ function BookingContent() {
 
       const booking = await bookingRes.json()
 
-      // Create checkout session
+      // ----------------------------------------------------------
+      // 2. สร้าง Checkout Session
+      // ----------------------------------------------------------
       const checkoutRes = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -104,12 +218,15 @@ function BookingContent() {
         }),
       })
 
+      // ถ้าสร้าง checkout ไม่สำเร็จ ไปหน้า success (manual payment)
       if (!checkoutRes.ok) {
-        // If checkout fails, still redirect to success (manual payment)
         router.push(`/success?code=${booking.booking_code}`)
         return
       }
 
+      // ----------------------------------------------------------
+      // 3. Redirect ไป Stripe หรือ Success
+      // ----------------------------------------------------------
       const { url } = await checkoutRes.json()
       if (url) {
         window.location.href = url
@@ -122,6 +239,9 @@ function BookingContent() {
     }
   }
 
+  // ----------------------------------------------------------
+  // Loading State
+  // ----------------------------------------------------------
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -130,6 +250,9 @@ function BookingContent() {
     )
   }
 
+  // ----------------------------------------------------------
+  // Not Found State
+  // ----------------------------------------------------------
   if (!item) {
     return (
       <div className="min-h-screen pt-24 flex flex-col items-center justify-center">
@@ -141,12 +264,18 @@ function BookingContent() {
     )
   }
 
+  /** ชื่อโรงแรม/รถตามภาษา */
   const name = getField(item, 'name')
 
+  // ----------------------------------------------------------
+  // Render Component
+  // ----------------------------------------------------------
   return (
     <div className="min-h-screen pt-24 pb-12">
       <div className="max-w-4xl mx-auto px-6 sm:px-8">
-        {/* Back Button */}
+        {/* ============================================================
+            ปุ่มกลับ
+            ============================================================ */}
         <Link
           href={type === 'HOTEL' ? `/hotels/${id}` : `/cars/${id}`}
           className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-6 transition-colors"
@@ -155,19 +284,28 @@ function BookingContent() {
           <span className="font-medium">{t('common.back')}</span>
         </Link>
 
+        {/* Page Title */}
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 sm:mb-8">{t('booking.title')}</h1>
 
+        {/* ============================================================
+            Main Content - 2 Columns Grid
+            ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Form */}
+          {/* ============================================================
+              คอลัมน์ซ้าย - Booking Form
+              ============================================================ */}
           <div className="lg:col-span-2 order-2 lg:order-1">
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-              {/* Dates */}
+              {/* ----------------------------------------------------------
+                  Section: วันที่เข้าพัก
+                  ---------------------------------------------------------- */}
               <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <Calendar size={20} className="text-indigo-600" />
                   วันที่เข้าพัก
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* วันเช็คอิน */}
                   <Input
                     type="date"
                     label={t('booking.checkIn')}
@@ -176,6 +314,7 @@ function BookingContent() {
                     min={new Date().toISOString().split('T')[0]}
                     required
                   />
+                  {/* วันเช็คเอาท์ */}
                   <Input
                     type="date"
                     label={t('booking.checkOut')}
@@ -187,7 +326,9 @@ function BookingContent() {
                 </div>
               </div>
 
-              {/* Guests */}
+              {/* ----------------------------------------------------------
+                  Section: จำนวนผู้เข้าพัก
+                  ---------------------------------------------------------- */}
               <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <Users size={20} className="text-indigo-600" />
@@ -203,10 +344,13 @@ function BookingContent() {
                 />
               </div>
 
-              {/* Customer Info */}
+              {/* ----------------------------------------------------------
+                  Section: ข้อมูลลูกค้า
+                  ---------------------------------------------------------- */}
               <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
                 <h2 className="text-lg font-bold text-slate-900 mb-4">{t('booking.customerInfo')}</h2>
                 <div className="space-y-4">
+                  {/* ชื่อ */}
                   <Input
                     label={t('booking.name')}
                     value={formData.customer_name}
@@ -214,6 +358,7 @@ function BookingContent() {
                     placeholder="กรอกชื่อ-นามสกุล"
                     required
                   />
+                  {/* อีเมล */}
                   <Input
                     type="email"
                     label={t('booking.email')}
@@ -222,6 +367,7 @@ function BookingContent() {
                     placeholder="example@email.com"
                     required
                   />
+                  {/* โทรศัพท์ */}
                   <Input
                     type="tel"
                     label={t('booking.phone')}
@@ -230,12 +376,14 @@ function BookingContent() {
                     placeholder="0812345678"
                     required
                   />
+                  {/* LINE ID */}
                   <Input
                     label={t('booking.line')}
                     value={formData.customer_line}
                     onChange={(e) => setFormData({ ...formData, customer_line: e.target.value })}
                     placeholder="@yourlineid"
                   />
+                  {/* ความต้องการพิเศษ */}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       {t('booking.specialRequests')}
@@ -251,21 +399,26 @@ function BookingContent() {
                 </div>
               </div>
 
+              {/* Error Message */}
               {error && (
                 <p className="text-red-500 text-center">{error}</p>
               )}
 
+              {/* Submit Button */}
               <Button type="submit" size="lg" className="w-full" loading={submitting}>
                 {t('booking.proceedToPayment')}
               </Button>
             </form>
           </div>
 
-          {/* Summary */}
+          {/* ============================================================
+              คอลัมน์ขวา - Booking Summary
+              ============================================================ */}
           <div className="lg:col-span-1 order-1 lg:order-2">
             <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6 lg:sticky lg:top-24">
               <h2 className="text-lg font-bold text-slate-900 mb-4">{t('booking.summary')}</h2>
 
+              {/* รูปภาพ */}
               <div className="relative h-40 rounded-xl overflow-hidden mb-4">
                 <Image
                   src={item.images[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}
@@ -275,23 +428,28 @@ function BookingContent() {
                 />
               </div>
 
+              {/* ชื่อ */}
               <h3 className="font-bold text-slate-900 mb-4 break-words">{name}</h3>
 
+              {/* สรุปราคา */}
               <div className="space-y-3 text-sm border-t border-slate-100 pt-4">
                 {nights > 0 && (
                   <>
+                    {/* รายละเอียดราคา */}
                     <div className="flex justify-between gap-2">
                       <span className="text-slate-500 text-xs sm:text-sm break-words">
                         {formatCurrency(pricePerUnit)} x {nights} {type === 'HOTEL' ? t('booking.nights') : t('booking.days')}
                       </span>
                       <span className="font-medium text-xs sm:text-sm whitespace-nowrap">{formatCurrency(totalPrice)}</span>
                     </div>
+                    {/* ราคารวม */}
                     <div className="flex justify-between items-center gap-2 pt-3 border-t border-slate-100">
                       <span className="font-bold text-slate-900 text-sm sm:text-base">{t('booking.totalPrice')}</span>
                       <span className="font-bold text-lg sm:text-xl text-indigo-600 whitespace-nowrap">{formatCurrency(totalPrice)}</span>
                     </div>
                   </>
                 )}
+                {/* ข้อความเมื่อยังไม่ได้เลือกวันที่ */}
                 {nights <= 0 && (
                   <p className="text-slate-500 text-center">เลือกวันที่เพื่อดูราคา</p>
                 )}
@@ -304,6 +462,19 @@ function BookingContent() {
   )
 }
 
+// ============================================================
+// Main Page Component
+// ============================================================
+
+/**
+ * Booking Page Component
+ *
+ * @description
+ *   Wrapper component ที่ใช้ Suspense สำหรับ loading state
+ *   เนื่องจากใช้ useSearchParams ต้องอยู่ใน Suspense
+ *
+ * @returns {JSX.Element} Booking page พร้อม Suspense
+ */
 export default function BookingPage() {
   return (
     <Suspense fallback={

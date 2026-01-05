@@ -65,6 +65,19 @@ export enum PaymentStatus {
   REFUNDED = 'REFUNDED'
 }
 
+/**
+ * สกุลเงิน
+ * @description รองรับหลายสกุลเงินสำหรับการชำระเงิน
+ */
+export enum Currency {
+  /** บาทไทย */
+  THB = 'THB',
+  /** ดอลลาร์สหรัฐ */
+  USD = 'USD',
+  /** ยูโร */
+  EUR = 'EUR'
+}
+
 // ============================================================
 // Database Types (Types สำหรับข้อมูลจากฐานข้อมูล)
 // ============================================================
@@ -92,13 +105,15 @@ export interface Hotel {
   location_en?: string
   /** ระดับดาว (1-5) */
   star_rating: number
-  /** ราคาต่อคืน (บาท) */
+  /** ราคาต่อคืน (บาท) - เก็บไว้เพื่อ backward compatibility */
   price_per_night: number
+  /** ราคาต่อคืนในสกุลเงินที่เลือก */
+  base_price_per_night: number
   /** จำนวนผู้เข้าพักสูงสุด */
   max_guests: number
-  /** ประเภทห้อง (ภาษาไทย) */
+  /** ประเภทห้อง (ภาษาไทย) - เก็บไว้เพื่อ backward compatibility */
   room_type_th: string
-  /** ประเภทห้อง (ภาษาอังกฤษ) */
+  /** ประเภทห้อง (ภาษาอังกฤษ) - เก็บไว้เพื่อ backward compatibility */
   room_type_en: string
   /** สิ่งอำนวยความสะดวก (ภาษาไทย) */
   amenities_th: string[]
@@ -106,6 +121,10 @@ export interface Hotel {
   amenities_en: string[]
   /** รูปภาพโรงแรม (URLs) */
   images: string[]
+  /** รหัสพาร์ทเนอร์ (ถ้ามี) */
+  partner_id?: string
+  /** สกุลเงิน */
+  currency: Currency
   /** สถานะการใช้งาน */
   is_active: boolean
   /** วันที่สร้าง (ISO string) */
@@ -135,14 +154,24 @@ export interface Car {
   car_type_en: string
   /** จำนวนผู้โดยสารสูงสุด */
   max_passengers: number
-  /** ราคาต่อวัน (บาท) */
+  /** ราคาต่อวัน (บาท) - เก็บไว้เพื่อ backward compatibility */
   price_per_day: number
+  /** ราคาต่อวันในสกุลเงินที่เลือก */
+  base_price_per_day: number
   /** สิ่งที่รวมอยู่ในบริการ (ภาษาไทย) */
   includes_th: string[]
   /** สิ่งที่รวมอยู่ในบริการ (ภาษาอังกฤษ) */
   includes_en: string[]
   /** รูปภาพรถ (URLs) */
   images: string[]
+  /** รหัสพาร์ทเนอร์ (คนขับรถ) */
+  partner_id?: string
+  /** ชื่อคนขับ */
+  driver_name?: string
+  /** นามสกุลคนขับ */
+  driver_surname?: string
+  /** สกุลเงิน */
+  currency: Currency
   /** สถานะการใช้งาน */
   is_active: boolean
   /** วันที่สร้าง (ISO string) */
@@ -166,6 +195,8 @@ export interface Booking {
   hotel_id?: string
   /** รหัสรถที่จอง (ถ้ามี) */
   car_id?: string
+  /** รหัสประเภทห้องที่จอง (ถ้ามี) */
+  room_type_id?: string
   /** วันที่เช็คอิน/รับรถ (ISO string) */
   check_in_date: string
   /** วันที่เช็คเอาท์/คืนรถ (ISO string) */
@@ -182,8 +213,10 @@ export interface Booking {
   customer_line?: string
   /** คำขอพิเศษ (ถ้ามี) */
   special_requests?: string
-  /** ราคารวมทั้งหมด (บาท) */
+  /** ราคารวมทั้งหมด */
   total_price: number
+  /** สกุลเงินที่ใช้จอง */
+  currency: Currency
   /** สถานะการจอง */
   status: BookingStatus
   /** วันที่สร้าง (ISO string) */
@@ -216,8 +249,8 @@ export interface Payment {
   stripe_checkout_session_id?: string
   /** จำนวนเงิน (สตางค์) */
   amount: number
-  /** สกุลเงิน (เช่น THB) */
-  currency: string
+  /** สกุลเงิน */
+  currency: Currency
   /** สถานะการชำระเงิน */
   status: PaymentStatus
   /** วันที่ชำระเงิน (ISO string) */
@@ -578,3 +611,10 @@ export interface NavItem {
   /** URL ปลายทาง */
   href: string
 }
+
+// ============================================================
+// Partner Types (Export from partner.ts)
+// ============================================================
+
+export type { Partner, PartnerFormData, RoomType, RoomTypeFormData } from './partner'
+export { PartnerType } from './partner'

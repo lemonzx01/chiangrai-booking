@@ -37,6 +37,12 @@ import { NextResponse } from 'next/server'
 /** บริการแจ้งเตือนผ่าน LINE */
 import { sendLineNotification } from '@/services/notifications/line'
 
+/** บริการส่งอีเมลแจ้งเตือนพาร์ทเนอร์ */
+import {
+  sendHotelPartnerNotification,
+  sendDriverPartnerNotification,
+} from '@/services/notifications/email'
+
 /** ฟังก์ชัน Utility สำหรับการจอง */
 import { generateBookingCode, calculateNights, calculateTotalPrice } from '@/lib/utils'
 
@@ -88,7 +94,10 @@ export async function GET(request: Request) {
     // ----------------------------------------------------------
     let query = supabase
       .from('bookings')
-      .select('*, hotel:hotels(*), car:cars(*)', { count: 'exact' }) // JOIN ข้อมูลที่เกี่ยวข้อง
+      .select(
+        '*, hotel:hotels(*, partner:partners(*)), car:cars(*, partner:partners(*)), room_type:room_types(*)',
+        { count: 'exact' }
+      ) // JOIN ข้อมูลที่เกี่ยวข้อง
       .order('created_at', { ascending: false }) // เรียงจากใหม่ไปเก่า
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
@@ -198,9 +207,12 @@ export async function POST(request: Request) {
         ...body,
         booking_code,
         total_price,
+        currency: body.currency || 'THB', // ใช้สกุลเงินที่ระบุ หรือ THB เป็นค่าเริ่มต้น
         status: 'PENDING', // สถานะเริ่มต้น: รอดำเนินการ
       })
-      .select('*, hotel:hotels(*), car:cars(*)')
+      .select(
+        '*, hotel:hotels(*, partner:partners(*)), car:cars(*, partner:partners(*)), room_type:room_types(*)'
+      )
       .single()
 
     // ตรวจสอบ Error
@@ -213,6 +225,51 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // ใช้ .catch เพื่อไม่ให้ error ของ LINE กระทบการจอง
     sendLineNotification(booking).catch(console.error)
+
+    // ----------------------------------------------------------
+    // ส่งอีเมลแจ้งเตือนพาร์ทเนอร์ (non-blocking)
+    // ----------------------------------------------------------
+    // ส่งอีเมลไปหาพาร์ทเนอร์โรงแรม (ถ้ามี)
+    if (booking.hotel?.partner) {
+      const partner = booking.hotel.partner
+      sendHotelPartnerNotification({
+        partnerEmail: partner.email,
+        partnerName: partner.name,
+        bookingCode: booking.booking_code,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        customerPhone: booking.customer_phone,
+        checkIn: booking.check_in_date,
+        checkOut: booking.check_out_date,
+        numberOfGuests: booking.number_of_guests,
+        roomType: booking.room_type
+          ? `${booking.room_type.name_th} / ${booking.room_type.name_en}`
+          : booking.hotel.room_type_th || booking.hotel.room_type_en,
+        specialRequests: booking.special_requests,
+        totalPrice: booking.total_price,
+        currency: booking.currency || 'THB',
+      }).catch(console.error)
+    }
+
+    // ส่งอีเมลไปหาพาร์ทเนอร์คนขับรถ (ถ้ามี)
+    if (booking.car?.partner) {
+      const partner = booking.car.partner
+      sendDriverPartnerNotification({
+        partnerEmail: partner.email,
+        partnerName: partner.name,
+        bookingCode: booking.booking_code,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        customerPhone: booking.customer_phone,
+        pickupDate: booking.check_in_date,
+        returnDate: booking.check_out_date,
+        numberOfPassengers: booking.number_of_guests,
+        carName: booking.car.name_th || booking.car.name_en,
+        specialRequests: booking.special_requests,
+        totalPrice: booking.total_price,
+        currency: booking.currency || 'THB',
+      }).catch(console.error)
+    }
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })

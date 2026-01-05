@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/Sidebar'
 import Button from '@/components/ui/Button'
@@ -9,6 +9,8 @@ import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { STAR_RATINGS } from '@/lib/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
+import { Partner, PartnerType } from '@/types'
+import { Currency, CURRENCY_OPTIONS } from '@/lib/currency'
 
 export default function NewHotelPage() {
   const router = useRouter()
@@ -22,19 +24,39 @@ export default function NewHotelPage() {
     description_en: '',
     location: '',
     star_rating: 5,
-    price_per_night: '',
+    price_per_night: '', // Keep for backward compatibility
+    base_price_per_night: '',
     max_guests: 2,
     room_type_th: '',
     room_type_en: '',
     amenities_th: [] as string[],
     amenities_en: [] as string[],
     images: [] as string[],
+    partner_id: '',
+    currency: Currency.THB,
     is_active: true,
   })
 
   const [newAmenityTh, setNewAmenityTh] = useState('')
   const [newAmenityEn, setNewAmenityEn] = useState('')
   const [newImage, setNewImage] = useState('')
+  const [partners, setPartners] = useState<Partner[]>([])
+
+  // Fetch partners on mount
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const res = await fetch('/api/partners?type=HOTEL&is_active=true')
+        const data = await res.json()
+        if (data.data) {
+          setPartners(data.data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch partners:', err)
+      }
+    }
+    fetchPartners()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,9 +66,12 @@ export default function NewHotelPage() {
     try {
       const payload = {
         ...formData,
-        price_per_night: parseFloat(formData.price_per_night),
+        price_per_night: parseFloat(formData.base_price_per_night || formData.price_per_night), // Keep for backward compatibility
+        base_price_per_night: parseFloat(formData.base_price_per_night || formData.price_per_night),
         max_guests: parseInt(String(formData.max_guests)),
         star_rating: parseInt(String(formData.star_rating)),
+        partner_id: formData.partner_id || null,
+        currency: formData.currency,
       }
 
       const res = await fetch('/api/hotels', {
@@ -227,15 +252,59 @@ export default function NewHotelPage() {
                     </div>
                   </div>
                 </div>
-                <Input
-                  type="number"
-                  label="ราคาต่อคืน (บาท) *"
-                  value={formData.price_per_night}
-                  onChange={(e) => setFormData({ ...formData, price_per_night: e.target.value })}
-                  min="0"
-                  step="0.01"
-                  required
-                />
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      สกุลเงิน *
+                    </label>
+                    <select
+                      value={formData.currency}
+                      onChange={(e) =>
+                        setFormData({ ...formData, currency: e.target.value as Currency })
+                      }
+                      className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                      required
+                    >
+                      {CURRENCY_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Input
+                    type="number"
+                    label="ราคาต่อคืน *"
+                    value={formData.base_price_per_night || formData.price_per_night}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        base_price_per_night: e.target.value,
+                        price_per_night: e.target.value, // Keep for backward compatibility
+                      })
+                    }
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    พาร์ทเนอร์ (โรงแรม)
+                  </label>
+                  <select
+                    value={formData.partner_id}
+                    onChange={(e) => setFormData({ ...formData, partner_id: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                  >
+                    <option value="">-- ไม่ระบุพาร์ทเนอร์ --</option>
+                    {partners.map((partner) => (
+                      <option key={partner.id} value={partner.id}>
+                        {partner.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <Input
                   type="number"
                   label="จำนวนผู้เข้าพักสูงสุด *"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/Sidebar'
 import Button from '@/components/ui/Button'
@@ -8,6 +8,8 @@ import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/ImageUpload'
+import { Partner, PartnerType } from '@/types'
+import { Currency, CURRENCY_OPTIONS } from '@/lib/currency'
 
 export default function NewCarPage() {
   const router = useRouter()
@@ -22,16 +24,38 @@ export default function NewCarPage() {
     car_type_th: '',
     car_type_en: '',
     max_passengers: 4,
-    price_per_day: '',
+    price_per_day: '', // Keep for backward compatibility
+    base_price_per_day: '',
+    driver_name: '',
+    driver_surname: '',
     includes_th: [] as string[],
     includes_en: [] as string[],
     images: [] as string[],
+    partner_id: '',
+    currency: Currency.THB,
     is_active: true,
   })
 
   const [newIncludeTh, setNewIncludeTh] = useState('')
   const [newIncludeEn, setNewIncludeEn] = useState('')
   const [newImage, setNewImage] = useState('')
+  const [partners, setPartners] = useState<Partner[]>([])
+
+  // Fetch partners on mount
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const res = await fetch('/api/partners?type=DRIVER&is_active=true')
+        const data = await res.json()
+        if (data.data) {
+          setPartners(data.data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch partners:', err)
+      }
+    }
+    fetchPartners()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,8 +65,11 @@ export default function NewCarPage() {
     try {
       const payload = {
         ...formData,
-        price_per_day: parseFloat(formData.price_per_day),
+        price_per_day: parseFloat(formData.base_price_per_day || formData.price_per_day), // Keep for backward compatibility
+        base_price_per_day: parseFloat(formData.base_price_per_day || formData.price_per_day),
         max_passengers: parseInt(String(formData.max_passengers)),
+        partner_id: formData.partner_id || null,
+        currency: formData.currency,
       }
 
       const res = await fetch('/api/cars', {
@@ -203,15 +230,42 @@ export default function NewCarPage() {
             <div>
               <h2 className="text-lg font-bold text-slate-900 mb-4">ราคาและรายละเอียด</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  type="number"
-                  label="ราคาต่อวัน (บาท) *"
-                  value={formData.price_per_day}
-                  onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
-                  min="0"
-                  step="0.01"
-                  required
-                />
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      สกุลเงิน *
+                    </label>
+                    <select
+                      value={formData.currency}
+                      onChange={(e) =>
+                        setFormData({ ...formData, currency: e.target.value as Currency })
+                      }
+                      className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                      required
+                    >
+                      {CURRENCY_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Input
+                    type="number"
+                    label="ราคาต่อวัน *"
+                    value={formData.base_price_per_day || formData.price_per_day}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        base_price_per_day: e.target.value,
+                        price_per_day: e.target.value, // Keep for backward compatibility
+                      })
+                    }
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
                 <Input
                   type="number"
                   label="จำนวนผู้โดยสารสูงสุด *"
@@ -219,6 +273,35 @@ export default function NewCarPage() {
                   onChange={(e) => setFormData({ ...formData, max_passengers: parseInt(e.target.value) || 4 })}
                   min="1"
                   required
+                />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    พาร์ทเนอร์ (คนขับรถ)
+                  </label>
+                  <select
+                    value={formData.partner_id}
+                    onChange={(e) => setFormData({ ...formData, partner_id: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                  >
+                    <option value="">-- ไม่ระบุพาร์ทเนอร์ --</option>
+                    {partners.map((partner) => (
+                      <option key={partner.id} value={partner.id}>
+                        {partner.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Input
+                  label="ชื่อคนขับ"
+                  value={formData.driver_name}
+                  onChange={(e) => setFormData({ ...formData, driver_name: e.target.value })}
+                  placeholder="เช่น สมชาย"
+                />
+                <Input
+                  label="นามสกุลคนขับ"
+                  value={formData.driver_surname}
+                  onChange={(e) => setFormData({ ...formData, driver_surname: e.target.value })}
+                  placeholder="เช่น ใจดี"
                 />
               </div>
             </div>

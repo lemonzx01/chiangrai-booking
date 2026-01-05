@@ -150,9 +150,6 @@ export default function Navbar() {
   useEffect(() => {
     setMounted(true)
     checkAuth()
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:150',message:'Navbar mounted',data:{pathname,isOpen},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
-    // #endregion
   }, [])
 
   /** ติดตาม scroll event */
@@ -165,12 +162,6 @@ export default function Navbar() {
 
   /** ปิดเมนู mobile เมื่อเปลี่ยนหน้า */
   useEffect(() => {
-    // #region agent log
-    if (isOpen) {
-      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:163',message:'Pathname changed - closing menu',data:{pathname,isOpenBefore:isOpen},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
-    }
-    // #endregion
-    
     // Reset body scroll lock
     document.body.style.position = ''
     document.body.style.top = ''
@@ -178,12 +169,6 @@ export default function Navbar() {
     document.body.style.overflow = ''
     
     setIsOpen(false)
-    
-    // #region agent log
-    setTimeout(() => {
-      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:177',message:'Menu closed after pathname change',data:{pathname,isOpenAfter:false,bodyPosition:document.body.style.position,bodyOverflow:document.body.style.overflow},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{})
-    }, 100)
-    // #endregion
   }, [pathname])
 
   /** Lock body scroll when mobile menu is open */
@@ -424,15 +409,7 @@ export default function Navbar() {
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:425',message:'Toggle button clicked',data:{isOpenBefore:isOpen,pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
-                // #endregion
                 setIsOpen(!isOpen)
-                // #region agent log
-                setTimeout(() => {
-                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:430',message:'State updated after toggle',data:{isOpenAfter:!isOpen,pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
-                }, 0)
-                // #endregion
               }}
               className="lg:hidden p-2 rounded-xl transition-colors"
             >
@@ -450,19 +427,6 @@ export default function Navbar() {
           <div
             className="lg:hidden fixed top-0 left-0 right-0 bottom-0 bg-white z-[60] flex flex-col"
             style={{ height: '100vh', width: '100vw' }}
-            ref={(el) => {
-              // #region agent log
-              if (el) {
-                // Use requestAnimationFrame to ensure layout is complete
-                requestAnimationFrame(() => {
-                  const rect = el.getBoundingClientRect()
-                  const computedStyle = window.getComputedStyle(el)
-                  const viewportHeight = window.innerHeight
-                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:443',message:'Mobile menu overlay render',data:{isOpen,pathname,height:rect.height,width:rect.width,display:computedStyle.display,viewportHeight,top:rect.top,left:rect.left,styleHeight:el.style.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
-                })
-              }
-              // #endregion
-            }}
           >
             {/* Header with back button - Fixed */}
             <div className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
@@ -487,20 +451,6 @@ export default function Navbar() {
               minHeight: 0,
               height: 'calc(100vh - 64px)',
               flex: '1 1 auto'
-            }}
-            ref={(el) => {
-              // #region agent log
-              if (el && isOpen) {
-                // Use requestAnimationFrame to ensure layout is complete
-                requestAnimationFrame(() => {
-                  const rect = el.getBoundingClientRect()
-                  const computedStyle = window.getComputedStyle(el)
-                  const parentRect = el.parentElement?.getBoundingClientRect()
-                  const viewportHeight = window.innerHeight
-                  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Navbar.tsx:478',message:'Mobile menu content area',data:{isOpen,pathname,height:rect.height,width:rect.width,display:computedStyle.display,visibility:computedStyle.visibility,opacity:computedStyle.opacity,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,childrenCount:el.children.length,parentHeight:parentRect?.height,parentWidth:parentRect?.width,flex:computedStyle.flex,minHeight:computedStyle.minHeight,viewportHeight,headerHeight:parentRect ? parentRect.height - rect.height : null,styleHeight:el.style.height},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{})
-                })
-              }
-              // #endregion
             }}
           >
             {/* ลิงก์เมนู Mobile */}

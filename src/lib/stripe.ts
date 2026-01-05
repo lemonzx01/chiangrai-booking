@@ -100,6 +100,22 @@ export const stripe = {
   get webhooks() {
     return getStripe().webhooks
   },
+
+  /**
+   * เข้าถึง Stripe Connect API
+   * @description ใช้สำหรับจัดการ Connect accounts และ payments
+   */
+  get connect() {
+    return getStripe().connect
+  },
+
+  /**
+   * เข้าถึง Stripe Accounts API
+   * @description ใช้สำหรับจัดการ accounts
+   */
+  get accounts() {
+    return getStripe().accounts
+  },
 }
 
 // ============================================================
@@ -126,4 +142,63 @@ export const getStripePromise = async () => {
 
   // โหลด Stripe ด้วย Publishable Key
   return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+}
+
+// ============================================================
+// Stripe Connect Functions (ฟังก์ชันสำหรับ Stripe Connect)
+// ============================================================
+
+/**
+ * สร้าง Stripe Connect Account สำหรับพาร์ทเนอร์
+ *
+ * @description สร้าง Connect account สำหรับพาร์ทเนอร์เพื่อรับเงินโดยตรง
+ *              ใช้แบบ Express account (ง่ายและรวดเร็ว)
+ *
+ * @param email - อีเมลของพาร์ทเนอร์
+ * @param country - ประเทศ (default: 'TH' สำหรับไทย)
+ * @returns Connect account object
+ *
+ * @example
+ * const account = await createConnectAccount('partner@example.com', 'TH')
+ */
+export async function createConnectAccount(email: string, country: string = 'TH') {
+  const stripe = getStripe()
+
+  return await stripe.accounts.create({
+    type: 'express',
+    country,
+    email,
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  })
+}
+
+/**
+ * สร้าง Account Link สำหรับให้พาร์ทเนอร์เชื่อมต่อ Stripe Connect
+ *
+ * @description สร้าง link สำหรับให้พาร์ทเนอร์กรอกข้อมูลและเชื่อมต่อ account
+ *
+ * @param accountId - Stripe Connect account ID
+ * @param returnUrl - URL สำหรับ redirect กลับมาหลังจากเชื่อมต่อเสร็จ
+ * @param refreshUrl - URL สำหรับ refresh link เมื่อหมดอายุ
+ * @returns Account link object
+ *
+ * @example
+ * const link = await createAccountLink('acct_xxx', 'https://example.com/return', 'https://example.com/refresh')
+ */
+export async function createAccountLink(
+  accountId: string,
+  returnUrl: string,
+  refreshUrl: string
+) {
+  const stripe = getStripe()
+
+  return await stripe.accountLinks.create({
+    account: accountId,
+    return_url: returnUrl,
+    refresh_url: refreshUrl,
+    type: 'account_onboarding',
+  })
 }
