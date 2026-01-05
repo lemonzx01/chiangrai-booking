@@ -490,6 +490,10 @@ export interface BookingFormData {
   hotel_id?: string
   /** รหัสรถ (ต้องมีถ้า booking_type เป็น CAR หรือ COMBO) */
   car_id?: string
+  /** รหัสประเภทห้อง (ถ้ามี - สำหรับการจองโรงแรม) */
+  room_type_id?: string
+  /** สกุลเงิน */
+  currency?: Currency
   /** วันที่เช็คอิน/รับรถ (ISO string) */
   check_in_date: string
   /** วันที่เช็คเอาท์/คืนรถ (ISO string) */

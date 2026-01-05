@@ -49,10 +49,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 /** Type definitions */
-import { Hotel, Car, BookingType } from '@/types'
+import { Hotel, Car, BookingType, RoomType, Currency } from '@/types'
 
 /** Utility functions */
-import { formatCurrency, calculateNights, calculateTotalPrice } from '@/lib/utils'
+import { calculateNights, calculateTotalPrice } from '@/lib/utils'
+import { formatCurrency as formatCurrencyWithType, convertCurrency, CURRENCY_OPTIONS } from '@/lib/currency'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
@@ -96,11 +97,21 @@ function BookingContent() {
   /** ID ของโรงแรม/รถจาก URL */
   const id = searchParams.get('id')
 
+  /** Room Type ID จาก URL (ถ้ามี) */
+  const roomTypeIdFromUrl = searchParams.get('room_type_id')
+
   // ----------------------------------------------------------
   // State
   // ----------------------------------------------------------
   /** State สำหรับข้อมูลโรงแรม/รถ */
   const [item, setItem] = useState<Hotel | Car | null>(null)
+
+  /** State สำหรับประเภทห้อง (เมื่อจองโรงแรม) */
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
+  const [selectedRoomTypeId, setSelectedRoomTypeId] = useState<string>('')
+
+  /** State สำหรับสกุลเงิน */
+  const [currency, setCurrency] = useState<Currency>(Currency.THB)
 
   /** State สำหรับสถานะการโหลด */
   const [loading, setLoading] = useState(true)
@@ -142,12 +153,29 @@ function BookingContent() {
       if (res.ok) {
         const data = await res.json()
         setItem(data)
+        
+        // ถ้าเป็นโรงแรม ให้ดึงประเภทห้อง
+        if (type === 'HOTEL') {
+          const roomTypesRes = await fetch(`/api/room-types?hotel_id=${id}`)
+          if (roomTypesRes.ok) {
+            const roomTypesData = await roomTypesRes.json()
+            setRoomTypes(roomTypesData.data || [])
+            // เลือกประเภทห้องจาก URL หรือประเภทแรกเป็นค่าเริ่มต้น (ถ้ามี)
+            if (roomTypesData.data && roomTypesData.data.length > 0) {
+              if (roomTypeIdFromUrl && roomTypesData.data.find((rt: RoomType) => rt.id === roomTypeIdFromUrl)) {
+                setSelectedRoomTypeId(roomTypeIdFromUrl)
+              } else {
+                setSelectedRoomTypeId(roomTypesData.data[0].id)
+              }
+            }
+          }
+        }
       }
       setLoading(false)
     }
 
     fetchItem()
-  }, [type, id])
+  }, [type, id, roomTypeIdFromUrl])
 
   // ----------------------------------------------------------
   // Computed Values
@@ -157,15 +185,30 @@ function BookingContent() {
     ? calculateNights(formData.check_in_date, formData.check_out_date)
     : 0
 
-  /** ราคาต่อหน่วย (คืน/วัน) */
+  /** ราคาต่อหน่วย (คืน/วัน) - คำนวณจากประเภทห้องหรือราคาโรงแรม/รถ */
   const pricePerUnit = item
     ? type === 'HOTEL'
-      ? (item as Hotel).price_per_night
-      : (item as Car).price_per_day
+      ? (() => {
+          // ถ้ามีประเภทห้องที่เลือก ให้ใช้ราคาจากประเภทห้อง
+          if (selectedRoomTypeId) {
+            const selectedRoomType = roomTypes.find(rt => rt.id === selectedRoomTypeId)
+            if (selectedRoomType) {
+              return selectedRoomType.price_per_night
+            }
+          }
+          // ถ้าไม่มี ให้ใช้ราคาจากโรงแรม
+          return (item as Hotel).price_per_night || (item as Hotel).base_price_per_night || 0
+        })()
+      : (item as Car).price_per_day || (item as Car).base_price_per_day || 0
     : 0
 
-  /** ราคารวม */
-  const totalPrice = calculateTotalPrice(pricePerUnit, nights)
+  /** ราคารวมในสกุลเงิน THB */
+  const totalPriceTHB = calculateTotalPrice(pricePerUnit, nights)
+
+  /** ราคารวมในสกุลเงินที่เลือก */
+  const totalPrice = currency === Currency.THB
+    ? totalPriceTHB
+    : convertCurrency(totalPriceTHB, Currency.THB, currency)
 
   // ----------------------------------------------------------
   // Event Handlers
@@ -194,8 +237,10 @@ function BookingContent() {
           booking_type: type,
           hotel_id: type === 'HOTEL' ? id : null,
           car_id: type === 'CAR' ? id : null,
+          room_type_id: type === 'HOTEL' && selectedRoomTypeId && roomTypes.length > 0 ? selectedRoomTypeId : null,
+          currency: currency,
           ...formData,
-          total_price: totalPrice,
+          total_price: totalPriceTHB, // ส่งราคาใน THB ไปยัง API
         }),
       })
 
@@ -327,6 +372,45 @@ function BookingContent() {
               </div>
 
               {/* ----------------------------------------------------------
+                  Section: ประเภทห้อง (สำหรับโรงแรม)
+                  ---------------------------------------------------------- */}
+              {type === 'HOTEL' && roomTypes.length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
+                  <h2 className="text-lg font-bold text-slate-900 mb-4">ประเภทห้อง</h2>
+                  <select
+                    value={selectedRoomTypeId}
+                    onChange={(e) => setSelectedRoomTypeId(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900"
+                    required
+                  >
+                    {roomTypes.map((roomType) => (
+                      <option key={roomType.id} value={roomType.id}>
+                        {roomType.name_th} / {roomType.name_en} - {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}/คืน
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* ----------------------------------------------------------
+                  Section: สกุลเงิน
+                  ---------------------------------------------------------- */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
+                <h2 className="text-lg font-bold text-slate-900 mb-4">สกุลเงิน</h2>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as Currency)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900"
+                >
+                  {CURRENCY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ----------------------------------------------------------
                   Section: จำนวนผู้เข้าพัก
                   ---------------------------------------------------------- */}
               <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6">
@@ -339,7 +423,13 @@ function BookingContent() {
                   value={formData.number_of_guests}
                   onChange={(e) => setFormData({ ...formData, number_of_guests: parseInt(e.target.value) || 1 })}
                   min={1}
-                  max={type === 'HOTEL' ? (item as Hotel).max_guests : (item as Car).max_passengers}
+                  max={
+                    type === 'HOTEL'
+                      ? selectedRoomTypeId && roomTypes.length > 0
+                        ? roomTypes.find(rt => rt.id === selectedRoomTypeId)?.max_guests || (item as Hotel).max_guests
+                        : (item as Hotel).max_guests
+                      : (item as Car).max_passengers
+                  }
                   required
                 />
               </div>
@@ -438,14 +528,24 @@ function BookingContent() {
                     {/* รายละเอียดราคา */}
                     <div className="flex justify-between gap-2">
                       <span className="text-slate-500 text-xs sm:text-sm break-words">
-                        {formatCurrency(pricePerUnit)} x {nights} {type === 'HOTEL' ? t('booking.nights') : t('booking.days')}
+                        {formatCurrencyWithType(
+                          currency === Currency.THB ? pricePerUnit : convertCurrency(pricePerUnit, Currency.THB, currency),
+                          currency
+                        )} x {nights} {type === 'HOTEL' ? t('booking.nights') : t('booking.days')}
                       </span>
-                      <span className="font-medium text-xs sm:text-sm whitespace-nowrap">{formatCurrency(totalPrice)}</span>
+                      <span className="font-medium text-xs sm:text-sm whitespace-nowrap">
+                        {formatCurrencyWithType(
+                          currency === Currency.THB ? totalPriceTHB : convertCurrency(totalPriceTHB, Currency.THB, currency),
+                          currency
+                        )}
+                      </span>
                     </div>
                     {/* ราคารวม */}
                     <div className="flex justify-between items-center gap-2 pt-3 border-t border-slate-100">
                       <span className="font-bold text-slate-900 text-sm sm:text-base">{t('booking.totalPrice')}</span>
-                      <span className="font-bold text-lg sm:text-xl text-indigo-600 whitespace-nowrap">{formatCurrency(totalPrice)}</span>
+                      <span className="font-bold text-lg sm:text-xl text-indigo-600 whitespace-nowrap">
+                        {formatCurrencyWithType(totalPrice, currency)}
+                      </span>
                     </div>
                   </>
                 )}

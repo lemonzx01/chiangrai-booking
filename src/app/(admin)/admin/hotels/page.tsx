@@ -34,7 +34,7 @@ import AdminSidebar from '@/components/admin/Sidebar'
 import Link from 'next/link'
 
 /** Lucide icons สำหรับ UI */
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, Users } from 'lucide-react'
 
 /** Utility functions */
 import { formatCurrency } from '@/lib/utils'
@@ -190,10 +190,19 @@ export default async function AdminHotelsPage() {
                     {/* Action Buttons */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* ปุ่มจัดการประเภทห้อง */}
+                        <Link
+                          href={`/admin/hotels/${hotel.id}/room-types`}
+                          className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="จัดการประเภทห้อง"
+                        >
+                          <Users size={18} />
+                        </Link>
                         {/* ปุ่มแก้ไข */}
                         <Link
                           href={`/admin/hotels/${hotel.id}/edit`}
                           className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="แก้ไขโรงแรม"
                         >
                           <Pencil size={18} />
                         </Link>

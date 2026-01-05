@@ -68,6 +68,12 @@ export const bookingFormSchema = z.object({
 
   /** คำขอพิเศษ (ไม่บังคับ) */
   special_requests: z.string().optional(),
+  
+  /** รหัสประเภทห้อง (ไม่บังคับ - สำหรับการจองโรงแรม) */
+  room_type_id: z.string().uuid().optional(),
+  
+  /** สกุลเงิน */
+  currency: z.enum(['THB', 'USD', 'EUR']).optional(),
 }).refine(data => {
   // ตรวจสอบว่าเลือกโรงแรม/รถถูกต้องตามประเภทการจอง
   // - HOTEL: ต้องมี hotel_id

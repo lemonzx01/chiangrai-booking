@@ -200,3 +200,11 @@ export async function updateExchangeRates(): Promise<void> {
   console.log('Exchange rates update not implemented yet')
 }
 
+
+
+
+
+
+
+
+

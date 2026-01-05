@@ -207,7 +207,16 @@ export default function EditHotelPage() {
             <ArrowLeft size={18} />
             กลับไปหน้ารายการ
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">แก้ไขโรงแรม/แพ็คเกจ</h1>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">แก้ไขโรงแรม/แพ็คเกจ</h1>
+            <Link
+              href={`/admin/hotels/${id}/room-types`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm"
+            >
+              <Plus size={18} />
+              จัดการประเภทห้อง
+            </Link>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 lg:p-8">

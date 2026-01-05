@@ -46,6 +46,9 @@ import {
 /** ฟังก์ชัน Utility สำหรับการจอง */
 import { generateBookingCode, calculateNights, calculateTotalPrice } from '@/lib/utils'
 
+/** Validation Schema */
+import { bookingFormSchema } from '@/lib/validations'
+
 // ============================================================
 // GET Handler - ดึงรายการการจอง
 // ============================================================
@@ -163,38 +166,106 @@ export async function POST(request: Request) {
     const body = await request.json()
 
     // ----------------------------------------------------------
+    // Validate Input ด้วย Zod Schema
+    // ----------------------------------------------------------
+    let validatedData
+    try {
+      validatedData = bookingFormSchema.parse({
+        booking_type: body.booking_type,
+        hotel_id: body.hotel_id || undefined,
+        car_id: body.car_id || undefined,
+        room_type_id: body.room_type_id || undefined,
+        currency: body.currency || 'THB',
+        check_in_date: body.check_in_date,
+        check_out_date: body.check_out_date,
+        number_of_guests: body.number_of_guests,
+        customer_name: body.customer_name,
+        customer_email: body.customer_email,
+        customer_phone: body.customer_phone,
+        customer_line: body.customer_line || undefined,
+        special_requests: body.special_requests || undefined,
+      })
+    } catch (validationError: any) {
+      return NextResponse.json(
+        { 
+          error: 'ข้อมูลไม่ถูกต้อง',
+          details: validationError.errors || validationError.message 
+        },
+        { status: 400 }
+      )
+    }
+
+    // ----------------------------------------------------------
     // สร้างรหัสการจอง
     // ----------------------------------------------------------
     /** รหัสการจองอัตโนมัติ เช่น BK-ABC123 */
     const booking_code = generateBookingCode()
 
     // ----------------------------------------------------------
-    // คำนวณราคารวม
+    // คำนวณราคารวม (Server-side calculation - ไม่ trust client)
     // ----------------------------------------------------------
-    let total_price = body.total_price
+    let total_price: number
 
-    // ถ้าไม่ได้ระบุราคามา ให้คำนวณจากข้อมูลโรงแรม/รถเช่า
-    if (!total_price) {
-      /** จำนวนคืน/วัน */
-      const nights = calculateNights(body.check_in_date, body.check_out_date)
+    // คำนวณราคาใน server-side เสมอ (ไม่ trust client-sent total_price)
+    /** จำนวนคืน/วัน */
+    const nights = calculateNights(validatedData.check_in_date, validatedData.check_out_date)
 
-      // กรณีจองโรงแรม
-      if (body.booking_type === 'HOTEL' && body.hotel_id) {
+    // คำนวณราคาตามประเภทการจอง
+    if (validatedData.booking_type === 'HOTEL' && validatedData.hotel_id) {
+      // ถ้ามี room_type_id ให้ใช้ราคาจากประเภทห้อง
+      if (validatedData.room_type_id) {
+        const { data: roomType } = await supabase
+          .from('room_types')
+          .select('price_per_night')
+          .eq('id', validatedData.room_type_id)
+          .single()
+        
+        // ถ้าพบ room type ให้ใช้ราคาจาก room type
+        if (roomType) {
+          total_price = calculateTotalPrice(roomType.price_per_night, nights)
+        } else {
+          // ถ้าไม่พบ room type ให้ fallback ไปใช้ราคาจากโรงแรม
+          const { data: hotel } = await supabase
+            .from('hotels')
+            .select('price_per_night, base_price_per_night')
+            .eq('id', validatedData.hotel_id)
+            .single()
+          const pricePerNight = hotel?.base_price_per_night || hotel?.price_per_night || 0
+          total_price = calculateTotalPrice(pricePerNight, nights)
+        }
+      } else {
+        // ถ้าไม่มี room_type_id ให้ใช้ราคาจากโรงแรม
         const { data: hotel } = await supabase
           .from('hotels')
-          .select('price_per_night')
-          .eq('id', body.hotel_id)
+          .select('price_per_night, base_price_per_night')
+          .eq('id', validatedData.hotel_id)
           .single()
-        total_price = hotel ? calculateTotalPrice(hotel.price_per_night, nights) : 0
+        const pricePerNight = hotel?.base_price_per_night || hotel?.price_per_night || 0
+        total_price = calculateTotalPrice(pricePerNight, nights)
       }
-      // กรณีเช่ารถ
-      else if (body.booking_type === 'CAR' && body.car_id) {
-        const { data: car } = await supabase
-          .from('cars')
-          .select('price_per_day')
-          .eq('id', body.car_id)
-          .single()
-        total_price = car ? calculateTotalPrice(car.price_per_day, nights) : 0
+    }
+    // กรณีเช่ารถ
+    else if (validatedData.booking_type === 'CAR' && validatedData.car_id) {
+      const { data: car } = await supabase
+        .from('cars')
+        .select('price_per_day, base_price_per_day')
+        .eq('id', validatedData.car_id)
+        .single()
+      const pricePerDay = car?.base_price_per_day || car?.price_per_day || 0
+      total_price = calculateTotalPrice(pricePerDay, nights)
+    } else {
+      return NextResponse.json(
+        { error: 'ไม่สามารถคำนวณราคาได้ กรุณาตรวจสอบข้อมูลการจอง' },
+        { status: 400 }
+      )
+    }
+    
+    // ตรวจสอบว่า client-sent total_price ตรงกับที่คำนวณหรือไม่ (ถ้ามี)
+    // ใช้ราคาที่คำนวณใน server-side เสมอ (ไม่ trust client)
+    if (body.total_price && Math.abs(body.total_price - total_price) > 0.01) {
+      // Log เฉพาะใน development mode
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Price mismatch detected. Using server-calculated price.')
       }
     }
 
@@ -204,10 +275,21 @@ export async function POST(request: Request) {
     const { data: booking, error } = await supabase
       .from('bookings')
       .insert({
-        ...body,
+        booking_type: validatedData.booking_type,
+        hotel_id: validatedData.hotel_id || null,
+        car_id: validatedData.car_id || null,
+        room_type_id: validatedData.room_type_id || null,
+        check_in_date: validatedData.check_in_date,
+        check_out_date: validatedData.check_out_date,
+        number_of_guests: validatedData.number_of_guests,
+        customer_name: validatedData.customer_name,
+        customer_email: validatedData.customer_email,
+        customer_phone: validatedData.customer_phone,
+        customer_line: validatedData.customer_line || null,
+        special_requests: validatedData.special_requests || null,
         booking_code,
-        total_price,
-        currency: body.currency || 'THB', // ใช้สกุลเงินที่ระบุ หรือ THB เป็นค่าเริ่มต้น
+        total_price, // ใช้ราคาที่คำนวณใน server-side
+        currency: validatedData.currency || 'THB',
         status: 'PENDING', // สถานะเริ่มต้น: รอดำเนินการ
       })
       .select(
@@ -244,7 +326,7 @@ export async function POST(request: Request) {
         numberOfGuests: booking.number_of_guests,
         roomType: booking.room_type
           ? `${booking.room_type.name_th} / ${booking.room_type.name_en}`
-          : booking.hotel.room_type_th || booking.hotel.room_type_en,
+          : booking.hotel?.room_type_th || booking.hotel?.room_type_en || 'ไม่ระบุ',
         specialRequests: booking.special_requests,
         totalPrice: booking.total_price,
         currency: booking.currency || 'THB',
@@ -273,8 +355,12 @@ export async function POST(request: Request) {
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })
-  } catch (error) {
-    console.error('Booking error:', error)
+  } catch (error: any) {
+    // Log error เฉพาะใน development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Booking error:', error)
+    }
+    // ไม่ leak error details ใน production
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -28,7 +28,7 @@
 // ============================================================
 
 /** React hooks สำหรับจัดการ state */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 /** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
@@ -41,10 +41,11 @@ import Image from 'next/image'
 import { Star, MapPin, Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
 
 /** Type definition สำหรับข้อมูลโรงแรม */
-import { Hotel } from '@/types'
+import { Hotel, RoomType, Currency } from '@/types'
 
 /** Utility function สำหรับ format ราคา */
 import { formatCurrency } from '@/lib/utils'
+import { formatCurrency as formatCurrencyWithType } from '@/lib/currency'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
@@ -102,6 +103,10 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
   /** State สำหรับ index ของรูปที่แสดงอยู่ */
   const [currentImage, setCurrentImage] = useState(0)
 
+  /** State สำหรับประเภทห้อง */
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
+  const [loadingRoomTypes, setLoadingRoomTypes] = useState(true)
+
   // ----------------------------------------------------------
   // ดึงข้อมูลตามภาษาปัจจุบัน
   // ----------------------------------------------------------
@@ -116,6 +121,26 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
 
   /** รายการสิ่งอำนวยความสะดวกตามภาษา */
   const amenities = getArrayField(hotel, 'amenities')
+
+  // ----------------------------------------------------------
+  // Effects - ดึงข้อมูลประเภทห้อง
+  // ----------------------------------------------------------
+  useEffect(() => {
+    async function fetchRoomTypes() {
+      try {
+        const res = await fetch(`/api/room-types?hotel_id=${hotel.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setRoomTypes(data.data || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch room types:', error)
+      } finally {
+        setLoadingRoomTypes(false)
+      }
+    }
+    fetchRoomTypes()
+  }, [hotel.id])
 
   // ----------------------------------------------------------
   // Image Gallery Navigation Functions
@@ -276,23 +301,70 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             </div>
 
             {/* ============================================================
-                ราคาและปุ่มจอง
+                ประเภทห้อง
                 ============================================================ */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
-              {/* ราคาต่อคืน */}
-              <div>
-                <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
-                <p className="text-2xl sm:text-3xl font-black text-indigo-600">
-                  {formatCurrency(hotel.price_per_night)}
-                  <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
-                </p>
+            {!loadingRoomTypes && roomTypes.length > 0 && (
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
+                  ประเภทห้อง
+                </h3>
+                <div className="space-y-3">
+                  {roomTypes.map((roomType) => (
+                    <div
+                      key={roomType.id}
+                      className="bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-300 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 mb-1">
+                            {roomType.name_th}
+                          </h4>
+                          <p className="text-sm text-slate-500 mb-2">{roomType.name_en}</p>
+                          <div className="flex items-center gap-4 text-sm text-slate-600">
+                            <span>สูงสุด {roomType.max_guests} คน</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-black text-indigo-600">
+                            {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}
+                          </p>
+                          <p className="text-xs text-slate-500">/ คืน</p>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/booking?type=HOTEL&id=${hotel.id}&room_type_id=${roomType.id}`}
+                        className="mt-3 block"
+                      >
+                        <Button variant="outline" size="sm" className="w-full">
+                          จองประเภทนี้
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
 
-              {/* ปุ่มจอง - Link ไปหน้า Booking */}
-              <Link href={`/booking?type=HOTEL&id=${hotel.id}`} className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto">{t('common.bookNow')}</Button>
-              </Link>
-            </div>
+            {/* ============================================================
+                ราคาและปุ่มจอง (แสดงเมื่อไม่มีประเภทห้อง)
+                ============================================================ */}
+            {(!loadingRoomTypes && roomTypes.length === 0) && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
+                {/* ราคาต่อคืน */}
+                <div>
+                  <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
+                  <p className="text-2xl sm:text-3xl font-black text-indigo-600">
+                    {formatCurrency(hotel.price_per_night)}
+                    <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
+                  </p>
+                </div>
+
+                {/* ปุ่มจอง - Link ไปหน้า Booking */}
+                <Link href={`/booking?type=HOTEL&id=${hotel.id}`} className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto">{t('common.bookNow')}</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
