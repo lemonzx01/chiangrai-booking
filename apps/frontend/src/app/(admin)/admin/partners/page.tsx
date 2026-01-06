@@ -24,7 +24,6 @@
 // ============================================================
 
 /** Supabase client สำหรับ Admin */
-import { createAdminClient } from '@/lib/supabase/server'
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -39,8 +38,7 @@ import { Plus } from 'lucide-react'
 import PartnersTable from './PartnersTable'
 
 /** Type definitions */
-import { Partner } from '@/types'
-import { PartnerType } from '@/types'
+import { Partner, PartnerType } from '@chiangrai/shared/types'
 
 // ============================================================
 // Metadata
@@ -64,17 +62,17 @@ export const metadata = {
  * @returns {Promise<Partner[]>} รายการพาร์ทเนอร์
  */
 async function getPartners(): Promise<Partner[]> {
-  const supabase = await createAdminClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/partners`, {
+    cache: 'no-store',
+  })
 
-  // ----------------------------------------------------------
-  // Query พาร์ทเนอร์ทั้งหมด
-  // ----------------------------------------------------------
-  const { data } = await supabase
-    .from('partners')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const json = (await res.json()) as { data?: Partner[]; error?: string }
 
-  return (data || []) as Partner[]
+  if (!res.ok) {
+    throw new Error(json.error || 'ไม่สามารถดึงรายการพาร์ทเนอร์ได้')
+  }
+
+  return json.data || []
 }
 
 // ============================================================

@@ -49,7 +49,7 @@ import { Users, Check } from 'lucide-react'
 import { Car } from '@/types'
 
 /** ฟังก์ชันจัดรูปแบบสกุลเงิน */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 // ----------------------------------------------------------
 // Hooks

@@ -25,7 +25,6 @@
 // ============================================================
 
 /** Supabase client สำหรับ Admin */
-import { createAdminClient } from '@/lib/supabase/server'
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -37,16 +36,15 @@ import Link from 'next/link'
 import { Plus, Pencil, Users } from 'lucide-react'
 
 /** Utility functions */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Delete Button component (Client) */
 import DeleteHotelButton from './DeleteButton'
 
 /** Type definitions */
-import { Hotel } from '@/types'
+import { Hotel } from '@chiangrai/shared/types'
 
 /** Mock data สำหรับ fallback */
-import { MOCK_HOTELS } from '@/lib/constants'
 
 // ============================================================
 // Metadata
@@ -71,28 +69,17 @@ export const metadata = {
  * @returns {Promise<Hotel[]>} รายการโรงแรม
  */
 async function getHotels(): Promise<Hotel[]> {
-  const supabase = await createAdminClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels`, {
+    cache: 'no-store',
+  })
 
-  // ----------------------------------------------------------
-  // Query โรงแรมทั้งหมด
-  // ----------------------------------------------------------
-  const { data } = await supabase
-    .from('hotels')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const json = (await res.json()) as { data?: Hotel[]; error?: string }
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลจาก Supabase
-  // ----------------------------------------------------------
-  if (!data || data.length === 0) {
-    return MOCK_HOTELS.map(hotel => ({
-      ...hotel,
-      location: hotel.location_th || hotel.location_en || '',
-      updated_at: hotel.created_at,
-    })) as Hotel[]
+  if (!res.ok) {
+    throw new Error(json.error || 'ไม่สามารถดึงรายการโรงแรมได้')
   }
 
-  return (data || []) as Hotel[]
+  return json.data || []
 }
 
 // ============================================================

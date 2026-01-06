@@ -48,7 +48,7 @@ import { CheckCircle, Loader2, Download } from 'lucide-react'
 import { Booking } from '@chiangrai/shared/types'
 
 /** Utility functions */
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 
 /** UI Components */
 import Button from '@/components/ui/Button'

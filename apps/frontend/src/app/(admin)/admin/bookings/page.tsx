@@ -25,22 +25,22 @@
 // ============================================================
 
 /** Supabase client สำหรับ Admin */
-import { createAdminClient } from '@/lib/supabase/server'
+
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
 
 /** Utility functions */
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 
 /** Status Select component (Client) */
 import BookingStatusSelect from './StatusSelect'
 
 /** Type definitions */
-import { BookingStatus } from '@/types'
+import { BookingStatus } from '@chiangrai/shared/types'
 
 /** Mock data สำหรับ fallback */
-import { MOCK_BOOKINGS } from '@/lib/mock-data'
+
 
 // ============================================================
 // Metadata
@@ -98,36 +98,18 @@ interface BookingRow {
  * @returns {Promise<BookingRow[]>} รายการการจอง
  */
 async function getBookings(): Promise<BookingRow[]> {
-  const supabase = await createAdminClient()
+  // ดึงผ่าน backend API (frontend จะ rewrite /api/* ไป backend ใน production)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/bookings`, {
+    cache: 'no-store',
+  })
 
-  // ----------------------------------------------------------
-  // Query การจองทั้งหมดพร้อม relation
-  // ----------------------------------------------------------
-  const { data } = await supabase
-    .from('bookings')
-    .select('*, hotel:hotels(name_th), car:cars(name_th)')
-    .order('created_at', { ascending: false })
+  const json = (await res.json()) as { data?: BookingRow[]; error?: string }
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลจาก Supabase
-  // ----------------------------------------------------------
-  if (!data || data.length === 0) {
-    return MOCK_BOOKINGS.map(booking => ({
-      id: booking.id,
-      booking_code: booking.booking_code,
-      customer_name: booking.customer_name,
-      customer_email: booking.customer_email,
-      customer_phone: booking.customer_phone,
-      check_in_date: booking.check_in_date,
-      check_out_date: booking.check_out_date,
-      total_price: booking.total_price,
-      status: booking.status,
-      hotel: booking.hotel ? { name_th: booking.hotel.name_th } : null,
-      car: booking.car ? { name_th: booking.car.name_th } : null,
-    }))
+  if (!res.ok) {
+    throw new Error(json.error || 'ไม่สามารถดึงรายการการจองได้')
   }
 
-  return (data || []) as BookingRow[]
+  return json.data || []
 }
 
 // ============================================================

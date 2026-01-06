@@ -50,7 +50,7 @@ import { Star, MapPin, Users } from 'lucide-react'
 import { Hotel } from '@/types'
 
 /** ฟังก์ชันจัดรูปแบบสกุลเงิน */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 // ----------------------------------------------------------
 // Hooks

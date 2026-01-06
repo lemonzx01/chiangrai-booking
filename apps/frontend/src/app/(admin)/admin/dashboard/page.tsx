@@ -25,7 +25,6 @@
 // ============================================================
 
 /** Supabase client สำหรับ Admin */
-import { createAdminClient } from '@/lib/supabase/server'
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -34,14 +33,12 @@ import AdminSidebar from '@/components/admin/Sidebar'
 import { Building2, Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 
 /** Utility functions */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Type definitions */
-import { BookingStatus } from '@/types'
+import { BookingStatus, type DashboardStats } from '@chiangrai/shared/types'
 
 /** Mock data สำหรับ fallback */
-import { calculateMockStats, MOCK_BOOKINGS } from '@/lib/mock-data'
-import { MOCK_HOTELS, MOCK_CARS } from '@/lib/constants'
 
 /** Next.js Link component */
 import Link from 'next/link'
@@ -62,9 +59,6 @@ export const metadata = {
 /**
  * Interface สำหรับข้อมูลรายได้
  */
-interface RevenueRow {
-  total_price: number
-}
 
 /**
  * Interface สำหรับข้อมูลการจองล่าสุด
@@ -99,44 +93,20 @@ interface RecentBooking {
  *
  * @returns {Promise<Object>} ข้อมูลสถิติ
  */
-async function getStats() {
-  const supabase = await createAdminClient()
+async function getStats(): Promise<DashboardStats> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/dashboard/stats`, {
+    cache: 'no-store',
+  });
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลแบบ parallel เพื่อความเร็ว
-  // ----------------------------------------------------------
-  const [hotelsRes, carsRes, bookingsRes, revenueRes] = await Promise.all([
-    supabase.from('hotels').select('*', { count: 'exact', head: true }),
-    supabase.from('cars').select('*', { count: 'exact', head: true }),
-    supabase.from('bookings').select('*', { count: 'exact', head: true }),
-    supabase.from('bookings').select('total_price').eq('status', 'PAID'),
-  ])
+  const json = (await res.json()) as { data?: DashboardStats; error?: string };
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลจาก Supabase
-  // ----------------------------------------------------------
-  if (!hotelsRes.count && !carsRes.count && !bookingsRes.count) {
-    const mockStats = calculateMockStats()
-    return {
-      totalHotels: mockStats.totalHotels,
-      totalCars: mockStats.totalCars,
-      totalBookings: mockStats.totalBookings,
-      totalRevenue: mockStats.totalRevenue,
-    }
+  if (!res.ok) {
+    // Gracefully fail for now, as the endpoint might not exist yet
+    console.error(json.error || 'Failed to fetch stats');
+    return { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
   }
 
-  // ----------------------------------------------------------
-  // คำนวณรายได้รวมจากการจองที่ชำระแล้ว
-  // ----------------------------------------------------------
-  const revenueData = (revenueRes.data || []) as RevenueRow[]
-  const totalRevenue = revenueData.reduce((sum: number, b: RevenueRow) => sum + Number(b.total_price), 0)
-
-  return {
-    totalHotels: hotelsRes.count || 0,
-    totalCars: carsRes.count || 0,
-    totalBookings: bookingsRes.count || 0,
-    totalRevenue,
-  }
+  return json.data || { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
 }
 
 /**
@@ -149,33 +119,18 @@ async function getStats() {
  * @returns {Promise<RecentBooking[]>} รายการการจองล่าสุด
  */
 async function getRecentBookings(): Promise<RecentBooking[]> {
-  const supabase = await createAdminClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/bookings?limit=5`, {
+    cache: 'no-store',
+  });
 
-  // ----------------------------------------------------------
-  // Query การจองล่าสุดพร้อม relation
-  // ----------------------------------------------------------
-  const { data } = await supabase
-    .from('bookings')
-    .select('*, hotel:hotels(name_th), car:cars(name_th)')
-    .order('created_at', { ascending: false })
-    .limit(5)
+  const json = (await res.json()) as { data?: RecentBooking[]; error?: string };
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูล
-  // ----------------------------------------------------------
-  if (!data || data.length === 0) {
-    return MOCK_BOOKINGS.slice(0, 5).map(booking => ({
-      id: booking.id,
-      booking_code: booking.booking_code,
-      customer_name: booking.customer_name,
-      total_price: booking.total_price,
-      status: booking.status,
-      hotel: booking.hotel ? { name_th: booking.hotel.name_th } : null,
-      car: booking.car ? { name_th: booking.car.name_th } : null,
-    }))
+  if (!res.ok) {
+    console.error(json.error || 'Failed to fetch recent bookings');
+    return [];
   }
 
-  return (data || []) as RecentBooking[]
+  return json.data || [];
 }
 
 // ============================================================

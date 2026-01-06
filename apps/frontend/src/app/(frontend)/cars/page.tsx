@@ -28,14 +28,10 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-/** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
 
 /** Client component สำหรับแสดงรายการรถ */
 import CarsClient from './CarsClient'
 
-/** ข้อมูล Mock รถเช่า สำหรับ Development */
-import { MOCK_CARS } from '@/lib/constants'
 
 // ============================================================
 // Metadata สำหรับ SEO
@@ -74,26 +70,18 @@ export const metadata = {
  * @returns {Promise<JSX.Element>} CarsClient component พร้อมข้อมูลรถ
  */
 export default async function CarsPage() {
-  // สร้าง Supabase client สำหรับ Server
-  const supabase = await createClient()
+  // Fetch from backend API (frontend rewrites /api/* -> backend)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars?is_active=true`, {
+    cache: 'no-store',
+  })
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลรถเช่าจาก Database
-  // ----------------------------------------------------------
-  const { data: cars } = await supabase
-    .from('cars')
-    .select('*')
-    .eq('is_active', true) // เฉพาะรถที่พร้อมให้เช่า
-    .order('created_at', { ascending: false }) // เรียงตามวันที่ (ล่าสุดก่อน)
+  const json = (await res.json()) as { data?: unknown; error?: string }
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลในฐานข้อมูล
-  // ----------------------------------------------------------
-  // ป้องกันกรณี Database ว่าง หรือยังไม่ได้ setup
-  const displayCars = (cars && cars.length > 0) ? cars : MOCK_CARS
+  if (!res.ok) {
+    console.error(json.error || 'Failed to fetch cars')
+    return <CarsClient cars={[]} />
+  }
 
-  // ----------------------------------------------------------
-  // Render Client Component
-  // ----------------------------------------------------------
-  return <CarsClient cars={displayCars} />
+  const cars = (json.data as any[]) || []
+  return <CarsClient cars={cars} />
 }

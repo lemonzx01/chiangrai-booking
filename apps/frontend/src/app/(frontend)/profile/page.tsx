@@ -46,7 +46,7 @@ import { User, BookOpen, LogOut, Loader2, Calendar, MapPin, Car, Building2 } fro
 import Button from '@/components/ui/Button'
 
 /** Utility functions */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Type definitions */
 import type { Booking } from '@chiangrai/shared/types'

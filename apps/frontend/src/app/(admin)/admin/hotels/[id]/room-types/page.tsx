@@ -1,31 +1,30 @@
-import { createAdminClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import Link from 'next/link'
 import { Plus, Pencil, ArrowLeft } from 'lucide-react'
-import { RoomType } from '@/types'
+import { RoomType, Currency } from '@chiangrai/shared/types'
 import DeleteRoomTypeButton from './DeleteButton'
-import { formatCurrency } from '@/lib/currency'
-import { Currency } from '@/types'
+import { formatCurrency } from '@chiangrai/shared/currency'
 
 interface Params {
   params: Promise<{ id: string }>
 }
 
 async function getHotel(id: string) {
-  const supabase = await createAdminClient()
-  const { data } = await supabase.from('hotels').select('*').eq('id', id).single()
-  return data
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any; error?: string }
+  if (!res.ok) throw new Error(json.error || 'ไม่สามารถดึงข้อมูลโรงแรมได้')
+  return json.data
 }
 
 async function getRoomTypes(hotelId: string): Promise<RoomType[]> {
-  const supabase = await createAdminClient()
-  const { data } = await supabase
-    .from('room_types')
-    .select('*')
-    .eq('hotel_id', hotelId)
-    .order('created_at', { ascending: false })
-
-  return (data || []) as RoomType[]
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/room-types?hotel_id=${hotelId}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: RoomType[]; error?: string }
+  if (!res.ok) throw new Error(json.error || 'ไม่สามารถดึงข้อมูลประเภทห้องได้')
+  return json.data || []
 }
 
 export default async function RoomTypesPage({ params }: Params) {
