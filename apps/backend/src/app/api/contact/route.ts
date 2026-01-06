@@ -28,7 +28,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 /** บริการส่งแจ้งเตือนผ่าน LINE */
-import { sendLineNotification } from '@/services/notifications/line'
+import { sendLineNotification } from '../../../services/notifications/line'
 
 /** ค่าคงที่ของแอพ */
 import { APP_NAME, CONTACT_INFO } from '../../../lib/constants'

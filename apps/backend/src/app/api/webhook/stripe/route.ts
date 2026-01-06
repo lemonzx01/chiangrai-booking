@@ -42,7 +42,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 
 /** บริการส่งอีเมลยืนยันการจอง */
-import { sendBookingConfirmationEmail } from '@/services/notifications/email'
+import { sendBookingConfirmationEmail } from '../../../../services/notifications/email'
 
 // ============================================================
 // POST Handler - รับ Stripe Webhook Events

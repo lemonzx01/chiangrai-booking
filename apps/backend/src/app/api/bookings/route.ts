@@ -35,13 +35,13 @@ import { createAdminClient } from '../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 /** บริการแจ้งเตือนผ่าน LINE */
-import { sendLineNotification } from '@/services/notifications/line'
+import { sendLineNotification } from '../../../services/notifications/line'
 
 /** บริการส่งอีเมลแจ้งเตือนพาร์ทเนอร์ */
 import {
   sendHotelPartnerNotification,
   sendDriverPartnerNotification,
-} from '@/services/notifications/email'
+} from '../../../services/notifications/email'
 
 /** ฟังก์ชัน Utility สำหรับการจอง */
 import { generateBookingCode, calculateNights, calculateTotalPrice } from '../../../lib/utils'
