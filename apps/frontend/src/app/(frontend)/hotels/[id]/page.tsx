@@ -31,8 +31,6 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-/** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
 
 /** Next.js utility สำหรับแสดงหน้า 404 */
 import { notFound } from 'next/navigation'
@@ -79,17 +77,11 @@ export async function generateMetadata({ params }: Props) {
   // ดึง id จาก params (await เนื่องจากเป็น Promise)
   const { id } = await params
 
-  // สร้าง Supabase client
-  const supabase = await createClient()
-
-  // ----------------------------------------------------------
-  // ดึงข้อมูลโรงแรมจาก Database
-  // ----------------------------------------------------------
-  const { data: hotel } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any; error?: string }
+  const hotel = json.data
 
   // ----------------------------------------------------------
   // Return Metadata
@@ -134,25 +126,16 @@ export default async function HotelDetailPage({ params }: Props) {
   // ดึง id จาก params
   const { id } = await params
 
-  // สร้าง Supabase client
-  const supabase = await createClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any; error?: string }
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลโรงแรมจาก Database
-  // ----------------------------------------------------------
-  const { data: hotel, error } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  // ----------------------------------------------------------
-  // Handle Not Found
-  // ----------------------------------------------------------
-  // ถ้ามี error หรือไม่พบข้อมูล -> แสดงหน้า 404
-  if (error || !hotel) {
+  if (!res.ok || !json.data) {
     notFound()
   }
+
+  const hotel = json.data
 
   // ----------------------------------------------------------
   // Render Client Component

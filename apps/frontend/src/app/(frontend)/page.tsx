@@ -25,14 +25,10 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-/** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
 
 /** Client component สำหรับแสดงหน้าแรก */
 import HomeClient from './HomeClient'
 
-/** ข้อมูล Mock สำหรับ Development */
-import { MOCK_HOTELS, MOCK_CARS } from '@/lib/constants'
 
 // ============================================================
 // Page Component - Server Component
@@ -48,37 +44,16 @@ import { MOCK_HOTELS, MOCK_CARS } from '@/lib/constants'
  * @returns {Promise<JSX.Element>} HomeClient component
  */
 export default async function HomePage() {
-  // สร้าง Supabase client
-  const supabase = await createClient()
+  const [hotelsRes, carsRes] = await Promise.all([
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels?is_active=true&limit=6`, { cache: 'no-store' }),
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars?is_active=true&limit=4`, { cache: 'no-store' }),
+  ])
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลโรงแรม Featured (6 รายการ)
-  // ----------------------------------------------------------
-  const { data: hotels } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('is_active', true) // เฉพาะที่เปิดให้บริการ
-    .order('created_at', { ascending: false }) // ล่าสุดก่อน
-    .limit(6) // จำกัด 6 รายการ
+  const hotelsJson = (await hotelsRes.json()) as { data?: any[]; error?: string }
+  const carsJson = (await carsRes.json()) as { data?: any[]; error?: string }
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลรถ Featured (4 รายการ)
-  // ----------------------------------------------------------
-  const { data: cars } = await supabase
-    .from('cars')
-    .select('*')
-    .eq('is_active', true) // เฉพาะที่เปิดให้บริการ
-    .order('created_at', { ascending: false }) // ล่าสุดก่อน
-    .limit(4) // จำกัด 4 รายการ
+  const displayHotels = hotelsRes.ok ? (hotelsJson.data || []) : []
+  const displayCars = carsRes.ok ? (carsJson.data || []) : []
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลจริง
-  // ----------------------------------------------------------
-  const displayHotels = (hotels && hotels.length > 0) ? hotels : MOCK_HOTELS
-  const displayCars = (cars && cars.length > 0) ? cars : MOCK_CARS
-
-  // ----------------------------------------------------------
-  // Render Client Component
-  // ----------------------------------------------------------
   return <HomeClient hotels={displayHotels} cars={displayCars} />
 }

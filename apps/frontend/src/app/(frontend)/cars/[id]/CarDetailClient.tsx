@@ -41,7 +41,7 @@ import Image from 'next/image'
 import { Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
 
 /** Type definition สำหรับข้อมูลรถ */
-import { Car } from '@/types'
+import { Car } from '@chiangrai/shared/types'
 
 /** Utility function สำหรับ format ราคา */
 import { formatCurrency } from '@chiangrai/shared/utils'

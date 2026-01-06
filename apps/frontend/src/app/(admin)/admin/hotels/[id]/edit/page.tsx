@@ -1,18 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import AdminSidebar from '@/components/admin/Sidebar'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { STAR_RATINGS } from '@chiangrai/shared/constants'
-import { MOCK_HOTELS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 
 export default function EditHotelPage() {
-  const router = useRouter()
   const params = useParams()
   const id = params.id as string
 
@@ -46,27 +42,6 @@ export default function EditHotelPage() {
       try {
         const res = await fetch(`/api/hotels/${id}`)
         if (!res.ok) {
-          const mockHotel = MOCK_HOTELS.find(h => h.id === id)
-          if (mockHotel) {
-            setFormData({
-              name_th: mockHotel.name_th,
-              name_en: mockHotel.name_en,
-              description_th: mockHotel.description_th,
-              description_en: mockHotel.description_en,
-              location: mockHotel.location_th || mockHotel.location_en || '',
-              star_rating: mockHotel.star_rating,
-              price_per_night: String(mockHotel.price_per_night),
-              max_guests: mockHotel.max_guests,
-              room_type_th: mockHotel.room_type_th,
-              room_type_en: mockHotel.room_type_en,
-              amenities_th: mockHotel.amenities_th || [],
-              amenities_en: mockHotel.amenities_en || [],
-              images: mockHotel.images || [],
-              is_active: mockHotel.is_active,
-            })
-            setLoading(false)
-            return
-          }
           throw new Error('ไม่พบข้อมูลโรงแรม')
         }
 

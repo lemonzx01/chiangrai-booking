@@ -39,7 +39,14 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
 /** ข้อมูลติดต่อจาก constants */
-import { CONTACT_INFO } from '@chiangrai/shared/constants'
+const CONTACT_INFO = {
+  address: 'Chiang Rai, Thailand',
+  phone: '+66 81 234 5678',
+  email: 'admin@gotjourneythailand.com',
+  line: '@gotjourneythailand',
+  workingHours: '09:00 - 18:00',
+}
+
 
 // ============================================================
 // Main Component

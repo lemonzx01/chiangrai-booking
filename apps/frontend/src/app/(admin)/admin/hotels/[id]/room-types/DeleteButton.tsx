@@ -6,10 +6,9 @@ import { Trash2 } from 'lucide-react'
 
 interface DeleteRoomTypeButtonProps {
   id: string
-  hotelId: string
 }
 
-export default function DeleteRoomTypeButton({ id, hotelId }: DeleteRoomTypeButtonProps) {
+export default function DeleteRoomTypeButton({ id }: DeleteRoomTypeButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 

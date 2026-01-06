@@ -24,7 +24,7 @@
 // ============================================================
 
 import { HTMLAttributes, forwardRef } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@chiangrai/shared/utils'
 
 // ============================================================
 // Card Component (การ์ดหลัก)
