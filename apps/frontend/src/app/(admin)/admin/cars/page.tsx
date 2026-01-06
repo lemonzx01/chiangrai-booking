@@ -25,7 +25,7 @@
 // ============================================================
 
 /** Supabase client สำหรับ Admin */
-import { createAdminClient } from '@/lib/supabase/server'
+
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -37,16 +37,16 @@ import Link from 'next/link'
 import { Plus, Pencil } from 'lucide-react'
 
 /** Utility functions */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Delete Button component (Client) */
 import DeleteCarButton from './DeleteButton'
 
 /** Type definitions */
-import { Car } from '@/types'
+import { Car } from '@chiangrai/shared/types'
 
 /** Mock data สำหรับ fallback */
-import { MOCK_CARS } from '@/lib/constants'
+
 
 // ============================================================
 // Metadata
@@ -71,27 +71,18 @@ export const metadata = {
  * @returns {Promise<Car[]>} รายการรถเช่า
  */
 async function getCars(): Promise<Car[]> {
-  const supabase = await createAdminClient()
+  // ดึงผ่าน backend API (frontend จะ rewrite /api/* ไป backend ใน production)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars`, {
+    cache: 'no-store',
+  })
 
-  // ----------------------------------------------------------
-  // Query รถทั้งหมด
-  // ----------------------------------------------------------
-  const { data } = await supabase
-    .from('cars')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const json = (await res.json()) as { data?: Car[]; error?: string }
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลจาก Supabase
-  // ----------------------------------------------------------
-  if (!data || data.length === 0) {
-    return MOCK_CARS.map(car => ({
-      ...car,
-      updated_at: car.created_at,
-    })) as Car[]
+  if (!res.ok) {
+    throw new Error(json.error || 'ไม่สามารถดึงรายการรถได้')
   }
 
-  return (data || []) as Car[]
+  return json.data || []
 }
 
 // ============================================================

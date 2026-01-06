@@ -45,7 +45,7 @@ import { Hotel, RoomType, Currency } from '@chiangrai/shared/types'
 
 /** Utility function สำหรับ format ราคา */
 import { formatCurrency } from '@chiangrai/shared/utils'
-import { formatCurrency as formatCurrencyWithType } from '@/lib/currency'
+import { formatCurrency as formatCurrencyWithType } from '@chiangrai/shared/currency'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
