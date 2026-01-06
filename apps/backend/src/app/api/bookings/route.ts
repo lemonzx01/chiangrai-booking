@@ -29,7 +29,7 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
@@ -44,10 +44,10 @@ import {
 } from '@/services/notifications/email'
 
 /** ฟังก์ชัน Utility สำหรับการจอง */
-import { generateBookingCode, calculateNights, calculateTotalPrice } from '@/lib/utils'
+import { generateBookingCode, calculateNights, calculateTotalPrice } from '../../../lib/utils'
 
 /** Validation Schema */
-import { bookingFormSchema } from '@/lib/validations'
+import { bookingFormSchema } from '../../../lib/validations'
 
 // ============================================================
 // GET Handler - ดึงรายการการจอง

@@ -27,16 +27,16 @@
 // ============================================================
 
 /** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ */
-import { verifyUserToken, isMockMode } from '@/lib/auth'
+import { verifyUserToken, isMockMode } from '../../../../lib/auth'
 
 /** ข้อมูล Mock สำหรับการทดสอบ */
-import { getMockBookingsByEmail } from '@/lib/mock-data'
+import { getMockBookingsByEmail } from '../../../../lib/mock-data'
 
 // ============================================================
 // GET Handler - ดึงการจองของผู้ใช้

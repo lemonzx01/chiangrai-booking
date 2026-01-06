@@ -36,7 +36,7 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
@@ -45,13 +45,13 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
 /** ฟังก์ชันตรวจสอบ Mock Mode */
-import { isMockMode } from '@/lib/auth'
+import { isMockMode } from '../../../../lib/auth'
 
 /** ฟังก์ชันจัดการข้อมูล Mock */
-import { findMockUser, addMockUser } from '@/lib/mock-data'
+import { findMockUser, addMockUser } from '../../../../lib/mock-data'
 
 /** ฟังก์ชัน Utility สำหรับ validation */
-import { validatePassword, sanitizeInput } from '@/lib/utils'
+import { validatePassword, sanitizeInput } from '../../../../lib/utils'
 
 /** Type สำหรับข้อมูล User */
 import type { User } from '@chiangrai/shared/types'

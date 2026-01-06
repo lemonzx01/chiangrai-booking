@@ -31,7 +31,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendLineNotification } from '@/services/notifications/line'
 
 /** ค่าคงที่ของแอพ */
-import { APP_NAME, CONTACT_INFO } from '@/lib/constants'
+import { APP_NAME, CONTACT_INFO } from '../../../lib/constants'
 
 // ============================================================
 // POST Handler - ส่งข้อความติดต่อ

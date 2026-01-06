@@ -28,7 +28,7 @@
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบ token ของ User */
-import { verifyUserToken } from '@/lib/auth'
+import { verifyUserToken } from '../../../../lib/auth'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลผู้ใช้ปัจจุบัน

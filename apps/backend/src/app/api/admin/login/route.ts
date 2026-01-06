@@ -33,7 +33,7 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
@@ -48,10 +48,10 @@ import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
 
 /** ข้อมูล Mock Admin */
-import { findMockAdmin } from '@/lib/mock-data'
+import { findMockAdmin } from '../../../../lib/mock-data'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
-import { getJwtSecret, isMockMode } from '@/lib/auth'
+import { getJwtSecret, isMockMode } from '../../../../lib/auth'
 
 // ============================================================
 // POST Handler - เข้าสู่ระบบ Admin

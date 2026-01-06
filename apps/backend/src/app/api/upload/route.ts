@@ -31,7 +31,7 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
