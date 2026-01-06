@@ -45,7 +45,7 @@ import Link from 'next/link'
 import { CheckCircle, Loader2, Download } from 'lucide-react'
 
 /** Type definition สำหรับ Booking */
-import { Booking } from '@/types'
+import { Booking } from '@chiangrai/shared/types'
 
 /** Utility functions */
 import { formatCurrency, formatDate } from '@/lib/utils'

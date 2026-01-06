@@ -49,7 +49,7 @@ import Button from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 
 /** Type definitions */
-import type { Booking } from '@/types'
+import type { Booking } from '@chiangrai/shared/types'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'

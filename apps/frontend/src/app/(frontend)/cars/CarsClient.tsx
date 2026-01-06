@@ -33,7 +33,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /** Type definition สำหรับข้อมูลรถ */
-import { Car } from '@/types'
+import { Car } from '@chiangrai/shared/types'
 
 /** Car Card component สำหรับแสดงข้อมูลรถแต่ละคัน */
 import CarCard from '@/components/cards/CarCard'

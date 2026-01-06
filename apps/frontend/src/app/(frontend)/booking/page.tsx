@@ -49,11 +49,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 /** Type definitions */
-import { Hotel, Car, BookingType, RoomType, Currency } from '@/types'
+import { Hotel, Car, BookingType, RoomType, Currency } from '@chiangrai/shared/types'
 
 /** Utility functions */
-import { calculateNights, calculateTotalPrice } from '@/lib/utils'
-import { formatCurrency as formatCurrencyWithType, convertCurrency, CURRENCY_OPTIONS } from '@/lib/currency'
+import { calculateNights, calculateTotalPrice } from '@chiangrai/shared/utils'
+import { formatCurrency as formatCurrencyWithType, convertCurrency, CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'

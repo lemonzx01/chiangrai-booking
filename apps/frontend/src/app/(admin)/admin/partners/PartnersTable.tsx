@@ -4,8 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import DeletePartnerButton from './DeleteButton'
-import { Partner } from '@/types'
-import { PartnerType } from '@/types'
+import { Partner, PartnerType } from '@chiangrai/shared/types'
 
 interface PartnersTableProps {
   partners: Partner[]

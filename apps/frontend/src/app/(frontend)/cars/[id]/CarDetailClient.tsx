@@ -44,7 +44,7 @@ import { Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react
 import { Car } from '@/types'
 
 /** Utility function สำหรับ format ราคา */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
