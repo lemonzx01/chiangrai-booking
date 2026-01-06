@@ -1,9 +1,5 @@
 import { Currency } from './types'
 
-// ============================================================
-// Exchange Rates (อัตราแลกเปลี่ยน)
-// ============================================================
-
 const EXCHANGE_RATES: Record<Currency, number> = {
   [Currency.THB]: 1.0,
   [Currency.USD]: 0.027,
@@ -15,10 +11,6 @@ const REVERSE_RATES: Record<Currency, number> = {
   [Currency.USD]: 37.0,
   [Currency.EUR]: 40.0,
 }
-
-// ============================================================
-// Currency Conversion (แปลงสกุลเงิน)
-// ============================================================
 
 export function convertCurrency(
   amount: number,
@@ -42,10 +34,6 @@ export function convertCurrency(
     return amountInTHB * EXCHANGE_RATES[toCurrency]
   }
 }
-
-// ============================================================
-// Currency Formatting (Format ราคา)
-// ============================================================
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
   [Currency.THB]: '฿',
@@ -90,10 +78,6 @@ export function formatCurrencyShort(amount: number, currency: Currency): string 
 
   return formatCurrency(amount, currency, { showDecimals: false })
 }
-
-// ============================================================
-// Currency Selector Options (ตัวเลือกสำหรับ Selector)
-// ============================================================
 
 export const CURRENCY_OPTIONS = [
   { value: Currency.THB, label: 'บาทไทย (THB)', symbol: '฿' },
