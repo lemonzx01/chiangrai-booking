@@ -251,21 +251,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                       }}
                       placeholder={lang === 'th' ? 'เลือกวันที่' : 'Select dates'}
                       minDate={new Date()}
-                      getPriceForDate={(date) => {
-                        // สร้างราคา mock ตามวันที่ (สำหรับ Demo)
-                        // ใน Production จะดึงจาก API
-                        const basePrice = 15000
-                        const dayOfWeek = date.getDay()
-                        const dayOfMonth = date.getDate()
 
-                        // ราคาวันหยุดสูงกว่า
-                        const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1
-
-                        // ความผันผวนตามวัน
-                        const variation = (dayOfMonth % 7) * 500
-
-                        return Math.round(basePrice * weekendMultiplier + variation)
-                      }}
                     />
                   </div>
                 </div>
