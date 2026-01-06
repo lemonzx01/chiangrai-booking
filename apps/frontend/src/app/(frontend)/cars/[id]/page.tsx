@@ -31,8 +31,6 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-/** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
 
 /** Next.js utility สำหรับแสดงหน้า 404 */
 import { notFound } from 'next/navigation'
@@ -79,17 +77,12 @@ export async function generateMetadata({ params }: Props) {
   // ดึง id จาก params (await เนื่องจากเป็น Promise)
   const { id } = await params
 
-  // สร้าง Supabase client
-  const supabase = await createClient()
-
-  // ----------------------------------------------------------
-  // ดึงข้อมูลรถจาก Database
-  // ----------------------------------------------------------
-  const { data: car } = await supabase
-    .from('cars')
-    .select('*')
-    .eq('id', id)
-    .single()
+  // Fetch car from backend API
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars/${id}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any; error?: string }
+  const car = json.data
 
   // ----------------------------------------------------------
   // Return Metadata
@@ -134,25 +127,16 @@ export default async function CarDetailPage({ params }: Props) {
   // ดึง id จาก params
   const { id } = await params
 
-  // สร้าง Supabase client
-  const supabase = await createClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars/${id}`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any; error?: string }
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลรถจาก Database
-  // ----------------------------------------------------------
-  const { data: car, error } = await supabase
-    .from('cars')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  // ----------------------------------------------------------
-  // Handle Not Found
-  // ----------------------------------------------------------
-  // ถ้ามี error หรือไม่พบข้อมูล -> แสดงหน้า 404
-  if (error || !car) {
+  if (!res.ok || !json.data) {
     notFound()
   }
+
+  const car = json.data
 
   // ----------------------------------------------------------
   // Render Client Component

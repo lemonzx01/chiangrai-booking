@@ -46,7 +46,7 @@ import { Users, Check } from 'lucide-react'
 // Types และ Utilities
 // ----------------------------------------------------------
 /** Type สำหรับข้อมูลรถเช่า */
-import { Car } from '@/types'
+import { Car } from '@chiangrai/shared/types'
 
 /** ฟังก์ชันจัดรูปแบบสกุลเงิน */
 import { formatCurrency } from '@chiangrai/shared/utils'

@@ -47,7 +47,7 @@ import { Star, MapPin, Users } from 'lucide-react'
 // Types และ Utilities
 // ----------------------------------------------------------
 /** Type สำหรับข้อมูลโรงแรม */
-import { Hotel } from '@/types'
+import { Hotel } from '@chiangrai/shared/types'
 
 /** ฟังก์ชันจัดรูปแบบสกุลเงิน */
 import { formatCurrency } from '@chiangrai/shared/utils'

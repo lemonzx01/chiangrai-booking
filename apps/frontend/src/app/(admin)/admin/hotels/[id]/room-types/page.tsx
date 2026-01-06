@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Plus, Pencil, ArrowLeft } from 'lucide-react'
 import { RoomType, Currency } from '@chiangrai/shared/types'
 import DeleteRoomTypeButton from './DeleteButton'
-import { formatCurrency } from '@chiangrai/shared/currency'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -125,7 +125,7 @@ export default async function RoomTypesPage({ params }: Params) {
                         >
                           <Pencil size={18} />
                         </Link>
-                        <DeleteRoomTypeButton id={roomType.id} hotelId={id} />
+                        <DeleteRoomTypeButton id={roomType.id} />
                       </div>
                     </td>
                   </tr>

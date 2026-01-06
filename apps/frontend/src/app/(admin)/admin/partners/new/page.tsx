@@ -29,7 +29,7 @@
 import { useState } from 'react'
 
 /** Next.js hooks สำหรับ navigation */
-import { useRouter } from 'next/navigation'
+
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -65,7 +65,6 @@ export default function NewPartnerPage() {
   // Hooks
   // ----------------------------------------------------------
   /** Hook สำหรับ navigation */
-  const router = useRouter()
 
   // ----------------------------------------------------------
   // State

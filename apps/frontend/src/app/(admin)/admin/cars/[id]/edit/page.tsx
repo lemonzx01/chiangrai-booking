@@ -1,17 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import AdminSidebar from '@/components/admin/Sidebar'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
-import { MOCK_CARS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 
 export default function EditCarPage() {
-  const router = useRouter()
   const params = useParams()
   const id = params.id as string
 
@@ -43,26 +41,6 @@ export default function EditCarPage() {
       try {
         const res = await fetch(`/api/cars/${id}`)
         if (!res.ok) {
-          // Try mock data if API fails
-          const mockCar = MOCK_CARS.find(c => c.id === id)
-          if (mockCar) {
-            setFormData({
-              name_th: mockCar.name_th,
-              name_en: mockCar.name_en,
-              description_th: mockCar.description_th,
-              description_en: mockCar.description_en,
-              car_type_th: mockCar.car_type_th,
-              car_type_en: mockCar.car_type_en,
-              max_passengers: mockCar.max_passengers,
-              price_per_day: String(mockCar.price_per_day),
-              includes_th: mockCar.includes_th || [],
-              includes_en: mockCar.includes_en || [],
-              images: mockCar.images || [],
-              is_active: mockCar.is_active,
-            })
-            setLoading(false)
-            return
-          }
           throw new Error('ไม่พบข้อมูลรถ')
         }
 

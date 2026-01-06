@@ -28,14 +28,10 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-/** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
 
 /** Client component สำหรับแสดงรายการโรงแรม */
 import HotelsClient from './HotelsClient'
 
-/** ข้อมูล Mock โรงแรม สำหรับ Development */
-import { MOCK_HOTELS } from '@/lib/constants'
 
 // ============================================================
 // Metadata สำหรับ SEO
@@ -74,26 +70,15 @@ export const metadata = {
  * @returns {Promise<JSX.Element>} HotelsClient component พร้อมข้อมูลโรงแรม
  */
 export default async function HotelsPage() {
-  // สร้าง Supabase client สำหรับ Server
-  const supabase = await createClient()
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels?is_active=true`, {
+    cache: 'no-store',
+  })
+  const json = (await res.json()) as { data?: any[]; error?: string }
 
-  // ----------------------------------------------------------
-  // ดึงข้อมูลโรงแรมจาก Database
-  // ----------------------------------------------------------
-  const { data: hotels } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('is_active', true) // เฉพาะโรงแรมที่เปิดให้บริการ
-    .order('created_at', { ascending: false }) // เรียงตามวันที่ (ล่าสุดก่อน)
+  if (!res.ok) {
+    console.error(json.error || 'Failed to fetch hotels')
+    return <HotelsClient hotels={[]} />
+  }
 
-  // ----------------------------------------------------------
-  // ใช้ Mock Data ถ้าไม่มีข้อมูลในฐานข้อมูล
-  // ----------------------------------------------------------
-  // ป้องกันกรณี Database ว่าง หรือยังไม่ได้ setup
-  const displayHotels = (hotels && hotels.length > 0) ? hotels : MOCK_HOTELS
-
-  // ----------------------------------------------------------
-  // Render Client Component
-  // ----------------------------------------------------------
-  return <HotelsClient hotels={displayHotels} />
+  return <HotelsClient hotels={(json.data as any[]) || []} />
 }
