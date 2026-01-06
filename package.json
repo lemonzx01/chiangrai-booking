@@ -1,12 +1,16 @@
 {
-  "name": "nextjs-app",
-  "version": "0.1.0",
+  "name": "chiangrai-booking-monorepo",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "concurrently -k -n frontend,backend -c blue,magenta \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
@@ -35,6 +39,7 @@
     "@types/react": "^18",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^18",
+    "concurrently": "^9.2.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
