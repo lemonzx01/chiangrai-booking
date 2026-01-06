@@ -23,7 +23,7 @@
 // Imports
 // ============================================================
 
-import { APP_NAME } from '@/lib/constants'
+import { APP_NAME } from '../../lib/constants'
 
 // ============================================================
 // Types (ประกาศ Types)
