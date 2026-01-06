@@ -7,9 +7,9 @@ import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/ImageUpload'
-import { Partner } from '@/types'
-import { CURRENCY_OPTIONS } from '@/lib/currency'
-import { Currency } from '@/types'
+import { Partner } from '@chiangrai/shared/types'
+import { CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
+import { Currency } from '@chiangrai/shared/types'
 
 export default function NewCarPage() {
   const [loading, setLoading] = useState(false)

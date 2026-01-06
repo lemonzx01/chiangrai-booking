@@ -54,7 +54,7 @@ import { findMockUser, addMockUser } from '@/lib/mock-data'
 import { validatePassword, sanitizeInput } from '@/lib/utils'
 
 /** Type สำหรับข้อมูล User */
-import type { User } from '@/types'
+import type { User } from '@chiangrai/shared/types'
 
 // ============================================================
 // POST Handler - สมัครสมาชิก

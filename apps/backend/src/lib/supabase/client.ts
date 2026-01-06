@@ -27,7 +27,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { createMockSupabaseClient } from './mock-client'
-import type { Database } from '@/types/supabase'
+import type { Database } from '@chiangrai/shared/types/supabase'
 
 // ============================================================
 // Configuration Check (ตรวจสอบการตั้งค่า)

@@ -44,7 +44,7 @@ import { findMockBookingByCode } from '@/lib/mock-data'
 import { CONTACT_INFO } from '@/lib/constants'
 
 /** Type สำหรับข้อมูลการจอง */
-import type { Booking } from '@/types'
+import type { Booking } from '@chiangrai/shared/types'
 
 // ============================================================
 // Type Definitions

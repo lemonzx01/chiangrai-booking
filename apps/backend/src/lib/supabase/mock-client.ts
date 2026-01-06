@@ -6,8 +6,8 @@ import {
   findMockBookingByCode,
 } from '../mock-data'
 import { MOCK_HOTELS, MOCK_CARS } from '../constants'
-import type { Admin, Booking, Hotel, Car, Payment } from '@/types'
-import { BookingStatus, BookingType } from '@/types'
+import type { Admin, Booking, Hotel, Car, Payment } from '@chiangrai/shared/types'
+import { BookingStatus, BookingType } from '@chiangrai/shared/types'
 
 // Helper to build query chain for mock data
 type QueryBuilder<T> = {

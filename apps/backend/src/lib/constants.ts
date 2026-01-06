@@ -21,7 +21,7 @@
 // Imports
 // ============================================================
 
-import { Currency, type NavItem } from '@/types'
+import { Currency, type NavItem } from '@chiangrai/shared/types'
 
 // ============================================================
 // Navigation (เมนูนำทาง)

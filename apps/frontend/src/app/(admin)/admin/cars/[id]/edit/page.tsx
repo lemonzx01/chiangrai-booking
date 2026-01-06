@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
-import { MOCK_CARS } from '@/lib/constants'
+import { MOCK_CARS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 
 export default function EditCarPage() {

@@ -1,0 +1,1 @@
+export { CONTACT_INFO, APP_NAME, ADMIN_NAVIGATION, NAVIGATION, BOOKING_STATUS_LABELS, BOOKING_TYPE_LABELS } from '../../apps/backend/src/lib/constants'

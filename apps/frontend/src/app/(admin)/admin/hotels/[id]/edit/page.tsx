@@ -7,8 +7,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
-import { STAR_RATINGS } from '@/lib/constants'
-import { MOCK_HOTELS } from '@/lib/constants'
+import { STAR_RATINGS } from '@chiangrai/shared/constants'
+import { MOCK_HOTELS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 
 export default function EditHotelPage() {
