@@ -1,5 +1,5 @@
 import type { Admin, Booking, Payment, DashboardStats, User } from '@/types'
-import { BookingStatus, BookingType, PaymentStatus } from '@/types'
+import { BookingStatus, BookingType, PaymentStatus, Currency } from '@/types'
 import { MOCK_HOTELS, MOCK_CARS } from './constants'
 
 // Mock Admin User
@@ -86,6 +86,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_line: '@somchai123',
     special_requests: 'ต้องการห้องที่มองเห็นทะเล',
     total_price: MOCK_HOTELS[0].price_per_night * 3,
+    currency: MOCK_HOTELS[0].currency,
     status: BookingStatus.CONFIRMED,
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
     updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
@@ -103,6 +104,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'john.smith@example.com',
     customer_phone: '+66 82 345 6789',
     total_price: MOCK_CARS[0].price_per_day * 3,
+    currency: MOCK_CARS[0].currency,
     status: BookingStatus.PAID,
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
@@ -120,6 +122,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'mana@example.com',
     customer_phone: '+66 83 456 7890',
     total_price: MOCK_HOTELS[1].price_per_night * 3,
+    currency: MOCK_HOTELS[1].currency,
     status: BookingStatus.COMPLETED,
     created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
@@ -140,6 +143,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_line: '@sarahj',
     special_requests: 'Honeymoon package - please arrange flowers',
     total_price: (MOCK_HOTELS[2].price_per_night * 4) + (MOCK_CARS[1].price_per_day * 4),
+    currency: MOCK_HOTELS[2].currency, // ใช้ currency จากโรงแรม
     status: BookingStatus.PENDING,
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
     updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
@@ -158,6 +162,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'family@example.com',
     customer_phone: '+66 85 678 9012',
     total_price: MOCK_CARS[1].price_per_day * 3,
+    currency: MOCK_CARS[1].currency,
     status: BookingStatus.COMPLETED,
     created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
     updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
@@ -175,6 +180,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'david.lee@example.com',
     customer_phone: '+66 86 789 0123',
     total_price: MOCK_HOTELS[0].price_per_night * 4,
+    currency: MOCK_HOTELS[0].currency,
     status: BookingStatus.CONFIRMED,
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
@@ -192,6 +198,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'nida@example.com',
     customer_phone: '+66 87 890 1234',
     total_price: MOCK_CARS[0].price_per_day * 2,
+    currency: MOCK_CARS[0].currency,
     status: BookingStatus.CANCELLED,
     created_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
     updated_at: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString(), // 19 days ago
@@ -209,6 +216,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     customer_email: 'wilai@example.com',
     customer_phone: '+66 88 901 2345',
     total_price: MOCK_HOTELS[1].price_per_night * 3,
+    currency: MOCK_HOTELS[1].currency,
     status: BookingStatus.PENDING,
     created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
     updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
@@ -223,7 +231,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     booking_id: MOCK_BOOKINGS[1].id, // John Smith's booking
     stripe_checkout_session_id: 'cs_test_1234567890',
     amount: MOCK_BOOKINGS[1].total_price,
-    currency: 'THB',
+    currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
     paid_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
@@ -235,7 +243,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     booking_id: MOCK_BOOKINGS[2].id, // มานะ's booking
     stripe_checkout_session_id: 'cs_test_0987654321',
     amount: MOCK_BOOKINGS[2].total_price,
-    currency: 'THB',
+    currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
     paid_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
     created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
@@ -247,7 +255,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     booking_id: MOCK_BOOKINGS[4].id, // ครอบครัว สุขสันต์'s booking
     stripe_checkout_session_id: 'cs_test_1122334455',
     amount: MOCK_BOOKINGS[4].total_price,
-    currency: 'THB',
+    currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
     paid_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
     created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
@@ -259,7 +267,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     booking_id: MOCK_BOOKINGS[5].id, // David Lee's booking
     stripe_checkout_session_id: 'cs_test_5566778899',
     amount: MOCK_BOOKINGS[5].total_price,
-    currency: 'THB',
+    currency: Currency.THB,
     status: PaymentStatus.PENDING,
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
     updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago

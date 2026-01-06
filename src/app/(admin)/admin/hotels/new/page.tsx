@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/Sidebar'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -9,11 +8,11 @@ import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { STAR_RATINGS } from '@/lib/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
-import { Partner, PartnerType } from '@/types'
-import { Currency, CURRENCY_OPTIONS } from '@/lib/currency'
+import { Partner } from '@/types'
+import { Currency } from '@/types'
+import { CURRENCY_OPTIONS } from '@/lib/currency'
 
 export default function NewHotelPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

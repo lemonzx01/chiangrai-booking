@@ -105,9 +105,9 @@ export const stripe = {
    * เข้าถึง Stripe Connect API
    * @description ใช้สำหรับจัดการ Connect accounts และ payments
    */
-  get connect() {
-    return getStripe().connect
-  },
+  // NOTE: Stripe Node SDK does not expose a `connect` namespace.
+  // Connect-related APIs are available under `accounts`, `accountLinks`, etc.
+  // Keeping this getter removed to avoid type/build errors.
 
   /**
    * เข้าถึง Stripe Accounts API

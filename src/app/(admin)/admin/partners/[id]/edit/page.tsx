@@ -104,24 +104,31 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
     const fetchPartner = async () => {
       try {
         const res = await fetch(`/api/partners/${params.id}`)
-        const data: Partner = await res.json()
+        const data: unknown = await res.json()
 
         if (!res.ok) {
-          throw new Error(data.error || 'ไม่สามารถดึงข้อมูลพาร์ทเนอร์ได้')
+          const message =
+            typeof data === 'object' && data !== null && 'error' in data
+              ? String((data as { error?: unknown }).error)
+              : 'ไม่สามารถดึงข้อมูลพาร์ทเนอร์ได้'
+          throw new Error(message)
         }
+
+        const partner = data as Partner
 
         // กรอกข้อมูลลงในฟอร์ม
         setFormData({
-          name: data.name,
-          email: data.email,
-          phone: data.phone || '',
-          type: data.type,
-          stripe_account_id: data.stripe_account_id || '',
-          commission_rate: data.commission_rate,
-          is_active: data.is_active,
+          name: partner.name,
+          email: partner.email,
+          phone: partner.phone || '',
+          type: partner.type,
+          stripe_account_id: partner.stripe_account_id || '',
+          commission_rate: partner.commission_rate,
+          is_active: partner.is_active,
         })
-      } catch (err: any) {
-        setError(err.message || 'เกิดข้อผิดพลาด')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด'
+        setError(message)
       } finally {
         setFetching(false)
       }

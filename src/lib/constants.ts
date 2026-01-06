@@ -21,7 +21,7 @@
 // Imports
 // ============================================================
 
-import type { NavItem } from '@/types'
+import { Currency, type NavItem } from '@/types'
 
 // ============================================================
 // Navigation (เมนูนำทาง)
@@ -213,6 +213,8 @@ export const MOCK_HOTELS = [
     location_en: 'Phuket, Thailand',
     star_rating: 5,
     price_per_night: 12900,
+    base_price_per_night: 12900,
+    currency: Currency.THB,
     max_guests: 2,
     room_type_th: 'รถหรู + วิลล่าสระน้ำส่วนตัว',
     room_type_en: 'Luxury Car + Private Pool Villa',
@@ -236,6 +238,8 @@ export const MOCK_HOTELS = [
     location_en: 'Chiang Mai, Thailand',
     star_rating: 4,
     price_per_night: 5500,
+    base_price_per_night: 5500,
+    currency: Currency.THB,
     max_guests: 4,
     room_type_th: 'SUV + รีสอร์ทภูเขา',
     room_type_en: 'SUV + Mountain Resort',
@@ -259,6 +263,8 @@ export const MOCK_HOTELS = [
     location_en: 'Bangkok, Thailand',
     star_rating: 5,
     price_per_night: 8900,
+    base_price_per_night: 8900,
+    currency: Currency.THB,
     max_guests: 2,
     room_type_th: 'Sedan + Riverside Suite',
     room_type_en: 'Sedan + Riverside Suite',
@@ -293,6 +299,8 @@ export const MOCK_CARS = [
     car_type_en: 'Sport Convertible',
     max_passengers: 4,
     price_per_day: 9500,
+    base_price_per_day: 9500,
+    currency: Currency.THB,
     images: ['https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=1200'],
     includes_th: ['ประกันชั้นหนึ่ง', 'ทำความสะอาดและฆ่าเชื้อ', 'น้ำมันเต็มถัง', 'Apple CarPlay'],
     includes_en: ['First Class Insurance', 'Cleaned & Disinfected', 'Full Tank', 'Apple CarPlay'],
@@ -309,6 +317,8 @@ export const MOCK_CARS = [
     car_type_en: 'VIP Van',
     max_passengers: 7,
     price_per_day: 5500,
+    base_price_per_day: 5500,
+    currency: Currency.THB,
     images: ['https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=1200'],
     includes_th: ['พร้อมคนขับ', 'WIFI', 'น้ำและเครื่องดื่ม', 'บริการ VIP Lane'],
     includes_en: ['Driver Available', 'WIFI', 'Water & Refreshment', 'VIP Lane Service'],
