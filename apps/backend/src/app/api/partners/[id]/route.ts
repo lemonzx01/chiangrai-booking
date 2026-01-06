@@ -34,7 +34,7 @@ import { NextResponse } from 'next/server'
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '@/lib/auth'
 
 /** Types */
-import { PartnerType } from '@/types'
+import { PartnerType } from '@chiangrai/shared/types'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลพาร์ทเนอร์

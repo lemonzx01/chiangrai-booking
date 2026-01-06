@@ -6,10 +6,10 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
-import { STAR_RATINGS } from '@/lib/constants'
+import { STAR_RATINGS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
-import { Partner } from '@/types'
-import { Currency } from '@/types'
+import { Partner } from '@chiangrai/shared/types'
+import { Currency } from '@chiangrai/shared/types'
 import { CURRENCY_OPTIONS } from '@/lib/currency'
 
 export default function NewHotelPage() {

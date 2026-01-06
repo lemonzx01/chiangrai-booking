@@ -1,5 +1,5 @@
-import type { Admin, Booking, Payment, DashboardStats, User } from '@/types'
-import { BookingStatus, BookingType, PaymentStatus, Currency } from '@/types'
+import type { Admin, Booking, Payment, DashboardStats, User } from '@chiangrai/shared/types'
+import { BookingStatus, BookingType, PaymentStatus, Currency } from '@chiangrai/shared/types'
 import { MOCK_HOTELS, MOCK_CARS } from './constants'
 
 // Mock Admin User
