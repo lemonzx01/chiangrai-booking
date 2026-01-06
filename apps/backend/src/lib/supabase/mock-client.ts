@@ -2,12 +2,9 @@ import {
   MOCK_ADMINS,
   MOCK_BOOKINGS,
   MOCK_PAYMENTS,
-  getMockBookings,
-  findMockBookingByCode,
 } from '../mock-data'
 import { MOCK_HOTELS, MOCK_CARS } from '../constants'
-import type { Admin, Booking, Hotel, Car, Payment } from '@chiangrai/shared/types'
-import { BookingStatus, BookingType } from '@chiangrai/shared/types'
+
 
 // Helper to build query chain for mock data
 type QueryBuilder<T> = {
@@ -207,7 +204,7 @@ export function createMockSupabaseClient() {
         },
         insert: (data: any) => {
           return {
-            select: (query?: string) => {
+            select: () => {
               // In mock mode, just return the inserted data
               const newId = `mock-${table}-${Date.now()}`
               const inserted = {
@@ -224,7 +221,7 @@ export function createMockSupabaseClient() {
         },
         update: (data: any) => {
           return {
-            eq: (column: string, value: any) => {
+            eq: () => {
               // In mock mode, just return success
               return Promise.resolve({
                 data: { ...data, updated_at: new Date().toISOString() },
@@ -235,7 +232,7 @@ export function createMockSupabaseClient() {
         },
         delete: () => {
           return {
-            eq: (column: string, value: any) => {
+            eq: (_column: string, _value: any) => {
               // In mock mode, just return success
               return Promise.resolve({ data: null, error: null })
             },
