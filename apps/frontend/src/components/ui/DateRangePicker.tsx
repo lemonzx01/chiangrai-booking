@@ -24,7 +24,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isAfter, isBefore, isWithinInterval, differenceInDays } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 
@@ -49,7 +49,6 @@ interface DateRangePickerProps {
   /** Locale สำหรับ date-fns */
   locale?: any
   /** ฟังก์ชันสำหรับดึงราคาตามวันที่ (optional) */
-  getPriceForDate?: (date: Date) => number | null
 }
 
 // ============================================================
@@ -80,7 +79,6 @@ const DateRangePicker = ({
   onChange,
   placeholder = 'เลือกวันที่',
   minDate,
-  getPriceForDate,
 }: DateRangePickerProps) => {
   // ----------------------------------------------------------
   // Hooks
@@ -219,14 +217,6 @@ const DateRangePicker = ({
     setIsOpen(false)
   }
 
-  /**
-   * ล้างการเลือก
-   */
-  const handleClear = () => {
-    setTempStartDate(null)
-    setTempEndDate(null)
-    onChange([null, null])
-  }
 
   // ----------------------------------------------------------
   // Helper Functions (ฟังก์ชันช่วย)
@@ -245,16 +235,6 @@ const DateRangePicker = ({
     })
   }
 
-  /**
-   * Format ราคาให้เป็นรูปแบบ "XX.XXk" หรือ "XX,XXX"
-   */
-  const formatPrice = (price: number | null): string | null => {
-    if (price === null || price === undefined) return null
-    if (price >= 1000) {
-      return `${(price / 1000).toFixed(2)}k`
-    }
-    return price.toLocaleString('en-US')
-  }
 
   /** ตรวจสอบว่าเป็นวันเริ่มต้นหรือไม่ */
   const isRangeStart = (day: Date) => tempStartDate && isSameDay(day, tempStartDate)
@@ -334,7 +314,6 @@ const DateRangePicker = ({
                 const isStart = isRangeStart(day)
                 const isEnd = isRangeEnd(day)
                 const inRange = isInRange(day) && !isStart && !isEnd
-                const isToday = isSameDay(day, new Date())
 
                 return (
                   <div
@@ -372,17 +351,6 @@ const DateRangePicker = ({
     )
   }
 
-  /**
-   * Format วันที่สำหรับแสดงใน header
-   */
-  const formatDisplayDate = (date: Date | null) => {
-    if (!date) return '—'
-    if (lang === 'th') {
-      const monthsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-      return `${date.getDate()} ${monthsTh[date.getMonth()]}`
-    }
-    return format(date, 'dd MMM')
-  }
 
   /**
    * สร้างข้อความที่แสดงในปุ่ม trigger
