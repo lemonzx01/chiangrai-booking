@@ -46,7 +46,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 /** Type definitions */
-import { PartnerType, Partner } from '@/types'
+import { PartnerType, Partner } from '@chiangrai/shared/types'
 
 // ============================================================
 // Main Component

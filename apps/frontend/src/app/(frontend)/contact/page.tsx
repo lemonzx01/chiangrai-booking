@@ -39,7 +39,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
 /** ข้อมูลติดต่อจาก constants */
-import { CONTACT_INFO } from '@/lib/constants'
+import { CONTACT_INFO } from '@chiangrai/shared/constants'
 
 // ============================================================
 // Main Component

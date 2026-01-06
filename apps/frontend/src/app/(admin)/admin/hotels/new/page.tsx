@@ -10,7 +10,7 @@ import { STAR_RATINGS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 import { Partner } from '@chiangrai/shared/types'
 import { Currency } from '@chiangrai/shared/types'
-import { CURRENCY_OPTIONS } from '@/lib/currency'
+import { CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
 
 export default function NewHotelPage() {
   const [loading, setLoading] = useState(false)

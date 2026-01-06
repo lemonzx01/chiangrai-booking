@@ -41,10 +41,10 @@ import Image from 'next/image'
 import { Star, MapPin, Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
 
 /** Type definition สำหรับข้อมูลโรงแรม */
-import { Hotel, RoomType, Currency } from '@/types'
+import { Hotel, RoomType, Currency } from '@chiangrai/shared/types'
 
 /** Utility function สำหรับ format ราคา */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 import { formatCurrency as formatCurrencyWithType } from '@/lib/currency'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */

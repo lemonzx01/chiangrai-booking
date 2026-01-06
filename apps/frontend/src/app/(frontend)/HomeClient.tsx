@@ -43,10 +43,10 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight, Star, MapPin, Users, Search, Calendar, Minus, Plus } from 'lucide-react'
 
 /** Type definitions */
-import { Hotel, Car } from '@/types'
+import { Hotel, Car } from '@chiangrai/shared/types'
 
 /** Utility functions */
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'

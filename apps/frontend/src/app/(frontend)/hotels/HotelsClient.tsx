@@ -38,7 +38,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /** Type definition สำหรับข้อมูลโรงแรม */
-import { Hotel } from '@/types'
+import { Hotel } from '@chiangrai/shared/types'
 
 /** Hotel Card component สำหรับแสดงข้อมูลโรงแรมแต่ละแห่ง */
 import HotelCard from '@/components/cards/HotelCard'
