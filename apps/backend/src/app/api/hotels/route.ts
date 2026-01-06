@@ -28,13 +28,13 @@
 // ============================================================
 
 /** Supabase client สำหรับ Server-side */
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
-import { verifyAdminToken, unauthorizedResponse, isMockMode } from '@/lib/auth'
+import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib/auth'
 
 // ============================================================
 // GET Handler - ดึงรายการโรงแรม

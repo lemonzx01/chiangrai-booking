@@ -26,7 +26,7 @@
 // ============================================================
 
 /** Supabase client สำหรับ Server-side */
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
@@ -35,13 +35,13 @@ import { NextResponse } from 'next/server'
 import { jsPDF } from 'jspdf'
 
 /** ฟังก์ชันตรวจสอบ Mock Mode */
-import { isMockMode } from '@/lib/auth'
+import { isMockMode } from '../../../../../lib/auth'
 
 /** ข้อมูล Mock สำหรับการทดสอบ */
-import { findMockBookingByCode } from '@/lib/mock-data'
+import { findMockBookingByCode } from '../../../../../lib/mock-data'
 
 /** ข้อมูลติดต่อบริษัท */
-import { CONTACT_INFO } from '@/lib/constants'
+import { CONTACT_INFO } from '../../../../../lib/constants'
 
 /** Type สำหรับข้อมูลการจอง */
 import type { Booking } from '@chiangrai/shared/types'

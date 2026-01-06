@@ -28,10 +28,10 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/server'
 
 /** Stripe client instance */
-import { stripe } from '@/lib/stripe'
+import { stripe } from '../../../lib/stripe'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
