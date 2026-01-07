@@ -24,6 +24,8 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
+
 /** Supabase client สำหรับ Admin */
 
 
@@ -98,8 +100,8 @@ interface BookingRow {
  * @returns {Promise<BookingRow[]>} รายการการจอง
  */
 async function getBookings(): Promise<BookingRow[]> {
-  // ดึงผ่าน backend API (frontend จะ rewrite /api/* ไป backend ใน production)
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/bookings`, {
+  // ดึงผ่าน backend API
+  const res = await fetch(`${getBackendUrl()}/api/bookings`, {
     cache: 'no-store',
   })
 

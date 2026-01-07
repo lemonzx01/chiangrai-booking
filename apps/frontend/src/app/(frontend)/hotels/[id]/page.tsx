@@ -31,6 +31,7 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
 
 /** Next.js utility สำหรับแสดงหน้า 404 */
 import { notFound } from 'next/navigation'
@@ -77,7 +78,7 @@ export async function generateMetadata({ params }: Props) {
   // ดึง id จาก params (await เนื่องจากเป็น Promise)
   const { id } = await params
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+  const res = await fetch(`${getBackendUrl()}/api/hotels/${id}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }
@@ -126,7 +127,7 @@ export default async function HotelDetailPage({ params }: Props) {
   // ดึง id จาก params
   const { id } = await params
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+  const res = await fetch(`${getBackendUrl()}/api/hotels/${id}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }

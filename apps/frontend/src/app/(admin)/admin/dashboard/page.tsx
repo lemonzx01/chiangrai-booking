@@ -24,6 +24,8 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
+
 /** Supabase client สำหรับ Admin */
 
 /** Admin Sidebar component */
@@ -94,7 +96,7 @@ interface RecentBooking {
  * @returns {Promise<Object>} ข้อมูลสถิติ
  */
 async function getStats(): Promise<DashboardStats> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/dashboard/stats`, {
+  const res = await fetch(`${getBackendUrl()}/api/dashboard/stats`, {
     cache: 'no-store',
   });
 
@@ -119,7 +121,7 @@ async function getStats(): Promise<DashboardStats> {
  * @returns {Promise<RecentBooking[]>} รายการการจองล่าสุด
  */
 async function getRecentBookings(): Promise<RecentBooking[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/bookings?limit=5`, {
+  const res = await fetch(`${getBackendUrl()}/api/bookings?limit=5`, {
     cache: 'no-store',
   });
 
