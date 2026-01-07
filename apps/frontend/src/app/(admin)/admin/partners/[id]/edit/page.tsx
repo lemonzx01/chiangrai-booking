@@ -28,6 +28,7 @@
 
 /** React hooks สำหรับจัดการ state และ lifecycle */
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 /** Next.js hooks สำหรับ navigation */
 
@@ -79,6 +80,11 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
 
   /** State สำหรับข้อความ error */
   const [error, setError] = useState('')
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false)
+  const [stripeCheckMessage, setStripeCheckMessage] = useState('')
+  const searchParams = useSearchParams()
+
+
 
   /** State สำหรับข้อมูลฟอร์ม */
   const [formData, setFormData] = useState({
@@ -100,6 +106,60 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
    * ดึงข้อมูลจาก API แล้วกรอกลงในฟอร์ม
    */
   useEffect(() => {
+    const fetchPartnerAndCheckStripe = async () => {
+      setFetching(true);
+      try {
+        const res = await fetch(`/api/partners/${params.id}`);
+        const data: unknown = await res.json();
+
+        if (!res.ok) {
+          const message =
+            typeof data === 'object' && data !== null && 'error' in data
+              ? String((data as { error?: unknown }).error)
+              : 'ไม่สามารถดึงข้อมูลพาร์ทเนอร์ได้';
+          throw new Error(message);
+        }
+
+        const partner = data as Partner;
+
+        setFormData({
+          name: partner.name,
+          email: partner.email,
+          phone: partner.phone || '',
+          type: partner.type,
+          stripe_account_id: partner.stripe_account_id || '',
+          commission_rate: partner.commission_rate,
+          is_active: partner.is_active,
+        });
+
+        // Check Stripe status if returning from onboarding
+        if (searchParams.get('stripe_return') === 'true') {
+          setStripeCheckMessage('กำลังตรวจสอบสถานะการเชื่อมต่อกับ Stripe...');
+          const statusRes = await fetch(`/api/partners/${params.id}/stripe-status`);
+          const statusData = await statusRes.json();
+
+          if (!statusRes.ok) {
+            throw new Error(statusData.error || 'ไม่สามารถตรวจสอบสถานะ Stripe ได้');
+          }
+
+          if (statusData.isOnboarded) {
+            setStripeCheckMessage('เชื่อมต่อกับ Stripe สำเร็จแล้ว!');
+            // Re-set form data with potentially updated stripe_account_id from the fresh fetch
+            setFormData(prev => ({ ...prev, stripe_account_id: partner.stripe_account_id || '' }));
+          } else {
+            setStripeCheckMessage('การเชื่อมต่อยังไม่สมบูรณ์ กรุณากรอกข้อมูลในหน้า Stripe ให้ครบถ้วน');
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด';
+        setError(message);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchPartnerAndCheckStripe();
+  }, [params.id, searchParams]);
     const fetchPartner = async () => {
       try {
         const res = await fetch(`/api/partners/${params.id}`)
@@ -179,6 +239,25 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
     } catch (err: any) {
       setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง')
       setLoading(false)
+    }
+  }
+
+  const handleConnectStripe = async () => {
+    setIsConnectingStripe(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/partners/${params.id}/stripe-connect`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create Stripe Connect link.')
+      }
+      // Redirect to the Stripe onboarding URL
+      window.location.href = data.url
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while connecting to Stripe.')
+      setIsConnectingStripe(false)
     }
   }
 
@@ -287,19 +366,28 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
               {/* Stripe Connect Account ID */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Stripe Connect Account ID
+                  Stripe Connect
                 </label>
-                <Input
-                  type="text"
-                  value={formData.stripe_account_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stripe_account_id: e.target.value })
-                  }
-                  placeholder="acct_xxxxx (optional)"
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  สำหรับการจ่ายเงินผ่าน Stripe Connect (ถ้ามี)
-                </p>
+                {formData.stripe_account_id ? (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <p className="text-sm font-semibold text-green-800">เชื่อมต่อสำเร็จแล้ว</p>
+                    <p className="text-xs text-green-700 mt-1">Account ID: {formData.stripe_account_id}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <Button
+                      type="button"
+                      onClick={handleConnectStripe}
+                      loading={isConnectingStripe}
+                      disabled={isConnectingStripe}
+                    >
+                      เชื่อมต่อกับ Stripe
+                    </Button>
+                    <p className="mt-1 text-xs text-slate-500">
+                      เชื่อมต่อบัญชี Stripe เพื่อรับเงินค่าจองโดยตรง
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* อัตราคอมมิชชั่น */}
