@@ -105,7 +105,26 @@ export async function POST(request: Request) {
   // ประมวลผลตาม Event Type
   // ----------------------------------------------------------
   try {
-    switch (event.type) {
+        switch (event.type) {
+      // ============================================================
+      // Case: Stripe Connect Account Updated
+      // ============================================================
+      case 'account.updated': {
+        const account = event.data.object as Stripe.Account;
+
+        // Check if the account is now able to receive payouts
+        if (account.payouts_enabled && account.details_submitted) {
+          // Update the partner record in your database
+          await supabase
+            .from('partners')
+            .update({ 
+              stripe_onboarding_complete: true,
+            })
+            .eq('stripe_account_id', account.id);
+        }
+        break;
+      }
+
       // ============================================================
       // Case: การชำระเงินสำเร็จ
       // ============================================================
