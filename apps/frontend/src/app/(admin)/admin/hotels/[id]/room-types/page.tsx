@@ -4,13 +4,14 @@ import { Plus, Pencil, ArrowLeft } from 'lucide-react'
 import { RoomType, Currency } from '@chiangrai/shared/types'
 import DeleteRoomTypeButton from './DeleteButton'
 import { formatCurrency } from '@chiangrai/shared/utils'
+import { getBackendUrl } from '@/lib/api'
 
 interface Params {
   params: Promise<{ id: string }>
 }
 
 async function getHotel(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels/${id}`, {
+  const res = await fetch(`${getBackendUrl()}/api/hotels/${id}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }
@@ -19,7 +20,7 @@ async function getHotel(id: string) {
 }
 
 async function getRoomTypes(hotelId: string): Promise<RoomType[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/room-types?hotel_id=${hotelId}`, {
+  const res = await fetch(`${getBackendUrl()}/api/room-types?hotel_id=${hotelId}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: RoomType[]; error?: string }

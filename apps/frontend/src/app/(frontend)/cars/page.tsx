@@ -28,6 +28,7 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
 
 /** Client component สำหรับแสดงรายการรถ */
 import CarsClient from './CarsClient'
@@ -70,8 +71,8 @@ export const metadata = {
  * @returns {Promise<JSX.Element>} CarsClient component พร้อมข้อมูลรถ
  */
 export default async function CarsPage() {
-  // Fetch from backend API (frontend rewrites /api/* -> backend)
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars?is_active=true`, {
+  // Fetch from backend API
+  const res = await fetch(`${getBackendUrl()}/api/cars?is_active=true`, {
     cache: 'no-store',
   })
 

@@ -24,6 +24,8 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
+
 /** Supabase client สำหรับ Admin */
 
 /** Admin Sidebar component */
@@ -69,7 +71,7 @@ export const metadata = {
  * @returns {Promise<Hotel[]>} รายการโรงแรม
  */
 async function getHotels(): Promise<Hotel[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels`, {
+  const res = await fetch(`${getBackendUrl()}/api/hotels`, {
     cache: 'no-store',
   })
 

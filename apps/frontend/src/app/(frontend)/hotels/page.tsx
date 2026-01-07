@@ -28,6 +28,7 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
 
 /** Client component สำหรับแสดงรายการโรงแรม */
 import HotelsClient from './HotelsClient'
@@ -70,7 +71,7 @@ export const metadata = {
  * @returns {Promise<JSX.Element>} HotelsClient component พร้อมข้อมูลโรงแรม
  */
 export default async function HotelsPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels?is_active=true`, {
+  const res = await fetch(`${getBackendUrl()}/api/hotels?is_active=true`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any[]; error?: string }

@@ -25,6 +25,7 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
 
 /** Client component สำหรับแสดงหน้าแรก */
 import HomeClient from './HomeClient'
@@ -44,9 +45,11 @@ import HomeClient from './HomeClient'
  * @returns {Promise<JSX.Element>} HomeClient component
  */
 export default async function HomePage() {
+  const backendUrl = getBackendUrl()
+  
   const [hotelsRes, carsRes] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/hotels?is_active=true&limit=6`, { cache: 'no-store' }),
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars?is_active=true&limit=4`, { cache: 'no-store' }),
+    fetch(`${backendUrl}/api/hotels?is_active=true&limit=6`, { cache: 'no-store' }),
+    fetch(`${backendUrl}/api/cars?is_active=true&limit=4`, { cache: 'no-store' }),
   ])
 
   const hotelsJson = (await hotelsRes.json()) as { data?: any[]; error?: string }

@@ -31,6 +31,7 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
 
 /** Next.js utility สำหรับแสดงหน้า 404 */
 import { notFound } from 'next/navigation'
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: Props) {
   const { id } = await params
 
   // Fetch car from backend API
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars/${id}`, {
+  const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }
@@ -127,7 +128,7 @@ export default async function CarDetailPage({ params }: Props) {
   // ดึง id จาก params
   const { id } = await params
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars/${id}`, {
+  const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }

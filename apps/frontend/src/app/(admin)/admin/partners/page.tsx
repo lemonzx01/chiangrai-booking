@@ -23,6 +23,8 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
+
 /** Supabase client สำหรับ Admin */
 
 /** Admin Sidebar component */
@@ -62,7 +64,7 @@ export const metadata = {
  * @returns {Promise<Partner[]>} รายการพาร์ทเนอร์
  */
 async function getPartners(): Promise<Partner[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/partners`, {
+  const res = await fetch(`${getBackendUrl()}/api/partners`, {
     cache: 'no-store',
   })
 

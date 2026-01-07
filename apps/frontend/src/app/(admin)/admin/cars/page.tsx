@@ -24,6 +24,8 @@
 // การนำเข้า Dependencies
 // ============================================================
 
+import { getBackendUrl } from '@/lib/api'
+
 /** Supabase client สำหรับ Admin */
 
 
@@ -71,8 +73,8 @@ export const metadata = {
  * @returns {Promise<Car[]>} รายการรถเช่า
  */
 async function getCars(): Promise<Car[]> {
-  // ดึงผ่าน backend API (frontend จะ rewrite /api/* ไป backend ใน production)
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ''}/api/cars`, {
+  // ดึงผ่าน backend API
+  const res = await fetch(`${getBackendUrl()}/api/cars`, {
     cache: 'no-store',
   })
 
