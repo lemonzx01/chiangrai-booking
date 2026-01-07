@@ -160,41 +160,6 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
 
     fetchPartnerAndCheckStripe();
   }, [params.id, searchParams]);
-    const fetchPartner = async () => {
-      try {
-        const res = await fetch(`/api/partners/${params.id}`)
-        const data: unknown = await res.json()
-
-        if (!res.ok) {
-          const message =
-            typeof data === 'object' && data !== null && 'error' in data
-              ? String((data as { error?: unknown }).error)
-              : 'ไม่สามารถดึงข้อมูลพาร์ทเนอร์ได้'
-          throw new Error(message)
-        }
-
-        const partner = data as Partner
-
-        // กรอกข้อมูลลงในฟอร์ม
-        setFormData({
-          name: partner.name,
-          email: partner.email,
-          phone: partner.phone || '',
-          type: partner.type,
-          stripe_account_id: partner.stripe_account_id || '',
-          commission_rate: partner.commission_rate,
-          is_active: partner.is_active,
-        })
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด'
-        setError(message)
-      } finally {
-        setFetching(false)
-      }
-    }
-
-    fetchPartner()
-  }, [params.id])
 
   // ----------------------------------------------------------
   // Event Handlers
