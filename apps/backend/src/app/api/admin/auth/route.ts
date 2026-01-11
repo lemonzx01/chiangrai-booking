@@ -35,7 +35,7 @@ import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 
 /** ฟังก์ชันดึง JWT Secret */
-import { getJwtSecret } from '../../../../lib/auth'
+import { getJwtSecret } from '@/lib/auth'
 
 // ============================================================
 // GET Handler - ตรวจสอบสถานะ Admin
