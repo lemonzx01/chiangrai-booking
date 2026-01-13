@@ -134,7 +134,7 @@ export async function sendAdminBookingNotification(booking: Booking): Promise<vo
 
     // ส่งอีเมลให้ admin ทุกคน
     await Promise.all(
-      admins.map((admin) =>
+      admins.map((admin: any) =>
         sendEmail({
           to: admin.email,
           subject,

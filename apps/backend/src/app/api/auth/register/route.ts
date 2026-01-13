@@ -163,6 +163,7 @@ export async function POST(request: Request) {
         email: sanitizedEmail,
         password_hash,
         name: sanitizedName,
+        role: 'user',
         phone: phone ? sanitizeInput(phone) : undefined,
         is_active: true,
         created_at: new Date().toISOString(),
@@ -214,6 +215,7 @@ export async function POST(request: Request) {
         email: sanitizedEmail,
         password_hash,
         name: sanitizedName,
+        role: 'user',
         phone: phone ? sanitizeInput(phone) : null,
         is_active: true,
       })

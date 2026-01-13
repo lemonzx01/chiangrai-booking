@@ -14,12 +14,9 @@ import NextAuth from 'next-auth'
 import { authOptions } from '../../../../lib/auth/nextauth'
 import type { NextRequest } from 'next/server'
 
-const handler = NextAuth(authOptions)
+// NextAuth v5 beta with Next.js 15 App Router
+// NextAuth returns an object with GET and POST methods
+const { handlers } = NextAuth(authOptions as any)
 
-export async function GET(req: NextRequest) {
-  return handler(req)
-}
-
-export async function POST(req: NextRequest) {
-  return handler(req)
-}
+export const GET = handlers.GET
+export const POST = handlers.POST

@@ -124,20 +124,20 @@ export async function GET(request: Request) {
 
     /** ยอดรวมรายได้ (เฉพาะ payment ที่สำเร็จ) */
     const totalRevenue = payments
-      .filter((p) => p.status === 'SUCCEEDED')
-      .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0)
+      .filter((p: any) => p.status === 'SUCCEEDED')
+      .reduce((sum: number, p: any) => sum + parseFloat(p.amount.toString()), 0)
 
     /** จำนวน payment ที่สำเร็จ */
-    const succeededCount = payments.filter((p) => p.status === 'SUCCEEDED').length
+    const succeededCount = payments.filter((p: any) => p.status === 'SUCCEEDED').length
 
     /** จำนวน payment ที่ล้มเหลว */
-    const failedCount = payments.filter((p) => p.status === 'FAILED').length
+    const failedCount = payments.filter((p: any) => p.status === 'FAILED').length
 
     /** จำนวน payment ที่รอดำเนินการ */
-    const pendingCount = payments.filter((p) => p.status === 'PENDING').length
+    const pendingCount = payments.filter((p: any) => p.status === 'PENDING').length
 
     /** จำนวน payment ที่คืนเงินแล้ว */
-    const refundedCount = payments.filter((p) => p.status === 'REFUNDED').length
+    const refundedCount = payments.filter((p: any) => p.status === 'REFUNDED').length
 
     /** จำนวน payment ทั้งหมด */
     const totalCount = payments.length

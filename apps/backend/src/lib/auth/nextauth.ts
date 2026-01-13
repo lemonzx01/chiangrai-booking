@@ -11,7 +11,7 @@
  * ============================================================
  */
 
-import NextAuth, { NextAuthOptions } from 'next-auth'
+import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { createAdminClient } from '../supabase/server'
@@ -22,7 +22,7 @@ import { findMockUser, findMockAdmin } from '../mock-data'
 /**
  * NextAuth Configuration
  */
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -37,7 +37,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials: any) {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
@@ -45,10 +45,10 @@ export const authOptions: NextAuthOptions = {
         // Mock Mode
         if (isMockMode()) {
           // Check admin first
-          const mockAdmin = findMockAdmin(credentials.email)
+          const mockAdmin = findMockAdmin(credentials.email as string)
           if (mockAdmin) {
             const isValidPassword = credentials.password === 'admin123' ||
-              await bcrypt.compare(credentials.password, mockAdmin.password_hash).catch(() => false)
+              (mockAdmin.password_hash ? await bcrypt.compare(credentials.password as string, mockAdmin.password_hash).catch(() => false) : false)
             if (isValidPassword) {
               return {
                 id: mockAdmin.id,
@@ -60,10 +60,10 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Check user
-          const mockUser = findMockUser(credentials.email)
+          const mockUser = findMockUser(credentials.email as string)
           if (mockUser) {
             const isValidPassword = credentials.password === 'user123' ||
-              await bcrypt.compare(credentials.password, mockUser.password_hash).catch(() => false)
+              (mockUser.password_hash ? await bcrypt.compare(credentials.password as string, mockUser.password_hash).catch(() => false) : false)
             if (isValidPassword) {
               return {
                 id: mockUser.id,
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
           .single()
 
         if (admin) {
-          const isValidPassword = await bcrypt.compare(credentials.password, admin.password_hash)
+          const isValidPassword = await bcrypt.compare(credentials.password as string, admin.password_hash)
           if (isValidPassword) {
             return {
               id: admin.id,
@@ -109,7 +109,7 @@ export const authOptions: NextAuthOptions = {
           .single()
 
         if (user && user.password_hash) {
-          const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
+          const isValidPassword = await bcrypt.compare(credentials.password as string, user.password_hash)
           if (isValidPassword) {
             return {
               id: user.id,
@@ -129,7 +129,7 @@ export const authOptions: NextAuthOptions = {
     /**
      * JWT Callback - เรียกเมื่อสร้างหรืออัพเดท JWT token
      */
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile }: any) {
       // เมื่อ login ครั้งแรก (Google OAuth)
       if (account?.provider === 'google' && profile) {
         const supabase = await createAdminClient()
@@ -200,7 +200,7 @@ export const authOptions: NextAuthOptions = {
     /**
      * Session Callback - เรียกเมื่อสร้าง session
      */
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = (token.role as string) || 'user'
@@ -215,7 +215,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 

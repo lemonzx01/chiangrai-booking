@@ -105,7 +105,7 @@ export async function GET(request: Request) {
     if (role === 'admin') {
       // Admin: ดูข้อมูลทั้งหมด (ไม่ filter is_active)
       // ไม่ต้องเพิ่ม filter
-    } else if (role === 'partner' && partnerAuth.success) {
+    } else if (role === 'partner' && partnerAuth.success && partnerAuth.user) {
       // Partner: ดูเฉพาะโรงแรมของตัวเอง
       query = query.eq('owner_id', partnerAuth.user.id)
     } else {
@@ -186,7 +186,7 @@ export async function POST(request: Request) {
     const isPartner = partnerAuth.success
 
     // ถ้าเป็น partner: ตั้งค่า owner_id อัตโนมัติ
-    if (isPartner && !isAdmin) {
+    if (isPartner && !isAdmin && partnerAuth.user) {
       body.owner_id = partnerAuth.user.id
     }
     // ถ้าเป็น admin: อนุญาตให้ตั้งค่า owner_id เอง (หรือไม่ตั้งก็ได้)
