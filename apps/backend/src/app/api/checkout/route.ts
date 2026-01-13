@@ -50,7 +50,7 @@ import { rateLimitMiddleware, getClientIP } from '../../../middleware/rate-limit
 import { addSecurityHeaders, validateInput, isValidUUID } from '../../../lib/security'
 
 /** Currency conversion */
-import { convertCurrencyFromDatabase } from '../../../lib/exchange-rate'
+import { convertCurrencyAmount } from '../../../lib/exchange-rate'
 import { Currency } from '@chiangrai/shared/types'
 
 // ============================================================
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
     if (bookingCurrency !== Currency.THB) {
       // แปลงจาก THB เป็นสกุลเงินที่เลือก
       try {
-        finalAmount = await convertCurrencyFromDatabase(
+        finalAmount = await convertCurrencyAmount(
           booking.total_price,
           Currency.THB,
           bookingCurrency
