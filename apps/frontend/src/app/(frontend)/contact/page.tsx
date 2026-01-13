@@ -219,17 +219,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* LINE ID */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">{t('contact.info.line')}</h3>
-                    <p className="text-slate-500">{CONTACT_INFO.line}</p>
-                  </div>
-                </div>
-
                 {/* เวลาทำการ */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">

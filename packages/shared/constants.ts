@@ -10,7 +10,6 @@ export const CONTACT_INFO = {
   address: 'Chiang Rai, Thailand',
   phone: '+66 81 234 5678',
   email: 'admin@gotjourneythailand.com',
-  line: '@gotjourneythailand',
   workingHours: '09:00 - 18:00',
 }
 

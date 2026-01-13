@@ -189,7 +189,6 @@ VALUES ('your-email@example.com', 'hash-from-script', 'Your Name', 'admin', true
 | `STRIPE_SECRET_KEY` | Stripe Secret Key | ❌ |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Secret | ❌ |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Publishable Key | ❌ |
-| `LINE_NOTIFY_TOKEN` | Line Notify Token | ❌ |
 | `RESEND_API_KEY` | Resend API Key | ❌ |
 
 ---

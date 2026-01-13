@@ -130,7 +130,6 @@ function BookingContent() {
     customer_name: '',
     customer_email: '',
     customer_phone: '',
-    customer_line: '',
     special_requests: '',
   })
 
@@ -441,13 +440,6 @@ function BookingContent() {
                     onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
                     placeholder="0812345678"
                     required
-                  />
-                  {/* LINE ID */}
-                  <Input
-                    label={t('booking.line')}
-                    value={formData.customer_line}
-                    onChange={(e) => setFormData({ ...formData, customer_line: e.target.value })}
-                    placeholder="@yourlineid"
                   />
                   {/* ความต้องการพิเศษ */}
                   <div>

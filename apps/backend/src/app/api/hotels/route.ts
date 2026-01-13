@@ -33,8 +33,14 @@ import { createClient, createAdminClient } from '../../../lib/supabase/server'
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
 
-/** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
-import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib/auth'
+/** ฟังก์ชันตรวจสอบสิทธิ์ */
+import { 
+  verifyAdminToken, 
+  verifyPartnerToken, 
+  getUserRole,
+  unauthorizedResponse, 
+  isMockMode 
+} from '../../../lib/auth'
 
 // ============================================================
 // GET Handler - ดึงรายการโรงแรม
@@ -65,7 +71,12 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib
 export async function GET(request: Request) {
   try {
     // สร้าง Supabase client
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
+
+    // ตรวจสอบ role ของ user
+    const role = await getUserRole()
+    const adminAuth = await verifyAdminToken()
+    const partnerAuth = await verifyPartnerToken()
 
     // ดึง query parameters จาก URL
     const { searchParams } = new URL(request.url)
@@ -83,13 +94,24 @@ export async function GET(request: Request) {
     const location = searchParams.get('location')
 
     // ----------------------------------------------------------
-    // สร้าง Query
+    // สร้าง Query ตาม Role
     // ----------------------------------------------------------
     let query = supabase
       .from('hotels')
-      .select('*', { count: 'exact' }) // นับจำนวนทั้งหมดด้วย
-      .eq('is_active', true) // เฉพาะโรงแรมที่เปิดใช้งาน
-      .order('created_at', { ascending: false }) // เรียงจากใหม่ไปเก่า
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+
+    // Filter ตาม role
+    if (role === 'admin') {
+      // Admin: ดูข้อมูลทั้งหมด (ไม่ filter is_active)
+      // ไม่ต้องเพิ่ม filter
+    } else if (role === 'partner' && partnerAuth.success) {
+      // Partner: ดูเฉพาะโรงแรมของตัวเอง
+      query = query.eq('owner_id', partnerAuth.user.id)
+    } else {
+      // User หรือ Public: ดูเฉพาะโรงแรมที่เปิดใช้งาน
+      query = query.eq('is_active', true)
+    }
 
     // เพิ่มตัวกรองที่ตั้ง (ถ้ามี)
     if (location) {
@@ -145,15 +167,29 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // ----------------------------------------------------------
-    // ตรวจสอบสิทธิ์ Admin
+    // ตรวจสอบสิทธิ์ Admin หรือ Partner
     // ----------------------------------------------------------
-    const auth = await verifyAdminToken()
-    if (!auth.success) {
-      return unauthorizedResponse('Admin access required')
+    const adminAuth = await verifyAdminToken()
+    const partnerAuth = await verifyPartnerToken()
+
+    if (!adminAuth.success && !partnerAuth.success) {
+      return unauthorizedResponse('Admin or Partner access required')
     }
 
     // ดึงข้อมูลจาก request body
     const body = await request.json()
+
+    // ----------------------------------------------------------
+    // ตั้งค่า owner_id ตาม role
+    // ----------------------------------------------------------
+    const isAdmin = adminAuth.success
+    const isPartner = partnerAuth.success
+
+    // ถ้าเป็น partner: ตั้งค่า owner_id อัตโนมัติ
+    if (isPartner && !isAdmin) {
+      body.owner_id = partnerAuth.user.id
+    }
+    // ถ้าเป็น admin: อนุญาตให้ตั้งค่า owner_id เอง (หรือไม่ตั้งก็ได้)
 
     // ----------------------------------------------------------
     // Mock Mode: สำหรับการทดสอบ

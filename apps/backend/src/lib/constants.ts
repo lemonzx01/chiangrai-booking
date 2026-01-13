@@ -173,8 +173,6 @@ export const CONTACT_INFO = {
   phone: '+66 2123 4567',
   /** อีเมล */
   email: 'hello@gotjourneythailand.com',
-  /** LINE Official Account */
-  line: '@gotjourneythailand',
   /** ที่อยู่ */
   address: 'Thailand',
   /** เวลาทำการ */
@@ -190,8 +188,6 @@ export const SOCIAL_LINKS = {
   facebook: 'https://facebook.com/gotjourneythailand',
   /** Instagram */
   instagram: 'https://instagram.com/gotjourneythailand',
-  /** LINE Official Account */
-  line: 'https://line.me/ti/p/@gotjourneythailand',
 }
 
 // ============================================================
@@ -225,6 +221,7 @@ export const MOCK_HOTELS = [
     ],
     amenities_th: ['รถเปิดประทุน', 'สระว่ายน้ำส่วนตัว', 'รับส่งสนามบิน VIP', 'อาหารเย็นชมพระอาทิตย์ตก'],
     amenities_en: ['Convertible Car', 'Private Pool', 'VIP Airport Transfer', 'Sunset Dinner'],
+    owner_id: 'mock-partner-1',
     is_active: true,
     created_at: new Date().toISOString(),
   },
@@ -304,6 +301,7 @@ export const MOCK_CARS = [
     images: ['https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=1200'],
     includes_th: ['ประกันชั้นหนึ่ง', 'ทำความสะอาดและฆ่าเชื้อ', 'น้ำมันเต็มถัง', 'Apple CarPlay'],
     includes_en: ['First Class Insurance', 'Cleaned & Disinfected', 'Full Tank', 'Apple CarPlay'],
+    owner_id: 'mock-partner-1',
     is_active: true,
     created_at: new Date().toISOString(),
   },

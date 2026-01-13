@@ -147,12 +147,25 @@ export async function POST(request: Request) {
             .from('bookings')
             .update({ status: 'PAID' })
             .eq('id', session.metadata.booking_id)
-            .select('*, hotel:hotels(*), car:cars(*)')
+            .select('*, hotel:hotels(*, owner_id), car:cars(*, owner_id)')
             .single()
 
           // ส่งอีเมลยืนยันการจอง (non-blocking)
           if (booking) {
             sendBookingConfirmationEmail(booking).catch(console.error)
+
+            // ส่งอีเมลแจ้งเตือน Partner (owner) และ Admin
+            const { sendPartnerBookingNotification, sendAdminBookingNotification } = await import('../../../services/notifications/partner')
+            
+            // หา owner_id จาก hotel หรือ car
+            const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
+            
+            if (ownerId) {
+              sendPartnerBookingNotification(ownerId, booking).catch(console.error)
+            }
+            
+            // ส่งอีเมลแจ้งเตือน Admin
+            sendAdminBookingNotification(booking).catch(console.error)
           }
         }
         break

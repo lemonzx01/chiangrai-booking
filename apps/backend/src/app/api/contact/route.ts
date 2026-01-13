@@ -27,9 +27,6 @@
 /** Next.js Request และ Response utilities */
 import { NextRequest, NextResponse } from 'next/server'
 
-/** บริการส่งแจ้งเตือนผ่าน LINE */
-import { sendLineNotification } from '../../../services/notifications/line'
-
 /** ค่าคงที่ของแอพ */
 import { APP_NAME } from '../../../lib/constants'
 
@@ -87,26 +84,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ----------------------------------------------------------
-    // สร้างข้อความแจ้งเตือน LINE
-    // ----------------------------------------------------------
-    const lineMessage = `
-📩 ${APP_NAME} - ข้อความใหม่จากหน้าติดต่อเรา
-
-👤 ชื่อ: ${name}
-📧 อีเมล: ${email}
-📞 โทร: ${phone || 'ไม่ระบุ'}
-
-💬 ข้อความ:
-${message}
-`
-
-    // ----------------------------------------------------------
-    // ส่งแจ้งเตือนไปยัง Admin
-    // ----------------------------------------------------------
-    await sendLineNotification(lineMessage)
-
-    // TODO: สามารถบันทึกลง database ได้ถ้าต้องการ
+    // TODO: สามารถบันทึกลง database หรือส่งอีเมลแจ้งเตือนได้ถ้าต้องการ
     // const { data, error } = await supabase
     //   .from('contact_messages')
     //   .insert({ name, email, phone, message })

@@ -203,12 +203,6 @@ export async function GET(request: Request, { params }: Params) {
     pdf.text(`Email: ${booking.customer_email}`, 15, y)
     y += 6
     pdf.text(`Phone: ${booking.customer_phone}`, 15, y)
-
-    // LINE ID (ถ้ามี)
-    if (booking.customer_line) {
-      y += 6
-      pdf.text(`Line ID: ${booking.customer_line}`, 15, y)
-    }
     y += 12
 
     // ----------------------------------------------------------

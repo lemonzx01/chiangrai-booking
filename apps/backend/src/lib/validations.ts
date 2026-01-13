@@ -66,9 +66,6 @@ export const bookingFormSchema = z.object({
   /** เบอร์โทรลูกค้า - ต้องมีอย่างน้อย 9 หลัก */
   customer_phone: z.string().min(9, 'เบอร์โทรไม่ถูกต้อง'),
 
-  /** LINE ID (ไม่บังคับ) */
-  customer_line: z.string().optional(),
-
   /** คำขอพิเศษ (ไม่บังคับ) */
   special_requests: z.string().optional(),
   

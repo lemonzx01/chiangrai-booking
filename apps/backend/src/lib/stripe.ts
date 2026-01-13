@@ -11,7 +11,6 @@
  * การทำงานหลัก:
  *   - getStripe(): ดึง Stripe instance สำหรับ Server-side
  *   - stripe: Object สำหรับเข้าถึง checkout และ webhooks
- *   - getStripePromise(): ดึง Stripe instance สำหรับ Client-side
  *
  * Environment Variables ที่ต้องการ:
  *   - STRIPE_SECRET_KEY: Secret key (Server-side)
@@ -116,32 +115,6 @@ export const stripe = {
   get accounts() {
     return getStripe().accounts
   },
-}
-
-// ============================================================
-// Client-side Stripe (Stripe ฝั่ง Client)
-// ============================================================
-
-/**
- * ดึง Stripe Promise สำหรับ Client-side
- *
- * @description ใช้สำหรับ Client-side Stripe operations
- *              เช่น redirect ไปยัง Checkout page
- *
- * @returns Promise ที่ resolve เป็น Stripe instance
- *
- * @example
- * const stripePromise = await getStripePromise()
- * if (stripePromise) {
- *   await stripePromise.redirectToCheckout({ sessionId })
- * }
- */
-export const getStripePromise = async () => {
-  // Dynamic import เพื่อลดขนาด bundle
-  const { loadStripe } = await import('@stripe/stripe-js')
-
-  // โหลด Stripe ด้วย Publishable Key
-  return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 }
 
 // ============================================================

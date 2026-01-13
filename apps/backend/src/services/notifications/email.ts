@@ -58,6 +58,43 @@ function getResend(): Resend | null {
 }
 
 // ============================================================
+// Generic Send Email Function
+// ============================================================
+
+/**
+ * ส่งอีเมลทั่วไป
+ *
+ * @param options - ข้อมูลอีเมล (to, subject, html)
+ * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
+ */
+export async function sendEmail(options: {
+  to: string
+  subject: string
+  html: string
+}) {
+  const resend = getResend()
+
+  if (!resend) {
+    console.log('Resend not configured, skipping email')
+    return null
+  }
+
+  try {
+    const result = await resend.emails.send({
+      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    })
+
+    return result
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    return null
+  }
+}
+
+// ============================================================
 // Types (ประกาศ Types)
 // ============================================================
 
@@ -85,69 +122,6 @@ interface BookingEmailData {
   status: string
 }
 
-/**
- * Interface สำหรับข้อมูลอีเมลแจ้งเตือนพาร์ทเนอร์โรงแรม
- */
-interface HotelPartnerEmailData {
-  /** อีเมลพาร์ทเนอร์ */
-  partnerEmail: string
-  /** ชื่อพาร์ทเนอร์ */
-  partnerName: string
-  /** รหัสการจอง */
-  bookingCode: string
-  /** ชื่อลูกค้า */
-  customerName: string
-  /** อีเมลลูกค้า */
-  customerEmail: string
-  /** เบอร์โทรลูกค้า */
-  customerPhone: string
-  /** วันที่เช็คอิน */
-  checkIn: string
-  /** วันที่เช็คเอาท์ */
-  checkOut: string
-  /** จำนวนผู้เข้าพัก */
-  numberOfGuests: number
-  /** ประเภทห้อง */
-  roomType?: string
-  /** คำขอพิเศษ */
-  specialRequests?: string
-  /** ราคารวม */
-  totalPrice: number
-  /** สกุลเงิน */
-  currency: string
-}
-
-/**
- * Interface สำหรับข้อมูลอีเมลแจ้งเตือนพาร์ทเนอร์คนขับรถ
- */
-interface DriverPartnerEmailData {
-  /** อีเมลพาร์ทเนอร์ */
-  partnerEmail: string
-  /** ชื่อพาร์ทเนอร์ */
-  partnerName: string
-  /** รหัสการจอง */
-  bookingCode: string
-  /** ชื่อลูกค้า */
-  customerName: string
-  /** อีเมลลูกค้า */
-  customerEmail: string
-  /** เบอร์โทรลูกค้า */
-  customerPhone: string
-  /** วันที่รับรถ */
-  pickupDate: string
-  /** วันที่คืนรถ */
-  returnDate: string
-  /** จำนวนผู้โดยสาร */
-  numberOfPassengers: number
-  /** ชื่อรถ */
-  carName: string
-  /** คำขอพิเศษ */
-  specialRequests?: string
-  /** ราคารวม */
-  totalPrice: number
-  /** สกุลเงิน */
-  currency: string
-}
 
 // ============================================================
 // Send Booking Confirmation (ส่งอีเมลยืนยันการจอง)
@@ -274,184 +248,4 @@ export async function sendBookingStatusUpdateEmail(
     console.error('Failed to send email:', error)
     return null
   }
-}
-
-// ============================================================
-// Send Hotel Partner Notification (ส่งอีเมลแจ้งเตือนโรงแรม)
-// ============================================================
-
-/**
- * ส่งอีเมลแจ้งเตือนไปหาพาร์ทเนอร์โรงแรมเมื่อมีการจอง
- *
- * @description ส่งอีเมลแจ้งโรงแรมเมื่อมีการจองห้องใหม่
- *              มีรายละเอียดการจองและข้อมูลลูกค้า
- *
- * @param data - ข้อมูลการจองและพาร์ทเนอร์
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
- *
- * @example
- * await sendHotelPartnerNotification({
- *   partnerEmail: 'hotel@example.com',
- *   partnerName: 'โรงแรมตัวอย่าง',
- *   bookingCode: 'TE250101-XXXX',
- *   customerName: 'John Doe',
- *   customerEmail: 'john@example.com',
- *   customerPhone: '0812345678',
- *   checkIn: '2024-01-15',
- *   checkOut: '2024-01-18',
- *   numberOfGuests: 2,
- *   roomType: 'Deluxe Room',
- *   totalPrice: 15000,
- *   currency: 'THB'
- * })
- */
-export async function sendHotelPartnerNotification(data: HotelPartnerEmailData) {
-  const resend = getResend()
-
-  // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
-  if (!resend) {
-    console.log('Resend not configured, skipping partner email')
-    return null
-  }
-
-  try {
-    // ส่งอีเมล
-    const result = await resend.emails.send({
-      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
-      to: data.partnerEmail,
-      subject: `New Booking - ${data.bookingCode}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">New Booking Received</h1>
-          <p>Dear ${data.partnerName},</p>
-          <p>You have received a new booking through ${APP_NAME}.</p>
-
-          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0; color: #1F2937;">Booking Details</h2>
-            <p><strong>Booking Code:</strong> ${data.bookingCode}</p>
-            <p><strong>Check-in:</strong> ${data.checkIn}</p>
-            <p><strong>Check-out:</strong> ${data.checkOut}</p>
-            <p><strong>Number of Guests:</strong> ${data.numberOfGuests}</p>
-            ${data.roomType ? `<p><strong>Room Type:</strong> ${data.roomType}</p>` : ''}
-            <p><strong>Total Price:</strong> ${formatCurrency(data.totalPrice, data.currency)}</p>
-          </div>
-
-          <div style="background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0; color: #1F2937;">Customer Information</h2>
-            <p><strong>Name:</strong> ${data.customerName}</p>
-            <p><strong>Email:</strong> ${data.customerEmail}</p>
-            <p><strong>Phone:</strong> ${data.customerPhone}</p>
-            ${data.specialRequests ? `<p><strong>Special Requests:</strong> ${data.specialRequests}</p>` : ''}
-          </div>
-
-          <p>Please prepare for the guest's arrival.</p>
-          <p>Best regards,<br>${APP_NAME} Team</p>
-        </div>
-      `,
-    })
-
-    return result
-  } catch (error) {
-    console.error('Failed to send partner email:', error)
-    return null
-  }
-}
-
-// ============================================================
-// Send Driver Partner Notification (ส่งอีเมลแจ้งเตือนคนขับรถ)
-// ============================================================
-
-/**
- * ส่งอีเมลแจ้งเตือนไปหาพาร์ทเนอร์คนขับรถเมื่อมีการจอง
- *
- * @description ส่งอีเมลแจ้งคนขับรถเมื่อมีการจองรถใหม่
- *              มีรายละเอียดการจองและข้อมูลลูกค้า
- *
- * @param data - ข้อมูลการจองและพาร์ทเนอร์
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
- *
- * @example
- * await sendDriverPartnerNotification({
- *   partnerEmail: 'driver@example.com',
- *   partnerName: 'นายสมชาย ใจดี',
- *   bookingCode: 'TE250101-XXXX',
- *   customerName: 'John Doe',
- *   customerEmail: 'john@example.com',
- *   customerPhone: '0812345678',
- *   pickupDate: '2024-01-15',
- *   returnDate: '2024-01-18',
- *   numberOfPassengers: 4,
- *   carName: 'Toyota Alphard VIP',
- *   totalPrice: 19500,
- *   currency: 'THB'
- * })
- */
-export async function sendDriverPartnerNotification(data: DriverPartnerEmailData) {
-  const resend = getResend()
-
-  // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
-  if (!resend) {
-    console.log('Resend not configured, skipping partner email')
-    return null
-  }
-
-  try {
-    // ส่งอีเมล
-    const result = await resend.emails.send({
-      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
-      to: data.partnerEmail,
-      subject: `New Car Rental Booking - ${data.bookingCode}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">New Car Rental Booking</h1>
-          <p>Dear ${data.partnerName},</p>
-          <p>You have received a new car rental booking through ${APP_NAME}.</p>
-
-          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0; color: #1F2937;">Booking Details</h2>
-            <p><strong>Booking Code:</strong> ${data.bookingCode}</p>
-            <p><strong>Car:</strong> ${data.carName}</p>
-            <p><strong>Pickup Date:</strong> ${data.pickupDate}</p>
-            <p><strong>Return Date:</strong> ${data.returnDate}</p>
-            <p><strong>Number of Passengers:</strong> ${data.numberOfPassengers}</p>
-            <p><strong>Total Price:</strong> ${formatCurrency(data.totalPrice, data.currency)}</p>
-          </div>
-
-          <div style="background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0; color: #1F2937;">Customer Information</h2>
-            <p><strong>Name:</strong> ${data.customerName}</p>
-            <p><strong>Email:</strong> ${data.customerEmail}</p>
-            <p><strong>Phone:</strong> ${data.customerPhone}</p>
-            ${data.specialRequests ? `<p><strong>Special Requests:</strong> ${data.specialRequests}</p>` : ''}
-          </div>
-
-          <p>Please prepare the vehicle and confirm the pickup location with the customer.</p>
-          <p>Best regards,<br>${APP_NAME} Team</p>
-        </div>
-      `,
-    })
-
-    return result
-  } catch (error) {
-    console.error('Failed to send partner email:', error)
-    return null
-  }
-}
-
-// ============================================================
-// Helper Functions
-// ============================================================
-
-/**
- * Format currency สำหรับแสดงในอีเมล
- */
-function formatCurrency(amount: number, currency: string): string {
-  const symbols: Record<string, string> = {
-    THB: '฿',
-    USD: '$',
-    EUR: '€',
-  }
-
-  const symbol = symbols[currency] || currency
-  return `${symbol}${amount.toLocaleString()}`
 }

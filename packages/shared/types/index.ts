@@ -127,8 +127,10 @@ export interface Hotel {
   amenities_en: string[]
   /** รูปภาพโรงแรม (URLs) */
   images: string[]
-  /** รหัสพาร์ทเนอร์ (ถ้ามี) */
+  /** รหัสพาร์ทเนอร์ (ถ้ามี) - deprecated, ใช้ owner_id แทน */
   partner_id?: string
+  /** รหัสเจ้าของ (user ID) */
+  owner_id?: string
   /** สกุลเงิน */
   currency: Currency
   /** สถานะการใช้งาน */
@@ -170,8 +172,10 @@ export interface Car {
   includes_en: string[]
   /** รูปภาพรถ (URLs) */
   images: string[]
-  /** รหัสพาร์ทเนอร์ (คนขับรถ) */
+  /** รหัสพาร์ทเนอร์ (คนขับรถ) - deprecated, ใช้ owner_id แทน */
   partner_id?: string
+  /** รหัสเจ้าของ (user ID) */
+  owner_id?: string
   /** ชื่อคนขับ */
   driver_name?: string
   /** นามสกุลคนขับ */
@@ -308,10 +312,14 @@ export interface User {
   id: string
   /** อีเมลสำหรับเข้าสู่ระบบ */
   email: string
-  /** รหัสผ่านที่เข้ารหัสแล้ว (bcrypt hash) */
-  password_hash: string
+  /** รหัสผ่านที่เข้ารหัสแล้ว (bcrypt hash) - nullable สำหรับ Google login */
+  password_hash?: string
   /** ชื่อผู้ใช้ */
   name: string
+  /** บทบาท: admin, partner, หรือ user */
+  role: 'admin' | 'partner' | 'user'
+  /** Google OAuth ID (สำหรับ Google login) */
+  google_id?: string
   /** เบอร์โทรศัพท์ (ถ้ามี) */
   phone?: string
   /** สถานะการใช้งาน */

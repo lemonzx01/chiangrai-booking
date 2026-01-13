@@ -10,7 +10,6 @@ Next.js fullstack application สำหรับจองแพ็คเกจ�
 - 🌐 **Multi-language** - รองรับภาษาไทยและอังกฤษ
 - 🔐 **Admin Dashboard** - ระบบจัดการหลังบ้าน
 - 📧 **Email Notifications** - แจ้งเตือนผ่าน email
-- 📱 **LINE Notify** - แจ้งเตือนผ่าน LINE
 
 ## 🛠 Tech Stack
 
@@ -57,9 +56,6 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Email (optional)
 RESEND_API_KEY=re_...
-
-# LINE (optional)
-LINE_NOTIFY_TOKEN=your-token
 \`\`\`
 
 ### 4. Setup Database

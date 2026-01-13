@@ -253,3 +253,102 @@ export function isMockMode() {
          supabaseUrl === 'https://placeholder.supabase.co' ||
          supabaseUrl === ''
 }
+
+// ============================================================
+// Partner Verification (ตรวจสอบ Partner Token)
+// ============================================================
+
+/**
+ * ตรวจสอบ Token ของ Partner
+ *
+ * @description ตรวจสอบ JWT token และยืนยันว่าเป็น partner (role === 'partner')
+ *
+ * @returns Object ที่มี:
+ *          - success: boolean - ผลการตรวจสอบ
+ *          - user: ข้อมูล partner (ถ้าสำเร็จ)
+ *          - error: ข้อความ error (ถ้าล้มเหลว)
+ *
+ * @example
+ * const result = await verifyPartnerToken()
+ * if (result.success) {
+ *   console.log(result.user.id)
+ * }
+ */
+export async function verifyPartnerToken() {
+  try {
+    // ดึง token จาก cookie
+    const cookieStore = await cookies()
+    const adminToken = cookieStore.get('admin_token')?.value
+    const userToken = cookieStore.get('user_token')?.value
+    const token = adminToken || userToken
+
+    // ตรวจสอบว่ามี token หรือไม่
+    if (!token) {
+      return { success: false, error: 'No token provided' }
+    }
+
+    // ตรวจสอบ JWT token
+    const { payload } = await jwtVerify(token, getJwtSecret())
+
+    // ตรวจสอบว่า role เป็น partner หรือ admin (admin สามารถเข้าถึงได้)
+    const role = (payload.role as string) || (payload.type as string)
+    if (role !== 'partner' && role !== 'admin') {
+      return { success: false, error: 'Not a partner or admin' }
+    }
+
+    // คืนข้อมูล partner
+    return {
+      success: true,
+      user: {
+        id: payload.sub as string,
+        email: payload.email as string,
+        name: payload.name as string,
+        role: role,
+      }
+    }
+  } catch {
+    // Token ไม่ถูกต้องหรือหมดอายุ
+    return { success: false, error: 'Invalid token' }
+  }
+}
+
+// ============================================================
+// User Role Helper (ฟังก์ชันช่วยเหลือสำหรับ Role)
+// ============================================================
+
+/**
+ * ดึง Role ของ User จาก Token
+ *
+ * @description ดึง role จาก JWT token (รองรับทั้ง admin_token และ user_token)
+ *
+ * @returns role ของ user ('admin', 'partner', 'user') หรือ null
+ *
+ * @example
+ * const role = await getUserRole()
+ * if (role === 'partner') {
+ *   // Partner logic
+ * }
+ */
+export async function getUserRole(): Promise<'admin' | 'partner' | 'user' | null> {
+  try {
+    const cookieStore = await cookies()
+    const adminToken = cookieStore.get('admin_token')?.value
+    const userToken = cookieStore.get('user_token')?.value
+    const token = adminToken || userToken
+
+    if (!token) {
+      return null
+    }
+
+    const { payload } = await jwtVerify(token, getJwtSecret())
+    const role = (payload.role as string) || (payload.type as string) || 'user'
+    
+    if (role === 'admin' || role === 'partner' || role === 'user') {
+      return role as 'admin' | 'partner' | 'user'
+    }
+
+    return 'user' // default
+  } catch {
+    return null
+  }
+}
