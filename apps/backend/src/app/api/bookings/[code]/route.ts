@@ -125,7 +125,7 @@ export async function GET(request: Request, { params }: Params) {
     const userAuth = await verifyUserToken()
 
     // ----------------------------------------------------------
-    // Mock Mode: สำหรับการทดสอบ
+    // Mock Mode: สำหรับการทดสอบ (ไม่ต้องยืนยัน email)
     // ----------------------------------------------------------
     if (isMockMode()) {
       const booking = findMockBookingByCode(code)
@@ -133,23 +133,7 @@ export async function GET(request: Request, { params }: Params) {
         return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
       }
 
-      // ใช้ email จาก user token หรือ query param
-      const verifyEmail = userAuth.success ? userAuth.user?.email : email
-      if (!verifyEmail) {
-        return NextResponse.json(
-          { error: 'Email verification required. Please provide email parameter.' },
-          { status: 401 }
-        )
-      }
-
-      // ตรวจสอบว่า email ตรงกับการจอง
-      if (booking.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
-        return NextResponse.json(
-          { error: 'Email does not match booking record' },
-          { status: 403 }
-        )
-      }
-
+      // ใน Mock Mode ไม่ต้องยืนยัน email เพื่อให้ทดสอบได้ง่าย
       // ซ่อน internal ID สำหรับ non-admin
       return NextResponse.json({
         ...booking,

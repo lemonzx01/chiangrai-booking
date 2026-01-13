@@ -19,7 +19,7 @@ export const MOCK_ADMINS: Admin[] = [
 ]
 
 // Mock Users (in-memory storage for demo)
-// Password: user123
+// Password: user123 (สำหรับทุก user)
 export const MOCK_USERS: User[] = [
   {
     id: 'mock-user-1',
@@ -32,13 +32,38 @@ export const MOCK_USERS: User[] = [
     created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
   },
+  // Partner โรงแรม
+  {
+    id: 'mock-partner-hotel-1',
+    email: 'hotel@example.com',
+    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    name: 'โรงแรมพาร์ทเนอร์',
+    role: 'partner',
+    phone: '+66 82 345 6789',
+    is_active: true,
+    created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  // Partner คนขับรถ
+  {
+    id: 'mock-partner-car-1',
+    email: 'driver@example.com',
+    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    name: 'คนขับรถพาร์ทเนอร์',
+    role: 'partner',
+    phone: '+66 83 456 7890',
+    is_active: true,
+    created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  // Partner ทั่วไป (สำหรับทดสอบ)
   {
     id: 'mock-partner-1',
     email: 'partner@example.com',
     password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
     name: 'พาร์ทเนอร์ทดสอบ',
     role: 'partner',
-    phone: '+66 82 345 6789',
+    phone: '+66 84 567 8901',
     is_active: true,
     created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),

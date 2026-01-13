@@ -221,7 +221,7 @@ export const MOCK_HOTELS = [
     ],
     amenities_th: ['รถเปิดประทุน', 'สระว่ายน้ำส่วนตัว', 'รับส่งสนามบิน VIP', 'อาหารเย็นชมพระอาทิตย์ตก'],
     amenities_en: ['Convertible Car', 'Private Pool', 'VIP Airport Transfer', 'Sunset Dinner'],
-    owner_id: 'mock-partner-1',
+    owner_id: 'mock-partner-hotel-1', // Partner โรงแรม
     is_active: true,
     created_at: new Date().toISOString(),
   },
@@ -301,7 +301,7 @@ export const MOCK_CARS = [
     images: ['https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=1200'],
     includes_th: ['ประกันชั้นหนึ่ง', 'ทำความสะอาดและฆ่าเชื้อ', 'น้ำมันเต็มถัง', 'Apple CarPlay'],
     includes_en: ['First Class Insurance', 'Cleaned & Disinfected', 'Full Tank', 'Apple CarPlay'],
-    owner_id: 'mock-partner-1',
+    owner_id: 'mock-partner-car-1', // Partner คนขับรถ
     is_active: true,
     created_at: new Date().toISOString(),
   },

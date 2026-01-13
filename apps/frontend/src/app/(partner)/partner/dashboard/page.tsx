@@ -13,7 +13,6 @@
  * ============================================================
  */
 
-import { getBackendUrl } from '@/lib/api'
 import PartnerSidebar from '@/components/partner/Sidebar'
 import { Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@chiangrai/shared/utils'
@@ -34,24 +33,41 @@ interface RecentBooking {
 }
 
 async function getPartnerStats() {
-  const res = await fetch(`${getBackendUrl()}/api/cars`, {
-    cache: 'no-store',
-  })
+  try {
+    // ใช้ relative path เพื่อให้ rewrite rule ทำงาน
+    // หรือใช้ absolute URL ถ้า BACKEND_URL ถูกตั้งค่า
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001'
+    const apiUrl = process.env.BACKEND_URL 
+      ? `${backendUrl}/api/cars`
+      : '/api/cars' // ใช้ relative path เพื่อให้ rewrite rule proxy ไปยัง backend
+    
+    const res = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
 
-  const json = (await res.json()) as { data?: any[]; error?: string }
+    if (!res.ok) {
+      console.error('Failed to fetch cars:', res.status, res.statusText)
+      return { totalCars: 0, totalBookings: 0, totalRevenue: 0 }
+    }
 
-  if (!res.ok) {
+    const json = (await res.json()) as { data?: any[]; error?: string }
+
+    // API อาจ return array โดยตรง หรือ wrap ใน { data: [...] }
+    const cars = Array.isArray(json) ? json : (json.data || [])
+    const totalCars = cars.length
+
+    // TODO: ดึงข้อมูล bookings และ revenue จาก API
+    return {
+      totalCars,
+      totalBookings: 0,
+      totalRevenue: 0,
+    }
+  } catch (error) {
+    console.error('Error fetching partner stats:', error)
     return { totalCars: 0, totalBookings: 0, totalRevenue: 0 }
-  }
-
-  const cars = json.data || []
-  const totalCars = cars.length
-
-  // TODO: ดึงข้อมูล bookings และ revenue จาก API
-  return {
-    totalCars,
-    totalBookings: 0,
-    totalRevenue: 0,
   }
 }
 
