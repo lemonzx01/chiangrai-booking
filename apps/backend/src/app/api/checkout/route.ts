@@ -36,6 +36,23 @@ import { stripe } from '../../../lib/stripe'
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
 
+/** Error handling utilities */
+import {
+  handleError,
+  handleStripeError,
+  handleDatabaseError,
+  PaymentError,
+  ERROR_MESSAGES,
+} from '../../../lib/errors'
+
+/** Security utilities */
+import { rateLimitMiddleware, getClientIP } from '../../../middleware/rate-limit'
+import { addSecurityHeaders, validateInput, isValidUUID } from '../../../lib/security'
+
+/** Currency conversion */
+import { convertCurrencyWithAPI } from '../../../lib/currency'
+import { Currency } from '@chiangrai/shared/types'
+
 // ============================================================
 // POST Handler - สร้าง Stripe Checkout Session
 // ============================================================
@@ -69,9 +86,64 @@ import { NextResponse } from 'next/server'
  */
 export async function POST(request: Request) {
   try {
-    // ดึงข้อมูลจาก request body
-    const body = await request.json()
+    // ----------------------------------------------------------
+    // Rate Limiting
+    // ----------------------------------------------------------
+    const rateLimitResponse = rateLimitMiddleware(request, '/api/checkout')
+    if (rateLimitResponse) {
+      return addSecurityHeaders(rateLimitResponse)
+    }
+
+    // ----------------------------------------------------------
+    // Input Validation
+    // ----------------------------------------------------------
+    let body
+    try {
+      body = await request.json()
+    } catch (error) {
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
     const { booking_id, success_url, cancel_url } = body
+
+    // ตรวจสอบว่ามี booking_id หรือไม่
+    if (!booking_id) {
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.VALIDATION_MISSING_FIELD + ': booking_id' },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    // ตรวจสอบว่า booking_id เป็น UUID หรือไม่
+    if (!isValidUUID(booking_id)) {
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid booking_id format' },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    // Validate URLs (ถ้ามี)
+    if (success_url && !validateInput(success_url)) {
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid success_url' },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    if (cancel_url && !validateInput(cancel_url)) {
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid cancel_url' },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
 
     // สร้าง Supabase Admin client
     const supabase = await createAdminClient()
@@ -89,7 +161,11 @@ export async function POST(request: Request) {
 
     // ตรวจสอบว่าพบการจองหรือไม่
     if (bookingError || !booking) {
-      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      const response = NextResponse.json(
+        { error: ERROR_MESSAGES.PAYMENT_INVALID_BOOKING },
+        { status: 404 }
+      )
+      return addSecurityHeaders(response)
     }
 
     // ----------------------------------------------------------
@@ -111,8 +187,31 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // กำหนดสกุลเงินและแปลงราคา
     // ----------------------------------------------------------
-    const currency = (booking.currency || 'THB').toLowerCase()
-    const amount = Math.round(booking.total_price * 100) // แปลงเป็นหน่วยเล็กที่สุด (สตางค์/เซ็นต์)
+    const bookingCurrency = (booking.currency || 'THB') as Currency
+    const currency = bookingCurrency.toLowerCase()
+    
+    // แปลงราคาเป็นสกุลเงินที่เลือก (ถ้าไม่ใช่ THB)
+    let finalAmount = booking.total_price
+    if (bookingCurrency !== Currency.THB) {
+      // แปลงจาก THB เป็นสกุลเงินที่เลือก
+      try {
+        finalAmount = await convertCurrencyWithAPI(
+          booking.total_price,
+          Currency.THB,
+          bookingCurrency
+        )
+      } catch (error) {
+        console.error('Currency conversion error:', error)
+        // ถ้าแปลงสกุลเงินไม่สำเร็จ ให้ใช้ราคาเดิมและแจ้งเตือน
+        // แต่ยังคงดำเนินการต่อได้
+        console.warn(
+          `Currency conversion failed for ${bookingCurrency}, using original price`
+        )
+        finalAmount = booking.total_price
+      }
+    }
+    
+    const amount = Math.round(finalAmount * 100) // แปลงเป็นหน่วยเล็กที่สุด (สตางค์/เซ็นต์)
 
     // ----------------------------------------------------------
     // คำนวณ platform fee และ partner payout (ถ้ามี partner)
@@ -140,7 +239,7 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     const sessionConfig: any = {
       // วิธีการชำระเงินที่รองรับ
-      payment_method_types: ['card', 'promptpay'],
+      payment_method_types: ['card', 'promptpay', 'paypal'],
 
       // รายการสินค้า
       line_items: [
@@ -177,6 +276,13 @@ export async function POST(request: Request) {
 
       // กรอก email ลูกค้าล่วงหน้า
       customer_email: booking.customer_email,
+      
+      // รองรับบัตรจากทุกประเทศ
+      payment_method_options: {
+        card: {
+          request_three_d_secure: 'automatic',
+        },
+      },
     }
 
     // เพิ่ม payment intent data ถ้ามี partner (Stripe Connect)
@@ -184,28 +290,52 @@ export async function POST(request: Request) {
       sessionConfig.payment_intent_data = paymentIntentData
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig)
+    // ----------------------------------------------------------
+    // สร้าง Stripe Checkout Session
+    // ----------------------------------------------------------
+    let session
+    try {
+      session = await stripe.checkout.sessions.create(sessionConfig)
+    } catch (error) {
+      console.error('Stripe checkout session creation error:', error)
+      const errorMessage = handleStripeError(error)
+      return NextResponse.json({ error: errorMessage }, { status: 500 })
+    }
 
     // ----------------------------------------------------------
     // บันทึก Payment Record
     // ----------------------------------------------------------
-    await supabase.from('payments').insert({
-      booking_id: booking.id,
-      stripe_checkout_session_id: session.id,
-      amount: booking.total_price,
-      currency: booking.currency || 'THB',
-      status: 'PENDING', // รอการชำระ
-    })
+    try {
+      const { error: paymentError } = await supabase.from('payments').insert({
+        booking_id: booking.id,
+        stripe_checkout_session_id: session.id,
+        amount: booking.total_price,
+        currency: booking.currency || 'THB',
+        status: 'PENDING', // รอการชำระ
+      })
+
+      if (paymentError) {
+        console.error('Payment record creation error:', paymentError)
+        // แม้ว่าบันทึก payment record จะล้มเหลว แต่ session ถูกสร้างแล้ว
+        // ยังคงส่ง session กลับไป แต่ log error ไว้
+      }
+    } catch (error) {
+      console.error('Database error when creating payment record:', error)
+      // ยังคงส่ง session กลับไป
+    }
 
     // ----------------------------------------------------------
     // ส่งกลับ Session Info
     // ----------------------------------------------------------
-    return NextResponse.json({
+    const response = NextResponse.json({
       session_id: session.id,
       url: session.url, // URL สำหรับ redirect ไปหน้า Stripe Checkout
     })
+    return addSecurityHeaders(response)
   } catch (error) {
     console.error('Checkout error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = handleError(error, ERROR_MESSAGES.PAYMENT_CREATE_FAILED)
+    const response = NextResponse.json({ error: errorMessage }, { status: 500 })
+    return addSecurityHeaders(response)
   }
 }

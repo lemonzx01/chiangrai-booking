@@ -12,19 +12,23 @@
  */
 
 import { Currency } from '@chiangrai/shared/types'
+import { convertCurrencyAmount } from './exchange-rate'
 
 // ============================================================
 // Exchange Rates (อัตราแลกเปลี่ยน)
 // ============================================================
 
 /**
- * อัตราแลกเปลี่ยนคงที่ (สามารถใช้ API แทนได้ในอนาคต)
+ * อัตราแลกเปลี่ยนคงที่ (fallback เมื่อ API ล้มเหลว)
  * Base currency: THB
  */
 const EXCHANGE_RATES: Record<Currency, number> = {
   [Currency.THB]: 1.0, // Base currency
   [Currency.USD]: 0.027, // 1 THB = 0.027 USD (ประมาณ)
   [Currency.EUR]: 0.025, // 1 THB = 0.025 EUR (ประมาณ)
+  [Currency.JPY]: 3.8, // 1 THB = 3.8 JPY (ประมาณ)
+  [Currency.CNY]: 0.19, // 1 THB = 0.19 CNY (ประมาณ)
+  [Currency.GBP]: 0.021, // 1 THB = 0.021 GBP (ประมาณ)
 }
 
 /**
@@ -34,6 +38,9 @@ const REVERSE_RATES: Record<Currency, number> = {
   [Currency.THB]: 1.0,
   [Currency.USD]: 37.0, // 1 USD = 37 THB (ประมาณ)
   [Currency.EUR]: 40.0, // 1 EUR = 40 THB (ประมาณ)
+  [Currency.JPY]: 0.26, // 1 JPY = 0.26 THB (ประมาณ)
+  [Currency.CNY]: 5.3, // 1 CNY = 5.3 THB (ประมาณ)
+  [Currency.GBP]: 47.6, // 1 GBP = 47.6 THB (ประมาณ)
 }
 
 // ============================================================
@@ -42,6 +49,7 @@ const REVERSE_RATES: Record<Currency, number> = {
 
 /**
  * แปลงราคาจากสกุลเงินหนึ่งไปยังอีกสกุลเงินหนึ่ง
+ * ใช้ค่า hardcoded (สำหรับ client-side หรือ fallback)
  *
  * @param amount - จำนวนเงิน
  * @param fromCurrency - สกุลเงินต้นทาง
@@ -79,6 +87,26 @@ export function convertCurrency(
   }
 }
 
+/**
+ * แปลงราคาจากสกุลเงินหนึ่งไปยังอีกสกุลเงินหนึ่ง (ใช้ API)
+ * สำหรับ server-side ที่ต้องการอัตราแลกเปลี่ยนล่าสุด
+ *
+ * @param amount - จำนวนเงิน
+ * @param fromCurrency - สกุลเงินต้นทาง
+ * @param toCurrency - สกุลเงินปลายทาง
+ * @returns จำนวนเงินที่แปลงแล้ว
+ *
+ * @example
+ * await convertCurrencyWithAPI(1000, Currency.THB, Currency.USD)
+ */
+export async function convertCurrencyWithAPI(
+  amount: number,
+  fromCurrency: Currency,
+  toCurrency: Currency
+): Promise<number> {
+  return convertCurrencyAmount(amount, fromCurrency, toCurrency)
+}
+
 // ============================================================
 // Currency Formatting (Format ราคา)
 // ============================================================
@@ -90,6 +118,9 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
   [Currency.THB]: '฿',
   [Currency.USD]: '$',
   [Currency.EUR]: '€',
+  [Currency.JPY]: '¥',
+  [Currency.CNY]: '¥',
+  [Currency.GBP]: '£',
 }
 
 /**
@@ -169,6 +200,9 @@ export const CURRENCY_OPTIONS = [
   { value: Currency.THB, label: 'บาทไทย (THB)', symbol: '฿' },
   { value: Currency.USD, label: 'ดอลลาร์สหรัฐ (USD)', symbol: '$' },
   { value: Currency.EUR, label: 'ยูโร (EUR)', symbol: '€' },
+  { value: Currency.JPY, label: 'เยนญี่ปุ่น (JPY)', symbol: '¥' },
+  { value: Currency.CNY, label: 'หยวนจีน (CNY)', symbol: '¥' },
+  { value: Currency.GBP, label: 'ปอนด์อังกฤษ (GBP)', symbol: '£' },
 ]
 
 /**

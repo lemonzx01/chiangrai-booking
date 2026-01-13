@@ -4,12 +4,18 @@ const EXCHANGE_RATES: Record<Currency, number> = {
   [Currency.THB]: 1.0,
   [Currency.USD]: 0.027,
   [Currency.EUR]: 0.025,
+  [Currency.JPY]: 3.8,
+  [Currency.CNY]: 0.19,
+  [Currency.GBP]: 0.021,
 }
 
 const REVERSE_RATES: Record<Currency, number> = {
   [Currency.THB]: 1.0,
   [Currency.USD]: 37.0,
   [Currency.EUR]: 40.0,
+  [Currency.JPY]: 0.26,
+  [Currency.CNY]: 5.3,
+  [Currency.GBP]: 47.6,
 }
 
 export function convertCurrency(
@@ -39,6 +45,9 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
   [Currency.THB]: '฿',
   [Currency.USD]: '$',
   [Currency.EUR]: '€',
+  [Currency.JPY]: '¥',
+  [Currency.CNY]: '¥',
+  [Currency.GBP]: '£',
 }
 
 export function formatCurrency(
@@ -83,6 +92,9 @@ export const CURRENCY_OPTIONS = [
   { value: Currency.THB, label: 'บาทไทย (THB)', symbol: '฿' },
   { value: Currency.USD, label: 'ดอลลาร์สหรัฐ (USD)', symbol: '$' },
   { value: Currency.EUR, label: 'ยูโร (EUR)', symbol: '€' },
+  { value: Currency.JPY, label: 'เยนญี่ปุ่น (JPY)', symbol: '¥' },
+  { value: Currency.CNY, label: 'หยวนจีน (CNY)', symbol: '¥' },
+  { value: Currency.GBP, label: 'ปอนด์อังกฤษ (GBP)', symbol: '£' },
 ]
 
 export function getCurrencyInfo(currency: Currency) {

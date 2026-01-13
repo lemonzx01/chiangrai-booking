@@ -66,7 +66,8 @@
     "edit": "Edit",
     "back": "Back",
     "next": "Next",
-    "submit": "Submit"
+    "submit": "Submit",
+    "persons": "persons"
   },
   "booking": {
     "title": "Book Package",
@@ -84,6 +85,22 @@
     "days": "days",
     "totalPrice": "Total Price",
     "proceedToPayment": "Proceed to Payment"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "paymentMethods": "Payment Methods",
+    "creditCard": "Credit/Debit Card",
+    "creditCardDesc": "Visa, Mastercard, Amex",
+    "paypalDesc": "Pay with PayPal",
+    "promptpayDesc": "Pay with PromptPay",
+    "payNow": "Pay Now",
+    "redirectMessage": "You will be redirected to Stripe Checkout to complete payment",
+    "bookingNotFound": "Booking not found",
+    "paymentError": "Unable to create payment",
+    "error": "An error occurred",
+    "networkError": "Network error. Please check your internet connection",
+    "invalidData": "Invalid data",
+    "serverError": "Server error occurred"
   },
   "success": {
     "title": "Booking Successful!",

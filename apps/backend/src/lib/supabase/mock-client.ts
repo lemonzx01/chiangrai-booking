@@ -34,13 +34,23 @@ function createQueryBuilder<T>(
   // Apply filters
   filters.forEach(filter => {
     if (filter.operator === 'eq') {
-      filteredData = filteredData.filter(
-        (item: any) => item[filter.column] === filter.value
-      )
+      filteredData = filteredData.filter((item: any) => {
+        // Handle nested fields like "booking.booking_code"
+        if (filter.column.includes('.')) {
+          const [parent, child] = filter.column.split('.')
+          return item[parent]?.[child] === filter.value
+        }
+        return item[filter.column] === filter.value
+      })
     } else if (filter.operator === 'neq') {
-      filteredData = filteredData.filter(
-        (item: any) => item[filter.column] !== filter.value
-      )
+      filteredData = filteredData.filter((item: any) => {
+        // Handle nested fields like "booking.booking_code"
+        if (filter.column.includes('.')) {
+          const [parent, child] = filter.column.split('.')
+          return item[parent]?.[child] !== filter.value
+        }
+        return item[filter.column] !== filter.value
+      })
     }
   })
 
@@ -192,6 +202,14 @@ export function createMockSupabaseClient() {
               car: booking.car_id
                 ? MOCK_CARS.find(c => c.id === booking.car_id)
                 : undefined,
+            }))
+          }
+          
+          // Handle special queries for payments with booking relations
+          if (table === 'payments' && queryStr.includes('booking')) {
+            selectedData = MOCK_PAYMENTS.map(payment => ({
+              ...payment,
+              booking: MOCK_BOOKINGS.find(b => b.id === payment.booking_id),
             }))
           }
 

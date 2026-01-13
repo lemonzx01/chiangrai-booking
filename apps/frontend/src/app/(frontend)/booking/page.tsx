@@ -251,33 +251,9 @@ function BookingContent() {
       const booking = await bookingRes.json()
 
       // ----------------------------------------------------------
-      // 2. สร้าง Checkout Session
+      // 2. Redirect ไปหน้า Checkout
       // ----------------------------------------------------------
-      const checkoutRes = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          booking_id: booking.id,
-          success_url: `${window.location.origin}/success?code=${booking.booking_code}`,
-          cancel_url: `${window.location.origin}/booking?type=${type}&id=${id}&cancelled=true`,
-        }),
-      })
-
-      // ถ้าสร้าง checkout ไม่สำเร็จ ไปหน้า success (manual payment)
-      if (!checkoutRes.ok) {
-        router.push(`/success?code=${booking.booking_code}`)
-        return
-      }
-
-      // ----------------------------------------------------------
-      // 3. Redirect ไป Stripe หรือ Success
-      // ----------------------------------------------------------
-      const { url } = await checkoutRes.json()
-      if (url) {
-        window.location.href = url
-      } else {
-        router.push(`/success?code=${booking.booking_code}`)
-      }
+      router.push(`/checkout?booking_code=${booking.booking_code}`)
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
       setSubmitting(false)

@@ -66,7 +66,8 @@
     "edit": "แก้ไข",
     "back": "กลับ",
     "next": "ถัดไป",
-    "submit": "ส่ง"
+    "submit": "ส่ง",
+    "persons": "ท่าน"
   },
   "booking": {
     "title": "จองแพ็คเกจ",
@@ -84,6 +85,22 @@
     "days": "วัน",
     "totalPrice": "ราคารวม",
     "proceedToPayment": "ดำเนินการชำระเงิน"
+  },
+  "checkout": {
+    "title": "ชำระเงิน",
+    "paymentMethods": "วิธีการชำระเงิน",
+    "creditCard": "บัตรเครดิต/เดบิต",
+    "creditCardDesc": "Visa, Mastercard, Amex",
+    "paypalDesc": "ชำระเงินผ่าน PayPal",
+    "promptpayDesc": "ชำระเงินผ่าน PromptPay",
+    "payNow": "ชำระเงินตอนนี้",
+    "redirectMessage": "คุณจะถูกนำไปยังหน้า Stripe Checkout เพื่อชำระเงิน",
+    "bookingNotFound": "ไม่พบข้อมูลการจอง",
+    "paymentError": "ไม่สามารถสร้างการชำระเงินได้",
+    "error": "เกิดข้อผิดพลาด",
+    "networkError": "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต",
+    "invalidData": "ข้อมูลไม่ถูกต้อง",
+    "serverError": "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์"
   },
   "success": {
     "title": "จองสำเร็จ!",

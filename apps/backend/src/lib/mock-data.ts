@@ -222,6 +222,43 @@ export const MOCK_BOOKINGS: Booking[] = [
     updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
     hotel: MOCK_HOTELS[1],
   },
+  // Mock booking สำหรับทดสอบหน้า checkout (ยังไม่มี payment)
+  {
+    id: 'mock-booking-checkout-1',
+    booking_code: 'BK-CHECKOUT-001',
+    booking_type: BookingType.HOTEL,
+    hotel_id: MOCK_HOTELS[0].id,
+    check_in_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days from now
+    check_out_date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 8 days from now
+    number_of_guests: 2,
+    customer_name: 'Test User',
+    customer_email: 'test@example.com',
+    customer_phone: '+66 99 999 9999',
+    total_price: MOCK_HOTELS[0].price_per_night * 3,
+    currency: Currency.THB,
+    status: BookingStatus.PENDING,
+    created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+    updated_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+    hotel: MOCK_HOTELS[0],
+  },
+  {
+    id: 'mock-booking-checkout-2',
+    booking_code: 'BK-CHECKOUT-002',
+    booking_type: BookingType.CAR,
+    car_id: MOCK_CARS[0].id,
+    check_in_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 2 days from now
+    check_out_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days from now
+    number_of_guests: 4,
+    customer_name: 'International Customer',
+    customer_email: 'international@example.com',
+    customer_phone: '+1 555 123 4567',
+    total_price: MOCK_CARS[0].price_per_day * 3,
+    currency: Currency.USD,
+    status: BookingStatus.PENDING,
+    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    car: MOCK_CARS[0],
+  },
 ]
 
 // Mock Payments
@@ -272,6 +309,56 @@ export const MOCK_PAYMENTS: Payment[] = [
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
     updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
     booking: MOCK_BOOKINGS[5],
+  },
+  // เพิ่ม mock payments สำหรับทดสอบ payment history
+  {
+    id: 'mock-payment-5',
+    booking_id: MOCK_BOOKINGS[0].id, // สมชาย ใจดี's booking
+    stripe_checkout_session_id: 'cs_test_9988776655',
+    stripe_payment_intent_id: 'pi_test_9988776655',
+    amount: MOCK_BOOKINGS[0].total_price,
+    currency: Currency.THB,
+    status: PaymentStatus.SUCCEEDED,
+    paid_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    booking: MOCK_BOOKINGS[0],
+  },
+  {
+    id: 'mock-payment-6',
+    booking_id: MOCK_BOOKINGS[3].id, // Sarah Johnson's booking
+    stripe_checkout_session_id: 'cs_test_1122334455',
+    amount: MOCK_BOOKINGS[3].total_price,
+    currency: Currency.USD,
+    status: PaymentStatus.SUCCEEDED,
+    paid_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    updated_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+    booking: MOCK_BOOKINGS[3],
+  },
+  {
+    id: 'mock-payment-7',
+    booking_id: MOCK_BOOKINGS[6].id, // David Lee's booking
+    stripe_checkout_session_id: 'cs_test_2233445566',
+    amount: MOCK_BOOKINGS[6].total_price,
+    currency: Currency.THB,
+    status: PaymentStatus.FAILED,
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    booking: MOCK_BOOKINGS[6],
+  },
+  {
+    id: 'mock-payment-8',
+    booking_id: MOCK_BOOKINGS[1].id, // John Smith's booking (refunded)
+    stripe_checkout_session_id: 'cs_test_3344556677',
+    stripe_payment_intent_id: 'pi_test_3344556677',
+    amount: MOCK_BOOKINGS[1].total_price,
+    currency: Currency.THB,
+    status: PaymentStatus.REFUNDED,
+    paid_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days ago
+    created_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+    updated_at: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(), // 18 days ago
+    booking: MOCK_BOOKINGS[1],
   },
 ]
 

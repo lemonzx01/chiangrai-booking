@@ -6,7 +6,7 @@ Next.js fullstack application สำหรับจองแพ็คเกจ�
 
 - 🏨 **Hotel Booking** - จองแพ็คเกจที่พักพร้อมรถเช่า
 - 🚗 **Car Rental** - เช่ารถหรูสำหรับทริป
-- 💳 **Payment Integration** - ระบบชำระเงินผ่าน Stripe
+- 💳 **Payment Integration** - ระบบชำระเงินผ่าน Stripe (รองรับ PayPal, Credit Card, PromptPay)
 - 🌐 **Multi-language** - รองรับภาษาไทยและอังกฤษ
 - 🔐 **Admin Dashboard** - ระบบจัดการหลังบ้าน
 - 📧 **Email Notifications** - แจ้งเตือนผ่าน email
@@ -163,6 +163,8 @@ nextjs-app/
 - \`POST /api/bookings\` - Create booking
 - \`GET /api/bookings/[code]\` - Get booking by code
 - \`POST /api/checkout\` - Create payment session
+- \`GET /api/payments\` - Get payment history (Admin only)
+- \`GET /api/payments/stats\` - Get payment statistics (Admin only)
 
 ### Admin APIs (Protected)
 - \`POST /api/admin/login\` - Admin login
@@ -190,6 +192,27 @@ curl http://localhost:3000/api/cars
 1. Go to \`http://localhost:3000/admin/login\`
 2. Enter credentials
 3. Should redirect to \`/admin/dashboard\`
+
+## 💳 Payment System
+
+### Features
+- รองรับ PayPal, Credit Card, และ PromptPay
+- รองรับหลายสกุลเงิน (THB, USD, EUR, JPY, CNY, GBP)
+- Database สำหรับอัตราแลกเปลี่ยน
+- Payment History สำหรับ Admin
+- Error Handling และ Security
+
+### Documentation
+- [Payment Setup Guide](docs/PAYMENT_SETUP.md) - วิธีตั้งค่า Stripe
+- [Payment API Documentation](docs/PAYMENT_API.md) - API documentation
+- [Payment Testing Guide](docs/PAYMENT_TESTING.md) - คู่มือการทดสอบ
+
+### Quick Start
+1. ตั้งค่า Stripe Account (ดู [PAYMENT_SETUP.md](docs/PAYMENT_SETUP.md))
+2. Enable PayPal ใน Stripe Dashboard
+3. ตั้งค่า Webhook endpoint
+4. ตั้งค่า Environment Variables
+5. รัน migration สำหรับ exchange_rates table
 
 ## 📦 Deployment
 
