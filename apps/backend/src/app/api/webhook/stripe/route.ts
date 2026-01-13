@@ -44,6 +44,9 @@ import Stripe from 'stripe'
 /** บริการส่งอีเมลยืนยันการจอง */
 import { sendBookingConfirmationEmail } from '../../../../services/notifications/email'
 
+/** บริการแจ้งเตือน Partner และ Admin */
+import { sendPartnerBookingNotification, sendAdminBookingNotification } from '../../../../services/notifications/partner'
+
 // ============================================================
 // POST Handler - รับ Stripe Webhook Events
 // ============================================================
@@ -155,8 +158,6 @@ export async function POST(request: Request) {
             sendBookingConfirmationEmail(booking).catch(console.error)
 
             // ส่งอีเมลแจ้งเตือน Partner (owner) และ Admin
-            const { sendPartnerBookingNotification, sendAdminBookingNotification } = await import('../../../services/notifications/partner')
-            
             // หา owner_id จาก hotel หรือ car
             const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
             
