@@ -34,6 +34,9 @@ import PaymentTable from '@/components/admin/PaymentTable'
 /** Utility functions */
 import { formatCurrency } from '@chiangrai/shared/utils'
 
+/** Types */
+import { Payment, PaymentStatus, Currency } from '@chiangrai/shared/types'
+
 /** Lucide icons */
 import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react'
 
@@ -51,16 +54,17 @@ export const metadata = {
 // ============================================================
 
 /**
- * Interface สำหรับข้อมูลการชำระเงิน
+ * Extended Payment interface สำหรับ API response
+ * (รวม booking relation - simplified version)
  */
-interface Payment {
+interface PaymentWithBooking {
   id: string
   booking_id: string
   stripe_payment_intent_id?: string | null
   stripe_checkout_session_id?: string | null
   amount: number
-  currency: string
-  status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED'
+  currency: Currency
+  status: PaymentStatus
   paid_at?: string | null
   created_at: string
   updated_at: string
@@ -95,9 +99,9 @@ interface PaymentStats {
 /**
  * ดึงรายการการชำระเงินทั้งหมด
  *
- * @returns {Promise<Payment[]>} รายการการชำระเงิน
+ * @returns {Promise<PaymentWithBooking[]>} รายการการชำระเงิน
  */
-async function getPayments(): Promise<Payment[]> {
+async function getPayments(): Promise<PaymentWithBooking[]> {
   const res = await fetch(`${getBackendUrl()}/api/payments`, {
     cache: 'no-store',
     headers: {
@@ -105,13 +109,20 @@ async function getPayments(): Promise<Payment[]> {
     },
   })
 
-  const json = (await res.json()) as { data?: Payment[]; error?: string }
+  const json = (await res.json()) as { data?: PaymentWithBooking[]; error?: string }
 
   if (!res.ok) {
     throw new Error(json.error || 'ไม่สามารถดึงรายการการชำระเงินได้')
   }
 
-  return json.data || []
+  // Convert status string to PaymentStatus enum and currency to Currency enum
+  const payments = (json.data || []).map((payment) => ({
+    ...payment,
+    status: payment.status as PaymentStatus,
+    currency: (payment.currency as Currency) || Currency.THB,
+  }))
+
+  return payments
 }
 
 /**

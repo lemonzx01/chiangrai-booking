@@ -16,24 +16,24 @@
 // การนำเข้า Dependencies
 // ============================================================
 
-import { useState } from 'react'
 import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
-import { PaymentStatus } from '@chiangrai/shared/types'
+import { PaymentStatus, Currency } from '@chiangrai/shared/types'
 
 // ============================================================
 // Type Definitions
 // ============================================================
 
 /**
- * Interface สำหรับข้อมูลการชำระเงิน
+ * Extended Payment interface สำหรับ component
+ * (รวม booking relation - simplified version)
  */
-interface Payment {
+interface PaymentWithBooking {
   id: string
   booking_id: string
   stripe_payment_intent_id?: string | null
   stripe_checkout_session_id?: string | null
   amount: number
-  currency: string
+  currency: string | Currency
   status: PaymentStatus
   paid_at?: string | null
   created_at: string
@@ -49,7 +49,7 @@ interface Payment {
 }
 
 interface PaymentTableProps {
-  payments: Payment[]
+  payments: PaymentWithBooking[]
   onStatusChange?: (paymentId: string, newStatus: PaymentStatus) => void
 }
 
