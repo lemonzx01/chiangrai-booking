@@ -44,8 +44,7 @@ import { useTranslation } from 'react-i18next'
 /** Lucide icons สำหรับ UI */
 import { LogIn, Loader2, CheckCircle } from 'lucide-react'
 
-/** NextAuth สำหรับ Google login */
-import { signIn } from 'next-auth/react'
+/** NextAuth สำหรับ Google login - ใช้ redirect แทน */
 
 /** UI Components */
 import Button from '@/components/ui/Button'
@@ -272,18 +271,13 @@ function LoginContent() {
             type="button"
             size="lg"
             className="w-full bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50"
-            onClick={async () => {
+            onClick={() => {
               setLoading(true)
               setError('')
-              try {
-                await signIn('google', {
-                  callbackUrl: searchParams.get('redirect') || '/profile',
-                })
-              } catch (error) {
-                console.error('Google login error:', error)
-                setError(lang === 'th' ? 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google' : 'Error signing in with Google')
-                setLoading(false)
-              }
+              // Redirect ไปยัง NextAuth Google sign-in
+              // จะถูก proxy ไปยัง backend อัตโนมัติผ่าน rewrite rule
+              const callbackUrl = searchParams.get('redirect') || '/profile'
+              window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`
             }}
             disabled={loading}
           >
