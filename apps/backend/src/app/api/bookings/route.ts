@@ -175,6 +175,7 @@ export async function POST(request: Request) {
         hotel_id: body.hotel_id || undefined,
         car_id: body.car_id || undefined,
         room_type_id: body.room_type_id || undefined,
+        car_package_id: body.car_package_id || undefined,
         currency: body.currency || 'THB',
         check_in_date: body.check_in_date,
         check_out_date: body.check_out_date,
@@ -246,13 +247,42 @@ export async function POST(request: Request) {
     }
     // กรณีเช่ารถ
     else if (validatedData.booking_type === 'CAR' && validatedData.car_id) {
-      const { data: car } = await supabase
-        .from('cars')
-        .select('price_per_day, base_price_per_day')
-        .eq('id', validatedData.car_id)
-        .single()
-      const pricePerDay = car?.base_price_per_day || car?.price_per_day || 0
-      total_price = calculateTotalPrice(pricePerDay, nights)
+      // ถ้ามี car_package_id ให้คำนวณราคาแบบแพ็กเกจ (fixed price)
+      if (validatedData.car_package_id) {
+        const { data: carPackage } = await supabase
+          .from('car_packages')
+          .select('price_thb, max_passengers, duration_days')
+          .eq('id', validatedData.car_package_id)
+          .eq('is_active', true)
+          .single()
+
+        if (!carPackage) {
+          return NextResponse.json(
+            { error: 'ไม่พบแพ็กเกจรถที่เลือก' },
+            { status: 400 }
+          )
+        }
+
+        // ตรวจจำนวนผู้โดยสารตามแพ็กเกจ (กันคนกรอกเกิน)
+        if (validatedData.number_of_guests > carPackage.max_passengers) {
+          return NextResponse.json(
+            { error: 'จำนวนผู้โดยสารเกินกว่าที่แพ็กเกจรองรับ' },
+            { status: 400 }
+          )
+        }
+
+        // ราคาแพ็กเกจเก็บเป็น THB (แสดงผลแปลงสกุลเงินได้ แต่คิดราคา base เป็น THB)
+        total_price = Number(carPackage.price_thb)
+      } else {
+        // กรณีเช่ารถแบบเดิม: คำนวณจากราคาต่อวัน x จำนวนวัน
+        const { data: car } = await supabase
+          .from('cars')
+          .select('price_per_day, base_price_per_day')
+          .eq('id', validatedData.car_id)
+          .single()
+        const pricePerDay = car?.base_price_per_day || car?.price_per_day || 0
+        total_price = calculateTotalPrice(pricePerDay, nights)
+      }
     } else {
       return NextResponse.json(
         { error: 'ไม่สามารถคำนวณราคาได้ กรุณาตรวจสอบข้อมูลการจอง' },

@@ -45,6 +45,9 @@ export const bookingFormSchema = z.object({
   /** รหัสรถ (ต้องเป็น UUID ถ้ามี) */
   car_id: z.string().uuid().optional(),
 
+  /** รหัสแพ็กเกจรถ (ไม่บังคับ - สำหรับการจองรถแบบแพ็กเกจ) */
+  car_package_id: z.string().uuid().optional(),
+
   /** วันที่เช็คอิน - ต้องกรอก */
   check_in_date: z.string().min(1, 'กรุณาเลือกวันเช็คอิน'),
 

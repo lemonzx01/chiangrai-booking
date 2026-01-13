@@ -242,3 +242,9 @@ CREATE POLICY "Room types are viewable by everyone" ON room_types
 
 
 
+
+
+
+
+
+
