@@ -30,8 +30,9 @@ import { PaymentStatus } from '@chiangrai/shared/types'
 interface Payment {
   id: string
   booking_id: string
-  stripe_payment_intent_id?: string | null
-  stripe_checkout_session_id?: string | null
+  omise_charge_id?: string | null
+  omise_source_id?: string | null
+  omise_payment_intent_id?: string | null
   amount: number
   currency: string
   status: PaymentStatus

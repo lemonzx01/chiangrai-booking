@@ -5,6 +5,14 @@ import {
 } from '../mock-data'
 import { MOCK_HOTELS, MOCK_CARS } from '../constants'
 
+// Create mutable copies of mock data for CRUD operations
+// This allows us to update/delete mock data in memory
+const mockHotels = [...MOCK_HOTELS]
+const mockCars = [...MOCK_CARS]
+const mockBookings = [...MOCK_BOOKINGS]
+const mockPayments = [...MOCK_PAYMENTS]
+const mockAdmins = [...MOCK_ADMINS]
+
 
 // Helper to build query chain for mock data
 type QueryBuilder<T> = {
@@ -127,19 +135,19 @@ export function createMockSupabaseClient() {
       let tableData: any[] = []
       switch (table) {
         case 'admins':
-          tableData = MOCK_ADMINS
+          tableData = mockAdmins
           break
         case 'hotels':
-          tableData = MOCK_HOTELS
+          tableData = mockHotels
           break
         case 'cars':
-          tableData = MOCK_CARS
+          tableData = mockCars
           break
         case 'bookings':
-          tableData = MOCK_BOOKINGS
+          tableData = mockBookings
           break
         case 'payments':
-          tableData = MOCK_PAYMENTS
+          tableData = mockPayments
           break
         default:
           tableData = []
@@ -180,37 +188,49 @@ export function createMockSupabaseClient() {
 
           // Handle special queries for bookings with relations
           if (table === 'bookings' && queryStr.includes('hotel') && queryStr.includes('car')) {
-            selectedData = MOCK_BOOKINGS.map(booking => ({
+            selectedData = mockBookings.map(booking => ({
               ...booking,
               hotel: booking.hotel_id
-                ? MOCK_HOTELS.find(h => h.id === booking.hotel_id)
+                ? mockHotels.find(h => h.id === booking.hotel_id)
                 : undefined,
               car: booking.car_id
-                ? MOCK_CARS.find(c => c.id === booking.car_id)
+                ? mockCars.find(c => c.id === booking.car_id)
                 : undefined,
             }))
           } else if (table === 'bookings' && queryStr.includes('hotel')) {
-            selectedData = MOCK_BOOKINGS.map(booking => ({
+            selectedData = mockBookings.map(booking => ({
               ...booking,
               hotel: booking.hotel_id
-                ? MOCK_HOTELS.find(h => h.id === booking.hotel_id)
+                ? mockHotels.find(h => h.id === booking.hotel_id)
                 : undefined,
             }))
           } else if (table === 'bookings' && queryStr.includes('car')) {
-            selectedData = MOCK_BOOKINGS.map(booking => ({
+            selectedData = mockBookings.map(booking => ({
               ...booking,
               car: booking.car_id
-                ? MOCK_CARS.find(c => c.id === booking.car_id)
+                ? mockCars.find(c => c.id === booking.car_id)
                 : undefined,
             }))
           }
           
           // Handle special queries for payments with booking relations
           if (table === 'payments' && queryStr.includes('booking')) {
-            selectedData = MOCK_PAYMENTS.map(payment => ({
+            selectedData = mockPayments.map(payment => ({
               ...payment,
-              booking: MOCK_BOOKINGS.find(b => b.id === payment.booking_id),
+              booking: mockBookings.find(b => b.id === payment.booking_id),
             }))
+          }
+          
+          // Handle special queries for hotels with partner relations
+          if (table === 'hotels' && queryStr.includes('partner')) {
+            // Keep hotels as is (partners would be in a separate table)
+            selectedData = mockHotels
+          }
+          
+          // Handle special queries for cars with partner relations
+          if (table === 'cars' && queryStr.includes('partner')) {
+            // Keep cars as is (partners would be in a separate table)
+            selectedData = mockCars
           }
 
           // Ensure selectedData is always an array
@@ -223,7 +243,7 @@ export function createMockSupabaseClient() {
         insert: (data: any) => {
           return {
             select: () => {
-              // In mock mode, just return the inserted data
+              // In mock mode, create new item and add to the array
               const newId = `mock-${table}-${Date.now()}`
               const inserted = {
                 id: newId,
@@ -231,6 +251,26 @@ export function createMockSupabaseClient() {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               }
+              
+              // Add to the appropriate array
+              switch (table) {
+                case 'hotels':
+                  mockHotels.push(inserted)
+                  break
+                case 'cars':
+                  mockCars.push(inserted)
+                  break
+                case 'bookings':
+                  mockBookings.push(inserted)
+                  break
+                case 'payments':
+                  mockPayments.push(inserted)
+                  break
+                case 'admins':
+                  mockAdmins.push(inserted)
+                  break
+              }
+              
               return {
                 single: () => Promise.resolve({ data: inserted, error: null }),
               }
@@ -239,20 +279,77 @@ export function createMockSupabaseClient() {
         },
         update: (data: any) => {
           return {
-            eq: () => {
-              // In mock mode, just return success
+            eq: (column: string, value: any) => {
+              // Find and update the item in the appropriate array
+              let updatedItem: any = null
+              let targetArray: any[] = []
+              
+              switch (table) {
+                case 'hotels':
+                  targetArray = mockHotels
+                  break
+                case 'cars':
+                  targetArray = mockCars
+                  break
+                case 'bookings':
+                  targetArray = mockBookings
+                  break
+                case 'payments':
+                  targetArray = mockPayments
+                  break
+                case 'admins':
+                  targetArray = mockAdmins
+                  break
+              }
+              
+              const index = targetArray.findIndex((item: any) => item[column] === value)
+              if (index !== -1) {
+                updatedItem = {
+                  ...targetArray[index],
+                  ...data,
+                  updated_at: new Date().toISOString(),
+                }
+                targetArray[index] = updatedItem
+              }
+              
               return Promise.resolve({
-                data: { ...data, updated_at: new Date().toISOString() },
-                error: null,
+                data: updatedItem ? [updatedItem] : null,
+                error: updatedItem ? null : { message: 'Not found' },
               })
             },
           }
         },
         delete: () => {
           return {
-            eq: (_column: string, _value: any) => {
-              // In mock mode, just return success
-              return Promise.resolve({ data: null, error: null })
+            eq: (column: string, value: any) => {
+              // Find and remove the item from the appropriate array
+              let targetArray: any[] = []
+              
+              switch (table) {
+                case 'hotels':
+                  targetArray = mockHotels
+                  break
+                case 'cars':
+                  targetArray = mockCars
+                  break
+                case 'bookings':
+                  targetArray = mockBookings
+                  break
+                case 'payments':
+                  targetArray = mockPayments
+                  break
+                case 'admins':
+                  targetArray = mockAdmins
+                  break
+              }
+              
+              const index = targetArray.findIndex((item: any) => item[column] === value)
+              if (index !== -1) {
+                targetArray.splice(index, 1)
+                return Promise.resolve({ data: null, error: null })
+              }
+              
+              return Promise.resolve({ data: null, error: { message: 'Not found' } })
             },
           }
         },
