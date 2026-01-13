@@ -56,9 +56,8 @@ export const metadata = {
 interface Payment {
   id: string
   booking_id: string
-  omise_charge_id?: string | null
-  omise_source_id?: string | null
-  omise_payment_intent_id?: string | null
+  stripe_payment_intent_id?: string | null
+  stripe_checkout_session_id?: string | null
   amount: number
   currency: string
   status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED'

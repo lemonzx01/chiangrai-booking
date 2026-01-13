@@ -52,7 +52,7 @@ export enum BookingType {
 
 /**
  * สถานะการชำระเงิน
- * @description ติดตามสถานะการชำระเงินผ่าน Omise
+ * @description ติดตามสถานะการชำระเงินผ่าน Stripe
  */
 export enum PaymentStatus {
   /** รอชำระเงิน */
@@ -249,12 +249,10 @@ export interface Payment {
   id: string
   /** รหัสการจองที่เกี่ยวข้อง */
   booking_id: string
-  /** Omise Charge ID */
-  omise_charge_id?: string
-  /** Omise Source ID (สำหรับ Internet Banking, TrueMoney, PromptPay) */
-  omise_source_id?: string
-  /** Omise Payment Intent ID (สำหรับ future use) */
-  omise_payment_intent_id?: string
+  /** Stripe Payment Intent ID */
+  stripe_payment_intent_id?: string
+  /** Stripe Checkout Session ID */
+  stripe_checkout_session_id?: string
   /** จำนวนเงิน (สตางค์) */
   amount: number
   /** สกุลเงิน */

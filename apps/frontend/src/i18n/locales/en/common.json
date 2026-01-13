@@ -94,7 +94,7 @@
     "paypalDesc": "Pay with PayPal",
     "promptpayDesc": "Pay with PromptPay",
     "payNow": "Pay Now",
-    "redirectMessage": "You will be redirected to Omise to complete payment",
+    "redirectMessage": "You will be redirected to Stripe Checkout to complete payment",
     "bookingNotFound": "Booking not found",
     "paymentError": "Unable to create payment",
     "error": "An error occurred",

@@ -266,8 +266,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-1',
     booking_id: MOCK_BOOKINGS[1].id, // John Smith's booking
-    omise_charge_id: 'chrg_test_1234567890',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_1234567890',
     amount: MOCK_BOOKINGS[1].total_price,
     currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
@@ -279,8 +278,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-2',
     booking_id: MOCK_BOOKINGS[2].id, // มานะ's booking
-    omise_charge_id: 'chrg_test_0987654321',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_0987654321',
     amount: MOCK_BOOKINGS[2].total_price,
     currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
@@ -292,8 +290,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-3',
     booking_id: MOCK_BOOKINGS[4].id, // ครอบครัว สุขสันต์'s booking
-    omise_charge_id: 'chrg_test_1122334455',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_1122334455',
     amount: MOCK_BOOKINGS[4].total_price,
     currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
@@ -305,8 +302,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-4',
     booking_id: MOCK_BOOKINGS[5].id, // David Lee's booking
-    omise_charge_id: 'chrg_test_5566778899',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_5566778899',
     amount: MOCK_BOOKINGS[5].total_price,
     currency: Currency.THB,
     status: PaymentStatus.PENDING,
@@ -318,9 +314,8 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-5',
     booking_id: MOCK_BOOKINGS[0].id, // สมชาย ใจดี's booking
-    omise_charge_id: 'chrg_test_9988776655',
-    omise_source_id: null,
-    omise_payment_intent_id: 'pi_test_9988776655',
+    stripe_checkout_session_id: 'cs_test_9988776655',
+    stripe_payment_intent_id: 'pi_test_9988776655',
     amount: MOCK_BOOKINGS[0].total_price,
     currency: Currency.THB,
     status: PaymentStatus.SUCCEEDED,
@@ -332,8 +327,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-6',
     booking_id: MOCK_BOOKINGS[3].id, // Sarah Johnson's booking
-    omise_charge_id: 'chrg_test_1122334455',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_1122334455',
     amount: MOCK_BOOKINGS[3].total_price,
     currency: Currency.USD,
     status: PaymentStatus.SUCCEEDED,
@@ -345,8 +339,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-7',
     booking_id: MOCK_BOOKINGS[6].id, // David Lee's booking
-    omise_charge_id: 'chrg_test_2233445566',
-    omise_source_id: null,
+    stripe_checkout_session_id: 'cs_test_2233445566',
     amount: MOCK_BOOKINGS[6].total_price,
     currency: Currency.THB,
     status: PaymentStatus.FAILED,
@@ -357,9 +350,8 @@ export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'mock-payment-8',
     booking_id: MOCK_BOOKINGS[1].id, // John Smith's booking (refunded)
-    omise_charge_id: 'chrg_test_3344556677',
-    omise_source_id: null,
-    omise_payment_intent_id: 'pi_test_3344556677',
+    stripe_checkout_session_id: 'cs_test_3344556677',
+    stripe_payment_intent_id: 'pi_test_3344556677',
     amount: MOCK_BOOKINGS[1].total_price,
     currency: Currency.THB,
     status: PaymentStatus.REFUNDED,

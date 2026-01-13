@@ -6,7 +6,7 @@
  * วัตถุประสงค์:
  *   - แสดงสรุปการจอง
  *   - แสดง payment methods ที่เลือกได้
- *   - Redirect ไป Omise หรือแสดง QR Code เมื่อกด Pay Now
+ *   - Redirect ไป Stripe Checkout เมื่อกด Pay Now
  *
  * Route:
  *   - /checkout?booking_id=xxx - หน้าชำระเงิน
@@ -19,7 +19,7 @@
  * Features:
  *   - แสดงสรุปการจอง (ประเภท, วันที่, จำนวนคน, ราคา)
  *   - แสดง payment methods (Credit Card, PayPal, PromptPay)
- *   - ปุ่ม "Pay Now" ที่จะ redirect ไป Omise หรือแสดง QR Code
+ *   - ปุ่ม "Pay Now" ที่จะ redirect ไป Stripe Checkout
  *   - Loading state และ error handling
  *
  * ============================================================
@@ -191,7 +191,7 @@ function CheckoutContent() {
         return
       }
 
-      // Handle Omise response
+      // Redirect ไป Stripe Checkout
       let responseData
       try {
         responseData = await checkoutRes.json()
@@ -202,24 +202,10 @@ function CheckoutContent() {
         return
       }
 
-      // Omise returns different responses based on payment method:
-      // - authorize_uri: สำหรับ Internet Banking, TrueMoney (redirect)
-      // - scannable_code: สำหรับ PromptPay (แสดง QR Code)
-      // - status: สำหรับ Card payment (อาจต้อง redirect หรือแสดง success)
-      if (responseData.authorize_uri) {
-        // Redirect ไปหน้า authorize (Internet Banking, TrueMoney)
-        window.location.href = responseData.authorize_uri
-      } else if (responseData.scannable_code) {
-        // แสดง QR Code สำหรับ PromptPay
-        // TODO: Implement QR Code display modal
-        alert('กรุณาสแกน QR Code เพื่อชำระเงิน\n' + responseData.scannable_code.image_url)
-        // Redirect ไปหน้า success หลังจากสแกน QR Code
-        window.location.href = `${window.location.origin}/success?code=${booking.booking_code}`
-      } else if (responseData.status === 'successful') {
-        // Card payment สำเร็จ
-        window.location.href = `${window.location.origin}/success?code=${booking.booking_code}`
+      const { url } = responseData
+      if (url) {
+        window.location.href = url
       } else {
-        // รอ webhook หรือแสดงสถานะ pending
         setError(t('checkout.paymentError') || 'ไม่สามารถสร้างการชำระเงินได้')
         setProcessing(false)
       }
@@ -355,7 +341,7 @@ function CheckoutContent() {
               </div>
 
               <p className="text-sm text-slate-500 text-center">
-                {t('checkout.redirectMessage') || 'คุณจะถูกนำไปยังหน้า Omise เพื่อชำระเงิน'}
+                {t('checkout.redirectMessage') || 'คุณจะถูกนำไปยังหน้า Stripe Checkout เพื่อชำระเงิน'}
               </p>
             </div>
 

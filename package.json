@@ -29,7 +29,8 @@
     "react-i18next": "^16.5.0",
     "recharts": "^3.6.0",
     "resend": "^6.6.0",
-    "omise": "^0.9.0",
+    "@stripe/stripe-js": "^8.6.1",
+    "stripe": "^20.1.1",
     "zod": "^4.2.1"
   },
   "devDependencies": {

@@ -42,9 +42,7 @@ export interface Partner {
   phone?: string
   /** ประเภทพาร์ทเนอร์ */
   type: PartnerType
-  /** Omise Recipient ID (ถ้ามี) */
-  omise_recipient_id?: string
-  /** Stripe Connect account ID (deprecated - kept for backward compatibility) */
+  /** Stripe Connect account ID (ถ้ามี) */
   stripe_account_id?: string
   /** อัตราคอมมิชชั่น (%) */
   commission_rate: number
@@ -92,9 +90,7 @@ export interface PartnerFormData {
   phone?: string
   /** ประเภทพาร์ทเนอร์ */
   type: PartnerType
-  /** Omise Recipient ID */
-  omise_recipient_id?: string
-  /** Stripe Connect account ID (deprecated) */
+  /** Stripe Connect account ID */
   stripe_account_id?: string
   /** อัตราคอมมิชชั่น (%) */
   commission_rate: number
