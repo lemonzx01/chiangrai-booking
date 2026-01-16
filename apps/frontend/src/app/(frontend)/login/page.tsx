@@ -270,7 +270,7 @@ function LoginContent() {
           <Button
             type="button"
             size="lg"
-            className="w-full bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="w-full bg-white border-2 border-slate-300 text-slate-900 hover:bg-slate-50 hover:border-slate-400 shadow-sm"
             onClick={() => {
               setLoading(true)
               setError('')

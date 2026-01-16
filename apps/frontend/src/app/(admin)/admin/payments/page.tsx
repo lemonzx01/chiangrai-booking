@@ -24,6 +24,7 @@
 // ============================================================
 
 import { getBackendUrl } from '@/lib/api'
+import { cookies } from 'next/headers'
 
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
@@ -102,27 +103,68 @@ interface PaymentStats {
  * @returns {Promise<PaymentWithBooking[]>} รายการการชำระเงิน
  */
 async function getPayments(): Promise<PaymentWithBooking[]> {
-  const res = await fetch(`${getBackendUrl()}/api/payments`, {
-    cache: 'no-store',
-    headers: {
-      // Add auth token if needed
-    },
-  })
+  try {
+    // ดึง cookies เพื่อส่งไปยัง backend
+    const cookieStore = await cookies()
+    
+    // ใช้ absolute URL สำหรับ Server Component
+    const backendUrl = getBackendUrl()
+    const apiUrl = `${backendUrl}/api/payments`
+    
+    // สร้าง headers พร้อม cookies ทั้งหมด
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+    
+    // ส่ง cookies ทั้งหมดไปยัง backend
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ')
+    
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader
+    }
+    
+    const res = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers,
+    })
 
-  const json = (await res.json()) as { data?: PaymentWithBooking[]; error?: string }
+    // ตรวจสอบว่า response เป็น JSON หรือไม่
+    const contentType = res.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Response is not JSON, got:', contentType)
+      throw new Error('ไม่สามารถดึงรายการการชำระเงินได้ - Invalid response format')
+    }
 
-  if (!res.ok) {
-    throw new Error(json.error || 'ไม่สามารถดึงรายการการชำระเงินได้')
+    const json = (await res.json()) as { 
+      data?: PaymentWithBooking[]; 
+      error?: string;
+      pagination?: {
+        total: number;
+        limit: number;
+        offset: number;
+        hasMore: boolean;
+      };
+    }
+
+    if (!res.ok) {
+      throw new Error(json.error || 'ไม่สามารถดึงรายการการชำระเงินได้')
+    }
+
+    // Convert status string to PaymentStatus enum and currency to Currency enum
+    const payments = (json.data || []).map((payment) => ({
+      ...payment,
+      status: payment.status as PaymentStatus,
+      currency: (payment.currency as Currency) || Currency.THB,
+    }))
+
+    return payments
+  } catch (error) {
+    console.error('Error fetching payments:', error)
+    throw error
   }
-
-  // Convert status string to PaymentStatus enum and currency to Currency enum
-  const payments = (json.data || []).map((payment) => ({
-    ...payment,
-    status: payment.status as PaymentStatus,
-    currency: (payment.currency as Currency) || Currency.THB,
-  }))
-
-  return payments
 }
 
 /**
@@ -131,20 +173,52 @@ async function getPayments(): Promise<PaymentWithBooking[]> {
  * @returns {Promise<PaymentStats>} สถิติการชำระเงิน
  */
 async function getPaymentStats(): Promise<PaymentStats> {
-  const res = await fetch(`${getBackendUrl()}/api/payments/stats`, {
-    cache: 'no-store',
-    headers: {
-      // Add auth token if needed
-    },
-  })
+  try {
+    // ดึง cookies เพื่อส่งไปยัง backend
+    const cookieStore = await cookies()
+    
+    // ใช้ absolute URL สำหรับ Server Component
+    const backendUrl = getBackendUrl()
+    const apiUrl = `${backendUrl}/api/payments/stats`
+    
+    // สร้าง headers พร้อม cookies ทั้งหมด
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+    
+    // ส่ง cookies ทั้งหมดไปยัง backend
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ')
+    
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader
+    }
+    
+    const res = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers,
+    })
 
-  const json = (await res.json()) as PaymentStats | { error?: string }
+    // ตรวจสอบว่า response เป็น JSON หรือไม่
+    const contentType = res.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Response is not JSON, got:', contentType)
+      throw new Error('ไม่สามารถดึงสถิติได้ - Invalid response format')
+    }
 
-  if (!res.ok) {
-    throw new Error((json as { error?: string }).error || 'ไม่สามารถดึงสถิติได้')
+    const json = (await res.json()) as PaymentStats | { error?: string }
+
+    if (!res.ok) {
+      throw new Error((json as { error?: string }).error || 'ไม่สามารถดึงสถิติได้')
+    }
+
+    return json as PaymentStats
+  } catch (error) {
+    console.error('Error fetching payment stats:', error)
+    throw error
   }
-
-  return json as PaymentStats
 }
 
 // ============================================================

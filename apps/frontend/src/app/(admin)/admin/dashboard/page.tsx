@@ -25,6 +25,7 @@
 // ============================================================
 
 import { getBackendUrl } from '@/lib/api'
+import { cookies } from 'next/headers'
 
 /** Supabase client สำหรับ Admin */
 
@@ -96,19 +97,54 @@ interface RecentBooking {
  * @returns {Promise<Object>} ข้อมูลสถิติ
  */
 async function getStats(): Promise<DashboardStats> {
-  const res = await fetch(`${getBackendUrl()}/api/dashboard/stats`, {
-    cache: 'no-store',
-  });
+  try {
+    // ดึง cookies เพื่อส่งไปยัง backend
+    const cookieStore = await cookies()
+    
+    // ใช้ absolute URL สำหรับ Server Component
+    const backendUrl = getBackendUrl()
+    const apiUrl = `${backendUrl}/api/dashboard/stats`
+    
+    // สร้าง headers พร้อม cookies ทั้งหมด
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+    
+    // ส่ง cookies ทั้งหมดไปยัง backend
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ')
+    
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader
+    }
+    
+    const res = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers,
+    });
 
-  const json = (await res.json()) as { data?: DashboardStats; error?: string };
+    // ตรวจสอบว่า response เป็น JSON หรือไม่
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Response is not JSON, got:', contentType);
+      return { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
+    }
 
-  if (!res.ok) {
-    // Gracefully fail for now, as the endpoint might not exist yet
-    console.error(json.error || 'Failed to fetch stats');
+    const json = (await res.json()) as { data?: DashboardStats; error?: string };
+
+    if (!res.ok) {
+      // Gracefully fail for now, as the endpoint might not exist yet
+      console.error(json.error || 'Failed to fetch stats');
+      return { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
+    }
+
+    return json.data || { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
+  } catch (error) {
+    console.error('Error fetching stats:', error);
     return { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
   }
-
-  return json.data || { totalHotels: 0, totalCars: 0, totalBookings: 0, totalRevenue: 0, pendingBookings: 0, confirmedBookings: 0 };
 }
 
 /**
@@ -121,18 +157,53 @@ async function getStats(): Promise<DashboardStats> {
  * @returns {Promise<RecentBooking[]>} รายการการจองล่าสุด
  */
 async function getRecentBookings(): Promise<RecentBooking[]> {
-  const res = await fetch(`${getBackendUrl()}/api/bookings?limit=5`, {
-    cache: 'no-store',
-  });
+  try {
+    // ดึง cookies เพื่อส่งไปยัง backend
+    const cookieStore = await cookies()
+    
+    // ใช้ absolute URL สำหรับ Server Component
+    const backendUrl = getBackendUrl()
+    const apiUrl = `${backendUrl}/api/bookings?limit=5`
+    
+    // สร้าง headers พร้อม cookies ทั้งหมด
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+    
+    // ส่ง cookies ทั้งหมดไปยัง backend
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ')
+    
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader
+    }
+    
+    const res = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers,
+    });
 
-  const json = (await res.json()) as { data?: RecentBooking[]; error?: string };
+    // ตรวจสอบว่า response เป็น JSON หรือไม่
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Response is not JSON, got:', contentType);
+      return [];
+    }
 
-  if (!res.ok) {
-    console.error(json.error || 'Failed to fetch recent bookings');
+    const json = (await res.json()) as { data?: RecentBooking[]; error?: string };
+
+    if (!res.ok) {
+      console.error(json.error || 'Failed to fetch recent bookings');
+      return [];
+    }
+
+    return json.data || [];
+  } catch (error) {
+    console.error('Error fetching recent bookings:', error);
     return [];
   }
-
-  return json.data || [];
 }
 
 // ============================================================
