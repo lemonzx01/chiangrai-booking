@@ -36,7 +36,7 @@ import PaymentTable from '@/components/admin/PaymentTable'
 import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Types */
-import { PaymentStatus, Currency } from '@chiangrai/shared/types'
+import { Payment, PaymentStatus, Currency } from '@chiangrai/shared/types'
 
 /** Lucide icons */
 import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react'

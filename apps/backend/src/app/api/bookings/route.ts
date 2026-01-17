@@ -98,8 +98,7 @@ export async function GET(request: Request) {
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
     if (status) {
-      // Cast status เป็น BookingStatusEnum เพื่อให้ type ถูกต้อง
-      query = query.eq('status', status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED')
+      query = query.eq('status', status)
     }
 
     // ----------------------------------------------------------
@@ -331,11 +330,11 @@ export async function POST(request: Request) {
     const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
     
     if (ownerId) {
-      sendPartnerBookingNotification(ownerId, booking as any).catch(console.error)
+      sendPartnerBookingNotification(ownerId, booking).catch(console.error)
     }
     
     // ส่งอีเมลแจ้งเตือน Admin
-    sendAdminBookingNotification(booking as any).catch(console.error)
+    sendAdminBookingNotification(booking).catch(console.error)
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })

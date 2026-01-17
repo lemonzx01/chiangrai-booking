@@ -400,7 +400,7 @@ if (!nextAuthResult?.handlers) {
   throw new Error('Cannot export handlers: nextAuthResult.handlers is undefined')
 }
 
-export const { handlers } = nextAuthResult
+export const { handlers, signIn, signOut, auth } = nextAuthResult
 
 // #region agent log
 // Log secret availability on module load
