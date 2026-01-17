@@ -36,17 +36,30 @@ if (!handlers.GET || !handlers.POST) {
 export async function GET(request: Request) {
   // #region agent log
   const url = new URL(request.url)
-  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET called',data:{pathname:url.pathname,search:url.search,hasHandlers:!!handlers,hasGet:!!handlers?.GET},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  const pathname = url.pathname
+  const search = url.search
+  const isSigninGoogle = pathname.includes('/signin/google')
+  const isCallback = pathname.includes('/callback')
+  console.log('[DEBUG] NextAuth GET request:', { pathname, search, isSigninGoogle, isCallback, origin: url.origin, host: url.host })
+  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET called',data:{pathname,search,isSigninGoogle,isCallback,hasHandlers:!!handlers,hasGet:!!handlers?.GET,origin:url.origin,host:url.host},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
   try {
     const response = await handlers.GET(request)
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET response',data:{status:response?.status,statusText:response?.statusText,pathname:url.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    const responseStatus = response?.status
+    const responseStatusText = response?.statusText
+    const responseHeaders: any = {}
+    if (response?.headers) {
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+    }
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET response',data:{status:responseStatus,statusText:responseStatusText,pathname,isSigninGoogle,isCallback,responseHeaders},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     return response
   } catch (error: any) {
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET error',data:{error:error?.message || String(error),pathname:url.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET error',data:{error:error?.message || String(error),pathname,isSigninGoogle,isCallback,stack:error?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     console.error('[ERROR] NextAuth GET handler error:', error?.message)
     console.error('[ERROR] Stack:', error?.stack)

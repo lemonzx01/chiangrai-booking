@@ -309,10 +309,21 @@ function LoginContent() {
                     : window.location.origin.replace(':3000', ':3001'))
                 : 'http://localhost:3001'
               const callbackUrl = searchParams.get('redirect') || '/profile'
-              const redirectUrl = `${backendUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`
+              // NextAuth expects the callback URL to be the frontend URL, not backend
+              // The callback will be handled by NextAuth and redirect back to frontend
+              const frontendUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+              const fullCallbackUrl = `${frontendUrl}${callbackUrl}`
+              // NextAuth v5 beta: Try both path formats
+              // Format 1: /api/auth/signin/google (traditional)
+              // Format 2: /api/auth/signin?provider=google (alternative)
+              // We'll use Format 1 first, but if it fails, we can try Format 2
+              const redirectUrl = `${backendUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(fullCallbackUrl)}`
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:handleGoogleLogin',message:'Google login redirect URL',data:{backendUrl,redirectUrl,fullCallbackUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+              // #endregion
               
               // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:312',message:'Google login click',data:{backendUrl,callbackUrl,redirectUrl,hostname:typeof window !== 'undefined' ? window.location.hostname : 'undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:312',message:'Google login click',data:{backendUrl,frontendUrl,callbackUrl,fullCallbackUrl,redirectUrl,hostname:typeof window !== 'undefined' ? window.location.hostname : 'undefined',windowOrigin:typeof window !== 'undefined' ? window.location.origin : 'undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
               // #endregion
               
               window.location.href = redirectUrl

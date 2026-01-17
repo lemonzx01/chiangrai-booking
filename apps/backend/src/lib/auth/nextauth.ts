@@ -37,8 +37,29 @@ console.log('[DEBUG] NextAuth Module Load:', {
   clientSecretLength: googleClientSecret.length,
   hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
   hasJwtSecret: !!process.env.JWT_SECRET,
+  hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+  nextAuthUrl: process.env.NEXTAUTH_URL || 'not set (will auto-detect)',
+  hasAuthUrl: !!process.env.AUTH_URL,
+  authUrl: process.env.AUTH_URL || 'not set',
   nodeEnv: process.env.NODE_ENV,
+  cwd: process.cwd(),
+  // Log first few chars of client ID (safe to log)
+  clientIdPrefix: googleClientId ? googleClientId.substring(0, 20) + '...' : 'empty',
 })
+
+// Validate Google OAuth credentials
+if (!googleClientId || !googleClientSecret) {
+  console.error('[ERROR] Google OAuth credentials are missing!', {
+    hasClientId: !!googleClientId,
+    hasClientSecret: !!googleClientSecret,
+    envKeys: Object.keys(process.env).filter(k => k.includes('GOOGLE') || k.includes('NEXTAUTH') || k.includes('JWT')),
+  })
+} else {
+  console.log('[DEBUG] Google OAuth credentials loaded successfully', {
+    clientIdLength: googleClientId.length,
+    clientSecretLength: googleClientSecret.length,
+  })
+}
 
 // #region agent log
 if (typeof process !== 'undefined') {
@@ -93,6 +114,13 @@ if (!googleClientId || !googleClientSecret) {
 }
 
 const authOptions = {
+  // Trust host for development (important for OAuth callbacks)
+  trustHost: true,
+  
+  // Note: basePath is NOT needed if route structure matches default (/api/auth)
+  // Our route is at app/api/auth/[...nextauth]/route.ts which matches default
+  // Setting basePath can cause UnknownAction errors in NextAuth v5 beta
+  
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -291,6 +319,14 @@ const authOptions = {
     signIn: '/login',
     error: '/login',
   },
+
+  // NextAuth base URL configuration
+  // IMPORTANT: NextAuth v5 beta uses NEXTAUTH_URL or AUTH_URL environment variable
+  // For development (port 3001), set NEXTAUTH_URL=http://localhost:3001
+  // For production, set NEXTAUTH_URL=https://your-backend-domain.com
+  // Note: Do NOT include /api/auth in NEXTAUTH_URL - NextAuth adds it automatically
+  // The callback URL will be: {NEXTAUTH_URL}/api/auth/callback/google
+  // This must match the "Authorized redirect URIs" in Google Cloud Console
 
   session: {
     strategy: 'jwt' as const,

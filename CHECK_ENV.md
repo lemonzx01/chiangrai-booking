@@ -58,6 +58,13 @@ Get-Content .env.local
 ### 2. `NEXTAUTH_SECRET` หรือ `JWT_SECRET` ⚠️
 - **ต้องมีอย่างใดอย่างหนึ่ง** (หรือทั้งสองก็ได้)
 - **ต้องมีความยาวอย่างน้อย 32 ตัวอักษร**
+
+### 3. `NEXTAUTH_URL` (สำหรับ Google OAuth) ⚠️
+- **สำคัญสำหรับ Google OAuth!**
+- **Development:** `NEXTAUTH_URL=http://localhost:3001`
+- **Production:** `NEXTAUTH_URL=https://your-backend-domain.com`
+- ใช้สำหรับสร้าง callback URL: `{NEXTAUTH_URL}/api/auth/callback/google`
+- **ต้องตรงกับ "Authorized redirect URIs" ใน Google Cloud Console**
 - ตัวอย่าง:
   ```bash
   NEXTAUTH_SECRET=my-super-secret-key-minimum-32-characters-long
