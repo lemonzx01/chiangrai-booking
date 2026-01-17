@@ -50,6 +50,9 @@ import { LogIn, Loader2, CheckCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
+/** API Utilities */
+import { getBackendUrl } from '@/lib/api'
+
 // ============================================================
 // Login Content Component
 // ============================================================
@@ -97,15 +100,21 @@ function LoginContent() {
   /** State สำหรับแสดงข้อความสมัครสำเร็จ */
   const [showRegistered, setShowRegistered] = useState(false)
 
+  /** State สำหรับแสดงข้อความรีเซ็ตรหัสผ่านสำเร็จ */
+  const [showPasswordReset, setShowPasswordReset] = useState(false)
+
   // ----------------------------------------------------------
   // Effects
   // ----------------------------------------------------------
   /**
-   * Effect: ตรวจสอบว่ามาจากหน้าสมัครสมาชิก
+   * Effect: ตรวจสอบว่ามาจากหน้าสมัครสมาชิกหรือรีเซ็ตรหัสผ่าน
    */
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
       setShowRegistered(true)
+    }
+    if (searchParams.get('password_reset') === 'true') {
+      setShowPasswordReset(true)
     }
   }, [searchParams])
 
@@ -210,6 +219,14 @@ function LoginContent() {
             </div>
           )}
 
+          {/* Success Message - แสดงเมื่อรีเซ็ตรหัสผ่านสำเร็จ */}
+          {showPasswordReset && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              {lang === 'th' ? 'รีเซ็ตรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่' : 'Password reset successful! Please login with your new password.'}
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
@@ -241,6 +258,16 @@ function LoginContent() {
               disabled={loading}
             />
 
+            {/* ลิงก์ลืมรหัสผ่าน */}
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                {lang === 'th' ? 'ลืมรหัสผ่าน?' : 'Forgot password?'}
+              </Link>
+            </div>
+
             {/* ปุ่มเข้าสู่ระบบ */}
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? (
@@ -267,43 +294,58 @@ function LoginContent() {
           </div>
 
           {/* Google Login Button */}
-          <Button
+          <button
             type="button"
-            size="lg"
-            className="w-full bg-white border-2 border-slate-300 text-slate-900 hover:bg-slate-50 hover:border-slate-400 shadow-sm"
+            className="w-full inline-flex items-center justify-center gap-3 font-medium rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 hover:border-slate-400 shadow-sm min-h-[44px] sm:min-h-0"
             onClick={() => {
               setLoading(true)
               setError('')
               // Redirect ไปยัง NextAuth Google sign-in
-              // จะถูก proxy ไปยัง backend อัตโนมัติผ่าน rewrite rule
+              // เรียก backend โดยตรง (port 3001)
+              // ใน client-side ต้องใช้ hardcode หรือ NEXT_PUBLIC variable
+              const backendUrl = typeof window !== 'undefined' 
+                ? (window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3001' 
+                    : window.location.origin.replace(':3000', ':3001'))
+                : 'http://localhost:3001'
               const callbackUrl = searchParams.get('redirect') || '/profile'
-              window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`
+              const redirectUrl = `${backendUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`
+              
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login/page.tsx:312',message:'Google login click',data:{backendUrl,callbackUrl,redirectUrl,hostname:typeof window !== 'undefined' ? window.location.hostname : 'undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+              // #endregion
+              
+              window.location.href = redirectUrl
             }}
             disabled={loading}
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+            {/* Google Logo with actual colors */}
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
-                fill="currentColor"
+                fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
               />
               <path
-                fill="currentColor"
+                fill="#34A853"
                 d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
               />
               <path
-                fill="currentColor"
+                fill="#FBBC05"
                 d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
               />
               <path
-                fill="currentColor"
+                fill="#EA4335"
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            {lang === 'th' ? 'เข้าสู่ระบบด้วย Google' : 'Sign in with Google'}
-          </Button>
+            <span className="text-slate-900 font-medium">
+              {lang === 'th' ? 'เข้าสู่ระบบด้วย Google' : 'Sign in with Google'}
+            </span>
+          </button>
 
-          {/* Link ไปหน้า Register */}
-          <div className="mt-6 text-center">
+          {/* Links */}
+          <div className="mt-6 space-y-3 text-center">
+            {/* Link ไปหน้า Register */}
             <p className="text-slate-500">
               {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
               <Link href="/register" className="text-indigo-600 font-semibold hover:underline">

@@ -27,7 +27,6 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createMockSupabaseClient } from './mock-client'
 import type { Database } from '@chiangrai/shared/types/supabase'
 
 // ============================================================
@@ -46,6 +45,7 @@ const isSupabaseConfigured = () => {
   return !!(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY &&
     process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
   )
 }
@@ -78,10 +78,8 @@ const isSupabaseConfigured = () => {
  * }
  */
 export async function createClient() {
-  // ถ้าไม่ได้ตั้งค่า Supabase ให้ใช้ Mock client
   if (!isSupabaseConfigured()) {
-    console.log('⚠️ Supabase not configured - using mock client')
-    return createMockSupabaseClient() as ReturnType<typeof createServerClient>
+    throw new Error('Supabase is not configured. Please set environment variables.')
   }
 
   // ดึง cookie store
@@ -168,10 +166,8 @@ export async function createClient() {
  * }
  */
 export async function createAdminClient() {
-  // ถ้าไม่ได้ตั้งค่า Supabase ให้ใช้ Mock client
   if (!isSupabaseConfigured()) {
-    console.log('⚠️ Supabase not configured - using mock admin client')
-    return createMockSupabaseClient() as ReturnType<typeof createServerClient>
+    throw new Error('Supabase is not configured. Please set environment variables.')
   }
 
   // ดึง cookie store

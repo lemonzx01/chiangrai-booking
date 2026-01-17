@@ -43,6 +43,11 @@ import { rateLimitMiddleware } from '../../../middleware/rate-limit'
 import { addSecurityHeaders } from '../../../lib/security'
 
 // ============================================================
+// Route Configuration
+// ============================================================
+export const dynamic = 'force-dynamic'
+
+// ============================================================
 // GET Handler - ดึงรายการการชำระเงิน
 // ============================================================
 
@@ -127,7 +132,8 @@ export async function GET(request: Request) {
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
     if (status) {
-      query = query.eq('status', status)
+      // Cast status เป็น PaymentStatusEnum เพื่อให้ type ถูกต้อง
+      query = query.eq('status', status as 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED')
     }
 
     // เพิ่มตัวกรอง booking ID (ถ้ามี)

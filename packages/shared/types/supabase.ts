@@ -50,6 +50,7 @@ export interface Database {
           phone: string | null
           type: PartnerTypeEnum
           stripe_account_id: string | null
+          stripe_onboarding_complete: boolean | null
           commission_rate: number
           is_active: boolean
           created_at: string
@@ -62,6 +63,7 @@ export interface Database {
           phone?: string | null
           type: PartnerTypeEnum
           stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           commission_rate?: number
           is_active?: boolean
           created_at?: string
@@ -74,6 +76,7 @@ export interface Database {
           phone?: string | null
           type?: PartnerTypeEnum
           stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           commission_rate?: number
           is_active?: boolean
           created_at?: string
@@ -105,6 +108,7 @@ export interface Database {
           amenities_en: string[]
           images: string[]
           partner_id: string | null
+          owner_id: string | null
           currency: CurrencyEnum
           is_active: boolean
           created_at: string
@@ -129,6 +133,7 @@ export interface Database {
           amenities_en?: string[]
           images?: string[]
           partner_id?: string | null
+          owner_id?: string | null
           currency?: CurrencyEnum
           is_active?: boolean
           created_at?: string
@@ -153,6 +158,7 @@ export interface Database {
           amenities_en?: string[]
           images?: string[]
           partner_id?: string | null
+          owner_id?: string | null
           currency?: CurrencyEnum
           is_active?: boolean
           created_at?: string
@@ -234,6 +240,7 @@ export interface Database {
           includes_en: string[]
           images: string[]
           partner_id: string | null
+          owner_id: string | null
           driver_name: string | null
           driver_surname: string | null
           currency: CurrencyEnum
@@ -256,6 +263,7 @@ export interface Database {
           includes_en?: string[]
           images?: string[]
           partner_id?: string | null
+          owner_id?: string | null
           driver_name?: string | null
           driver_surname?: string | null
           currency?: CurrencyEnum
@@ -278,6 +286,7 @@ export interface Database {
           includes_en?: string[]
           images?: string[]
           partner_id?: string | null
+          owner_id?: string | null
           driver_name?: string | null
           driver_surname?: string | null
           currency?: CurrencyEnum
@@ -296,6 +305,55 @@ export interface Database {
       }
 
       // ------------------------------------------------------------
+      // Car Packages
+      // ------------------------------------------------------------
+      car_packages: {
+        Row: {
+          id: string
+          name_th: string
+          name_en: string
+          description_th: string | null
+          description_en: string | null
+          duration_hours: number
+          duration_days: number
+          max_passengers: number
+          price_thb: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name_th: string
+          name_en: string
+          description_th?: string | null
+          description_en?: string | null
+          duration_hours?: number
+          duration_days?: number
+          max_passengers?: number
+          price_thb: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name_th?: string
+          name_en?: string
+          description_th?: string | null
+          description_en?: string | null
+          duration_hours?: number
+          duration_days?: number
+          max_passengers?: number
+          price_thb?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+
+      // ------------------------------------------------------------
       // Users
       // ------------------------------------------------------------
       users: {
@@ -304,6 +362,8 @@ export interface Database {
           email: string
           password_hash: string
           name: string
+          role: 'admin' | 'partner' | 'user'
+          google_id: string | null
           phone: string | null
           is_active: boolean
           created_at: string
@@ -312,8 +372,10 @@ export interface Database {
         Insert: {
           id?: string
           email: string
-          password_hash: string
+          password_hash?: string | null
           name: string
+          role?: 'admin' | 'partner' | 'user'
+          google_id?: string | null
           phone?: string | null
           is_active?: boolean
           created_at?: string
@@ -324,6 +386,8 @@ export interface Database {
           email?: string
           password_hash?: string
           name?: string
+          role?: 'admin' | 'partner' | 'user'
+          google_id?: string | null
           phone?: string | null
           is_active?: boolean
           created_at?: string
@@ -459,6 +523,37 @@ export interface Database {
             referencedColumns: ['id']
           }
         ]
+      }
+
+      // ------------------------------------------------------------
+      // Exchange Rates
+      // ------------------------------------------------------------
+      exchange_rates: {
+        Row: {
+          id: string
+          base_currency: string
+          target_currency: string
+          rate: number
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          base_currency: string
+          target_currency: string
+          rate: number
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          base_currency?: string
+          target_currency?: string
+          rate?: number
+          updated_at?: string
+          created_at?: string
+        }
+        Relationships: []
       }
 
       // ------------------------------------------------------------

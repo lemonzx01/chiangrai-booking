@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props) {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }
-  const hotel = json.data
+  const hotel = (json as any).data ?? json
 
   // ----------------------------------------------------------
   // Return Metadata
@@ -131,12 +131,11 @@ export default async function HotelDetailPage({ params }: Props) {
     cache: 'no-store',
   })
   const json = (await res.json()) as { data?: any; error?: string }
+  const hotel = (json as any).data ?? json
 
-  if (!res.ok || !json.data) {
+  if (!res.ok || !hotel) {
     notFound()
   }
-
-  const hotel = json.data
 
   // ----------------------------------------------------------
   // Render Client Component

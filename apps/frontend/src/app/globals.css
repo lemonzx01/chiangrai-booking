@@ -145,6 +145,20 @@ textarea:focus {
   @apply outline-none;
 }
 
+/* Admin UI: consistent gray borders for form controls */
+.admin-ui input,
+.admin-ui textarea,
+.admin-ui select {
+  @apply border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400;
+}
+
+.admin-ui input:focus,
+.admin-ui textarea:focus,
+.admin-ui select:focus {
+  @apply border-slate-400;
+  box-shadow: none !important;
+}
+
 /* Hide browser's built-in password reveal button */
 input::-ms-reveal,
 input::-ms-clear {

@@ -155,7 +155,22 @@ export async function POST(request: Request) {
 
           // ส่งอีเมลยืนยันการจอง (non-blocking)
           if (booking) {
-            sendBookingConfirmationEmail(booking).catch(console.error)
+            // Convert database booking to BookingEmailData format
+            const itemName = booking.hotel?.name_th || booking.hotel?.name_en || 
+                           booking.car?.name_th || booking.car?.name_en || 
+                           'รายการที่จอง'
+            const emailData = {
+              customerName: booking.customer_name,
+              customerEmail: booking.customer_email,
+              bookingCode: booking.booking_code,
+              bookingType: booking.booking_type as 'HOTEL' | 'CAR' | 'COMBO',
+              itemName: itemName,
+              checkIn: booking.check_in_date,
+              checkOut: booking.check_out_date,
+              totalPrice: booking.total_price,
+              status: booking.status || 'PAID',
+            }
+            sendBookingConfirmationEmail(emailData).catch(console.error)
 
             // ส่งอีเมลแจ้งเตือน Partner (owner) และ Admin
             // หา owner_id จาก hotel หรือ car

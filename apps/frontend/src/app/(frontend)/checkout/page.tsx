@@ -35,7 +35,7 @@
 import { Suspense, useEffect, useState } from 'react'
 
 /** Next.js hooks */
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 /** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
@@ -86,8 +86,6 @@ function CheckoutContent() {
   /** Hook สำหรับดึง URL query params */
   const searchParams = useSearchParams()
 
-  /** Hook สำหรับ navigation */
-  const router = useRouter()
 
   /** Booking Code จาก URL */
   const bookingCode = searchParams.get('booking_code') || searchParams.get('code')

@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* ============================================================
           Container - พื้นหลังสีเทาอ่อน
           ============================================================ */}
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 admin-ui">
         {children}
       </div>
     </I18nProvider>

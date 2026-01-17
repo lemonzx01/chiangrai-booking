@@ -40,6 +40,11 @@ import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
 import { addSecurityHeaders } from '../../../../lib/security'
 
 // ============================================================
+// Route Configuration
+// ============================================================
+export const dynamic = 'force-dynamic'
+
+// ============================================================
 // GET Handler - ดึงสถิติการชำระเงิน
 // ============================================================
 

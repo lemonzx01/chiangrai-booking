@@ -36,7 +36,7 @@ import PaymentTable from '@/components/admin/PaymentTable'
 import { formatCurrency } from '@chiangrai/shared/utils'
 
 /** Types */
-import { Payment, PaymentStatus, Currency } from '@chiangrai/shared/types'
+import { PaymentStatus, Currency } from '@chiangrai/shared/types'
 
 /** Lucide icons */
 import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react'
@@ -49,6 +49,8 @@ import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-reac
 export const metadata = {
   title: 'การชำระเงิน | Admin',
 }
+
+export const dynamic = 'force-dynamic'
 
 // ============================================================
 // Type Definitions
@@ -150,6 +152,9 @@ async function getPayments(): Promise<PaymentWithBooking[]> {
     }
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return []
+      }
       throw new Error(json.error || 'ไม่สามารถดึงรายการการชำระเงินได้')
     }
 
@@ -211,6 +216,18 @@ async function getPaymentStats(): Promise<PaymentStats> {
     const json = (await res.json()) as PaymentStats | { error?: string }
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return {
+          totalRevenue: 0,
+          totalCount: 0,
+          succeededCount: 0,
+          failedCount: 0,
+          pendingCount: 0,
+          refundedCount: 0,
+          successRate: 0,
+          currency: 'THB',
+        }
+      }
       throw new Error((json as { error?: string }).error || 'ไม่สามารถดึงสถิติได้')
     }
 
@@ -238,8 +255,24 @@ export default async function AdminPaymentsPage() {
   // ----------------------------------------------------------
   // Fetch Data
   // ----------------------------------------------------------
-  const payments = await getPayments()
-  const stats = await getPaymentStats()
+  let payments: PaymentWithBooking[] = []
+  let stats: PaymentStats = {
+    totalRevenue: 0,
+    totalCount: 0,
+    succeededCount: 0,
+    failedCount: 0,
+    pendingCount: 0,
+    refundedCount: 0,
+    successRate: 0,
+    currency: 'THB',
+  }
+
+  try {
+    payments = await getPayments()
+    stats = await getPaymentStats()
+  } catch {
+    // handled below with empty state
+  }
 
   // ----------------------------------------------------------
   // Stats Cards Configuration

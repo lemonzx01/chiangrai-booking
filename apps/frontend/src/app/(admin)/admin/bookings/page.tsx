@@ -133,6 +133,14 @@ export default async function AdminBookingsPage() {
   // ----------------------------------------------------------
   const bookings = await getBookings()
 
+  const totalCount = bookings.length
+  const pendingCount = bookings.filter((b) => b.status === 'PENDING').length
+  const confirmedCount = bookings.filter(
+    (b) => b.status === 'CONFIRMED' || b.status === 'PAID' || b.status === 'COMPLETED'
+  ).length
+  const cancelledCount = bookings.filter((b) => b.status === 'CANCELLED').length
+  const totalRevenue = bookings.reduce((sum, b) => sum + (b.total_price || 0), 0)
+
   // ----------------------------------------------------------
   // Render Component
   // ----------------------------------------------------------
@@ -143,15 +151,52 @@ export default async function AdminBookingsPage() {
 
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
-        {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">จัดการการจอง</h1>
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">จัดการการจอง</h1>
+              <p className="text-sm text-slate-500 mt-1">ตรวจสอบและอัปเดตสถานะการจองได้อย่างรวดเร็ว</p>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-sm">
+              ทั้งหมด <span className="font-semibold">{totalCount}</span> รายการ
+            </div>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <p className="text-xs text-slate-500 mb-1">รอดำเนินการ</p>
+              <p className="text-xl font-bold text-slate-900">{pendingCount}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <p className="text-xs text-slate-500 mb-1">ยืนยันแล้ว</p>
+              <p className="text-xl font-bold text-slate-900">{confirmedCount}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <p className="text-xs text-slate-500 mb-1">ยกเลิก</p>
+              <p className="text-xl font-bold text-slate-900">{cancelledCount}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <p className="text-xs text-slate-500 mb-1">รายได้รวม</p>
+              <p className="text-xl font-bold text-slate-900">{formatCurrency(totalRevenue)}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <p className="text-xs text-slate-500 mb-1">ทั้งหมด</p>
+              <p className="text-xl font-bold text-slate-900">{totalCount}</p>
+            </div>
+          </div>
 
         {/* ============================================================
             Bookings Table
             ============================================================ */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">รายการการจอง</h2>
+              <span className="text-xs text-slate-500">อัปเดตล่าสุดแบบเรียลไทม์</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px]">
               {/* Table Header */}
               <thead className="bg-slate-50">
                 <tr>
@@ -209,14 +254,15 @@ export default async function AdminBookingsPage() {
                 {/* Empty State */}
                 {bookings.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                      ยังไม่มีการจอง
+                    <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
+                      ยังไม่มีการจองในระบบ
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       </main>
     </div>

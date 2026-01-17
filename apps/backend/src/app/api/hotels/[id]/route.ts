@@ -32,6 +32,7 @@ import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../lib/auth'
+import { MOCK_HOTELS } from '../../../../lib/constants'
 
 // ============================================================
 // Type Definitions
@@ -71,6 +72,29 @@ export async function GET(request: Request, { params }: Params) {
   try {
     // ดึง ID จาก params (Next.js 15 ใช้ await)
     const { id } = await params
+
+    // ----------------------------------------------------------
+    // Mock Mode: ใช้ข้อมูลจำลอง
+    // ----------------------------------------------------------
+    if (isMockMode()) {
+      const mockHotel = MOCK_HOTELS.find((hotel) => hotel.id === id)
+
+      if (!mockHotel) {
+        return NextResponse.json({ error: 'Hotel not found' }, { status: 404 })
+      }
+
+      const normalizedHotel = {
+        ...mockHotel,
+        location:
+          (mockHotel as any).location ||
+          (mockHotel as any).location_th ||
+          (mockHotel as any).location_en ||
+          '',
+      }
+
+      return NextResponse.json(normalizedHotel)
+    }
+
     const supabase = await createClient()
 
     // ----------------------------------------------------------

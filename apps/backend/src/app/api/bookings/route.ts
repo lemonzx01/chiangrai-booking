@@ -91,15 +91,15 @@ export async function GET(request: Request) {
     // ----------------------------------------------------------
     let query = supabase
       .from('bookings')
-      .select(
-        '*, hotel:hotels(*, owner_id), car:cars(*, owner_id), room_type:room_types(*)',
-        { count: 'exact' }
-      ) // JOIN ข้อมูลที่เกี่ยวข้อง
+      .select('*, hotel:hotels(*), car:cars(*), room_type:room_types(*)', {
+        count: 'exact',
+      }) // JOIN ข้อมูลที่เกี่ยวข้อง
       .order('created_at', { ascending: false }) // เรียงจากใหม่ไปเก่า
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
     if (status) {
-      query = query.eq('status', status)
+      // Cast status เป็น BookingStatusEnum เพื่อให้ type ถูกต้อง
+      query = query.eq('status', status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED')
     }
 
     // ----------------------------------------------------------
@@ -331,11 +331,11 @@ export async function POST(request: Request) {
     const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
     
     if (ownerId) {
-      sendPartnerBookingNotification(ownerId, booking).catch(console.error)
+      sendPartnerBookingNotification(ownerId, booking as any).catch(console.error)
     }
     
     // ส่งอีเมลแจ้งเตือน Admin
-    sendAdminBookingNotification(booking).catch(console.error)
+    sendAdminBookingNotification(booking as any).catch(console.error)
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })

@@ -23,6 +23,8 @@ export const metadata = {
   title: 'Dashboard | Partner',
 }
 
+export const dynamic = 'force-dynamic'
+
 interface RecentBooking {
   id: string
   booking_code: string

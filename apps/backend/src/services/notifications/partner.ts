@@ -12,17 +12,17 @@
 
 import { createAdminClient } from '../../lib/supabase/server'
 import { sendEmail } from './email'
-import { Booking } from '@chiangrai/shared/types'
+import { Booking, BookingType } from '@chiangrai/shared/types'
 
 /**
  * ส่งอีเมลแจ้งเตือน Partner เมื่อมีการจองรถ/โรงแรม
  *
  * @param ownerId - รหัสเจ้าของ (user ID)
- * @param booking - ข้อมูลการจอง
+ * @param booking - ข้อมูลการจอง (รองรับทั้ง Booking interface และ database row)
  */
 export async function sendPartnerBookingNotification(
   ownerId: string,
-  booking: Booking
+  booking: Booking | { booking_type: BookingType | string; [key: string]: any }
 ): Promise<void> {
   try {
     const supabase = await createAdminClient()
@@ -87,9 +87,11 @@ export async function sendPartnerBookingNotification(
 /**
  * ส่งอีเมลแจ้งเตือน Admin เมื่อมีการจอง
  *
- * @param booking - ข้อมูลการจอง
+ * @param booking - ข้อมูลการจอง (รองรับทั้ง Booking interface และ database row)
  */
-export async function sendAdminBookingNotification(booking: Booking): Promise<void> {
+export async function sendAdminBookingNotification(
+  booking: Booking | { booking_type: BookingType | string; [key: string]: any }
+): Promise<void> {
   try {
     const supabase = await createAdminClient()
 

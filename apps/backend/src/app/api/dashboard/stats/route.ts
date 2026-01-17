@@ -44,6 +44,11 @@ import { DashboardStats } from '@chiangrai/shared/types'
 import { isMockMode } from '../../../../lib/auth'
 
 // ============================================================
+// Route Configuration
+// ============================================================
+export const dynamic = 'force-dynamic'
+
+// ============================================================
 // GET Handler - ดึงสถิติ Dashboard
 // ============================================================
 

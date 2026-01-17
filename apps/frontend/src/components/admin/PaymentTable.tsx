@@ -92,6 +92,8 @@ function StatusBadge({ status }: { status: PaymentStatus }) {
  * @returns {JSX.Element} Payment table UI
  */
 export default function PaymentTable({ payments, onStatusChange }: PaymentTableProps) {
+  // onStatusChange is reserved for future use
+  void onStatusChange
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="overflow-x-auto">

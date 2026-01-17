@@ -55,6 +55,8 @@ export const metadata = {
   title: 'Dashboard | Admin',
 }
 
+export const dynamic = 'force-dynamic'
+
 // ============================================================
 // Type Definitions
 // ============================================================

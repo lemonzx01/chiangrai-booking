@@ -172,29 +172,33 @@ export default function EditHotelPage() {
   return (
     <div className="flex">
       <AdminSidebar />
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 pt-16 lg:pt-6 bg-slate-50 min-h-screen">
-        {/* Header */}
-        <div className="mb-5">
-          <Link
-            href="/admin/hotels"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-3"
-          >
-            <ArrowLeft size={16} />
-            กลับ
-          </Link>
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-slate-800">แก้ไขโรงแรม/แพ็คเกจ</h1>
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 bg-slate-50 min-h-screen">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
             <Link
-              href={`/admin/hotels/${id}/room-types`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700"
+              href="/admin/hotels"
+              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-3"
             >
-              <Plus size={16} />
-              จัดการประเภทห้อง
+              <ArrowLeft size={16} />
+              กลับ
             </Link>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">แก้ไขโรงแรม/แพ็คเกจ</h1>
+                <p className="text-sm text-slate-500 mt-1">อัปเดตข้อมูลให้ครบถ้วนเพื่อให้แสดงผลบนหน้าเว็บได้ดีที่สุด</p>
+              </div>
+              <Link
+                href={`/admin/hotels/${id}/room-types`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800"
+              >
+                <Plus size={16} />
+                จัดการประเภทห้อง
+              </Link>
+            </div>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="max-w-4xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
               <p className="text-red-600 text-sm">{error}</p>
@@ -202,7 +206,7 @@ export default function EditHotelPage() {
           )}
 
           {/* Basic Info */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-100">ข้อมูลพื้นฐาน</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -235,12 +239,13 @@ export default function EditHotelPage() {
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400"
                   required
                 />
+                <p className="text-xs text-slate-500 mt-1">ระบุจังหวัด/ประเทศเพื่อให้ค้นหาได้ง่าย</p>
               </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-100">รายละเอียด</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -248,7 +253,7 @@ export default function EditHotelPage() {
                 <textarea
                   value={formData.description_th}
                   onChange={(e) => setFormData({ ...formData, description_th: e.target.value })}
-                  rows={3}
+                  rows={4}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 resize-none"
                   required
                 />
@@ -258,7 +263,7 @@ export default function EditHotelPage() {
                 <textarea
                   value={formData.description_en}
                   onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                  rows={3}
+                  rows={4}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 resize-none"
                   required
                 />
@@ -267,7 +272,7 @@ export default function EditHotelPage() {
           </div>
 
           {/* Pricing & Details */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-100">ราคาและรายละเอียด</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
@@ -295,6 +300,7 @@ export default function EditHotelPage() {
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400"
                   required
                 />
+                <p className="text-xs text-slate-500 mt-1">แนะนำให้ใส่ราคาก่อนส่วนลด (ถ้ามี)</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">ผู้เข้าพักสูงสุด *</label>
@@ -333,7 +339,7 @@ export default function EditHotelPage() {
           </div>
 
           {/* Amenities */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-100">สิ่งอำนวยความสะดวก</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -392,8 +398,9 @@ export default function EditHotelPage() {
           </div>
 
           {/* Images */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 mb-4">
-            <h2 className="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-100">รูปภาพ</h2>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-slate-700 mb-2">รูปภาพ</h2>
+            <p className="text-xs text-slate-500 mb-4">รองรับหลายรูปเพื่อใช้เป็นแกลเลอรีในหน้ารายละเอียด</p>
 
             <div className="mb-3">
               <ImageUpload
@@ -445,7 +452,7 @@ export default function EditHotelPage() {
           </div>
 
           {/* Status & Submit */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -473,6 +480,7 @@ export default function EditHotelPage() {
             </div>
           </div>
         </form>
+        </div>
       </main>
     </div>
   )
