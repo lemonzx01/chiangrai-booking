@@ -28,6 +28,9 @@ JWT_SECRET=your-jwt-secret-key-min-32-chars
 
 # App URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Email Service (Optional - สำหรับ Forgot Password)
+RESEND_API_KEY=re_your-resend-api-key
 ```
 
 ### วิธีที่ 2: ใช้ Terminal (PowerShell)
@@ -64,6 +67,14 @@ Get-Content .env.local
 
 ### 3. `NEXT_PUBLIC_APP_URL`
 - ควรเป็น: `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+
+### 4. `RESEND_API_KEY` (Optional)
+- **ไม่บังคับ** แต่แนะนำให้มีสำหรับ Forgot Password feature
+- ถ้าไม่มี: ระบบจะยังทำงานได้ แต่จะไม่ส่งอีเมล (จะ log warning)
+- วิธีสร้าง:
+  1. ไปที่ https://resend.com
+  2. สร้าง account และ API key
+  3. คัดลอก API key มาใส่ใน `.env.local`
 
 ---
 
@@ -109,6 +120,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # JWT Secret (ถ้ามี)
 JWT_SECRET=development-secret-key-12345678901234567890
+
+# Email Service (Optional - สำหรับ Forgot Password)
+# ถ้าไม่มี: ระบบจะยังทำงานได้ แต่จะไม่ส่งอีเมล
+RESEND_API_KEY=re_your-resend-api-key-here
 ```
 
 ---

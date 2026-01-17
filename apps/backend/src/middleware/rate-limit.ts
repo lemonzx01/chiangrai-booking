@@ -59,6 +59,11 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 30, // 30 requests
     windowMs: 60 * 1000, // 1 minute
   },
+  // Forgot password - จำกัดเพื่อป้องกัน spam
+  '/api/auth/forgot-password': {
+    maxRequests: 3, // 3 requests per email per hour
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests

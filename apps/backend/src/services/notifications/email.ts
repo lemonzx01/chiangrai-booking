@@ -75,7 +75,8 @@ export async function sendEmail(options: {
   const resend = getResend()
 
   if (!resend) {
-    console.log('Resend not configured, skipping email')
+    console.warn('[EMAIL] Resend not configured - RESEND_API_KEY is not set. Email will not be sent.')
+    console.warn('[EMAIL] To enable email service, set RESEND_API_KEY in .env.local')
     return null
   }
 
@@ -87,9 +88,29 @@ export async function sendEmail(options: {
       html: options.html,
     })
 
+    if (result.error) {
+      console.error('[EMAIL] Failed to send email:', {
+        to: options.to,
+        subject: options.subject,
+        error: result.error,
+      })
+      return null
+    }
+
+    console.log('[EMAIL] Email sent successfully:', {
+      to: options.to,
+      subject: options.subject,
+      emailId: result.data?.id || 'unknown',
+    })
+
     return result
-  } catch (error) {
-    console.error('Failed to send email:', error)
+  } catch (error: any) {
+    console.error('[EMAIL] Exception while sending email:', {
+      to: options.to,
+      subject: options.subject,
+      error: error?.message || String(error),
+      stack: error?.stack,
+    })
     return null
   }
 }
@@ -154,7 +175,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
 
   // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
   if (!resend) {
-    console.log('Resend not configured, skipping email')
+    console.warn('[EMAIL] Resend not configured, skipping booking confirmation email')
     return null
   }
 
@@ -186,9 +207,29 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
       `,
     })
 
+    if (result.error) {
+      console.error('[EMAIL] Failed to send booking confirmation:', {
+        bookingCode: data.bookingCode,
+        customerEmail: data.customerEmail,
+        error: result.error,
+      })
+      return null
+    }
+
+    console.log('[EMAIL] Booking confirmation sent:', {
+      bookingCode: data.bookingCode,
+      customerEmail: data.customerEmail,
+      emailId: result.data?.id || 'unknown',
+    })
+
     return result
-  } catch (error) {
-    console.error('Failed to send email:', error)
+  } catch (error: any) {
+    console.error('[EMAIL] Exception while sending booking confirmation:', {
+      bookingCode: data.bookingCode,
+      customerEmail: data.customerEmail,
+      error: error?.message || String(error),
+      stack: error?.stack,
+    })
     return null
   }
 }
@@ -223,7 +264,7 @@ export async function sendBookingStatusUpdateEmail(
 
   // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
   if (!resend) {
-    console.log('Resend not configured, skipping email')
+    console.warn('[EMAIL] Resend not configured, skipping booking status update email')
     return null
   }
 
@@ -243,9 +284,32 @@ export async function sendBookingStatusUpdateEmail(
       `,
     })
 
+    if (result.error) {
+      console.error('[EMAIL] Failed to send booking status update:', {
+        bookingCode,
+        email,
+        status,
+        error: result.error,
+      })
+      return null
+    }
+
+    console.log('[EMAIL] Booking status update sent:', {
+      bookingCode,
+      email,
+      status,
+      emailId: result.data?.id || 'unknown',
+    })
+
     return result
-  } catch (error) {
-    console.error('Failed to send email:', error)
+  } catch (error: any) {
+    console.error('[EMAIL] Exception while sending booking status update:', {
+      bookingCode,
+      email,
+      status,
+      error: error?.message || String(error),
+      stack: error?.stack,
+    })
     return null
   }
 }

@@ -47,6 +47,9 @@ import { sendEmail } from '../../../../services/notifications/email'
 /** ข้อมูล Mock */
 import { findMockUser, findMockAdmin } from '../../../../lib/mock-data'
 
+/** Rate limiting middleware */
+import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
+
 // ============================================================
 // POST Handler - ขอรีเซ็ตรหัสผ่าน
 // ============================================================
@@ -69,16 +72,47 @@ import { findMockUser, findMockAdmin } from '../../../../lib/mock-data'
  *   Body: { "email": "user@example.com" }
  */
 export async function POST(request: Request) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Forgot password called',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   try {
+    // ----------------------------------------------------------
+    // Rate Limiting - ป้องกัน spam
+    // ----------------------------------------------------------
+    const rateLimitResponse = rateLimitMiddleware(request, '/api/auth/forgot-password')
+    if (rateLimitResponse) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Rate limited',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': rateLimitResponse.headers.get('Retry-After') || '3600',
+          }
+        }
+      )
+    }
+
     // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { email } = body
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Email received',data:{emailLength:email?.length || 0,hasEmail:!!email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     // ----------------------------------------------------------
     // ตรวจสอบข้อมูลที่จำเป็น
     // ----------------------------------------------------------
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    }
+
+    // ตรวจสอบ email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
     }
 
     // ============================================================
@@ -152,38 +186,69 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     const userName = user?.name || admin?.name || 'User'
     
-    await sendEmail({
-      to: email,
-      subject: 'รีเซ็ตรหัสผ่าน - Got Journey Thailand',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">รีเซ็ตรหัสผ่าน</h1>
-          <p>สวัสดีคุณ ${userName},</p>
-          <p>คุณได้ขอรีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ</p>
-          <p>กรุณาคลิกลิงก์ด้านล่างเพื่อรีเซ็ตรหัสผ่าน:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-              รีเซ็ตรหัสผ่าน
-            </a>
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'รีเซ็ตรหัสผ่าน - Got Journey Thailand',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #4F46E5;">รีเซ็ตรหัสผ่าน</h1>
+            <p>สวัสดีคุณ ${userName},</p>
+            <p>คุณได้ขอรีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ</p>
+            <p>กรุณาคลิกลิงก์ด้านล่างเพื่อรีเซ็ตรหัสผ่าน:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                รีเซ็ตรหัสผ่าน
+              </a>
+            </div>
+            <p style="color: #6B7280; font-size: 14px;">
+              หรือคัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br>
+              <a href="${resetLink}" style="color: #4F46E5; word-break: break-all;">${resetLink}</a>
+            </p>
+            <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
+              ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง<br>
+              ถ้าคุณไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้
+            </p>
+            <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
+              นี่เป็นอีเมลอัตโนมัติ กรุณาอย่าตอบกลับ
+            </p>
           </div>
-          <p style="color: #6B7280; font-size: 14px;">
-            หรือคัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br>
-            <a href="${resetLink}" style="color: #4F46E5; word-break: break-all;">${resetLink}</a>
-          </p>
-          <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
-            ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง<br>
-            ถ้าคุณไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้
-          </p>
-          <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
-            นี่เป็นอีเมลอัตโนมัติ กรุณาอย่าตอบกลับ
-          </p>
-        </div>
-      `,
-    })
+        `,
+      })
+
+      // ตรวจสอบผลการส่งอีเมล
+      if (!emailResult) {
+        console.error('[ERROR] Failed to send password reset email:', {
+          email,
+          reason: 'Email service returned null (RESEND_API_KEY may not be set)',
+        })
+        // ยังคง return success เพื่อความปลอดภัย (ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่)
+        // แต่ log error เพื่อให้ admin รู้
+      } else {
+        console.log('[INFO] Password reset email sent successfully:', {
+          email,
+          emailId: emailResult.id || 'unknown',
+        })
+      }
+    } catch (emailError: any) {
+      console.error('[ERROR] Exception while sending password reset email:', {
+        email,
+        error: emailError?.message || String(emailError),
+        stack: emailError?.stack,
+      })
+      // ยังคง return success เพื่อความปลอดภัย
+      // แต่ log error เพื่อให้ admin รู้
+    }
 
     // ----------------------------------------------------------
     // Return Success (ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่)
     // ----------------------------------------------------------
+    // หมายเหตุ: เรายังคง return success แม้ว่าอีเมลจะส่งไม่สำเร็จ
+    // เพื่อความปลอดภัย (ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่)
+    // แต่ error จะถูก log ไว้ใน server logs
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Forgot password success',data:{hasUser:!!user,hasAdmin:!!admin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     return NextResponse.json({
       message: 'If the email exists, a password reset link has been sent.',
     })

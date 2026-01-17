@@ -66,10 +66,16 @@ import { getJwtSecret, isMockMode } from '../../../../lib/auth'
  *   Body: { "token": "jwt-token-here", "password": "newpassword123" }
  */
 export async function POST(request: Request) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/reset-password/route.ts:POST',message:'Reset password called',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+  // #endregion
   try {
     // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { token, password } = body
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/reset-password/route.ts:POST',message:'Reset password data',data:{hasToken:!!token,tokenLength:token?.length || 0,hasPassword:!!password,passwordLength:password?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
 
     // ----------------------------------------------------------
     // ตรวจสอบข้อมูลที่จำเป็น
@@ -179,6 +185,9 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // Return Success
     // ----------------------------------------------------------
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/reset-password/route.ts:POST',message:'Reset password success',data:{hasAdmin:!!admin,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     return NextResponse.json({
       message: 'Password has been reset successfully.',
     })
