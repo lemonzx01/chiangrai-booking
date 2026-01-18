@@ -19,6 +19,8 @@ import bcrypt from 'bcryptjs'
 import { isMockMode } from '../auth'
 import { findMockUser, findMockAdmin } from '../mock-data'
 
+import { createToken } from '../auth'
+
 /**
  * NextAuth Configuration
  */
@@ -233,12 +235,19 @@ const authOptions = {
       // #endregion
       // เมื่อ login ครั้งแรก (Google OAuth)
       if (account?.provider === 'google' && profile) {
+        console.log('[DEBUG] Google OAuth login - profile:', {
+          email: profile.email,
+          name: profile.name,
+          sub: profile.sub,
+        })
+        
         const supabase = await createAdminClient()
         
         // หา user จาก google_id หรือ email
         let dbUser = null
         
         if (isMockMode()) {
+          console.log('[DEBUG] Running in Mock Mode')
           // Mock mode - สร้าง user ใหม่หรือหา user ที่มีอยู่
           // ใน mock mode เราจะสร้าง user ใหม่ทุกครั้ง
           dbUser = {
@@ -249,18 +258,51 @@ const authOptions = {
             google_id: profile.sub,
           }
         } else {
+          console.log('[DEBUG] Running in Production Mode - checking database')
+          
           // Production mode - หา user จาก database
-          const { data: existingUser } = await supabase
+          // ลองหาจาก google_id ก่อน
+          let existingUser = null
+          
+          const { data: userByGoogleId, error: googleIdError } = await supabase
             .from('users')
             .select('*')
-            .or(`google_id.eq.${profile.sub},email.eq.${profile.email}`)
+            .eq('google_id', profile.sub)
             .single()
+          
+          if (userByGoogleId) {
+            console.log('[DEBUG] Found user by google_id:', userByGoogleId.id)
+            existingUser = userByGoogleId
+          } else {
+            // ถ้าไม่พบจาก google_id ลองหาจาก email
+            const { data: userByEmail, error: emailError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('email', profile.email)
+              .single()
+            
+            if (userByEmail) {
+              console.log('[DEBUG] Found user by email:', userByEmail.id)
+              // อัพเดท google_id ให้ user ที่มีอยู่
+              const { data: updatedUser, error: updateError } = await supabase
+                .from('users')
+                .update({ google_id: profile.sub })
+                .eq('id', userByEmail.id)
+                .select()
+                .single()
+              
+              if (updateError) {
+                console.error('[ERROR] Failed to update google_id:', updateError)
+              }
+              existingUser = updatedUser || userByEmail
+            }
+          }
 
           if (existingUser) {
             dbUser = existingUser
           } else {
+            console.log('[DEBUG] Creating new user for:', profile.email)
             // สร้าง user ใหม่ถ้ายังไม่มี
-            // Note: password_hash is required in Insert type but nullable in database
             const { data: newUser, error } = await supabase
               .from('users')
               .insert({
@@ -268,25 +310,43 @@ const authOptions = {
                 name: profile.name || '',
                 google_id: profile.sub,
                 role: 'user',
-                password_hash: '', // Empty string for Google OAuth users (nullable in DB)
-              } as any)
+                is_active: true,
+              })
               .select()
               .single()
 
             if (error) {
-              console.error('Error creating user:', error)
+              console.error('[ERROR] Error creating user:', error)
+              // ถึงแม้ insert ล้มเหลว ให้ return token พร้อมข้อมูลจาก profile
+              token.email = profile.email
+              token.name = profile.name
+              token.role = 'user'
               return token
             }
 
+            console.log('[DEBUG] Created new user:', newUser?.id)
             dbUser = newUser
           }
         }
 
         // เพิ่มข้อมูล user ใน token
-        token.id = dbUser.id
-        token.email = dbUser.email
-        token.name = dbUser.name
-        token.role = dbUser.role || 'user'
+        if (dbUser) {
+          token.id = dbUser.id
+          token.email = dbUser.email
+          token.name = dbUser.name
+          token.role = dbUser.role || 'user'
+          
+          // สร้าง user_token JWT สำหรับ frontend
+          const userToken = await createToken({
+            sub: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            role: dbUser.role || 'user',
+          }, '7d')
+          token.userToken = userToken
+          
+          console.log('[DEBUG] Token updated with user info:', { id: dbUser.id, role: dbUser.role })
+        }
       }
 
       // เมื่อ login ด้วย credentials
@@ -313,11 +373,29 @@ const authOptions = {
       }
       return session
     },
+
+    /**
+     * Redirect Callback - redirect ไป set-session เพื่อสร้าง user_token cookie
+     */
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      // หลัง OAuth login สำเร็จ → ไปที่ set-session เพื่อสร้าง user_token cookie
+      // set-session จะดึง session แล้ว redirect ไป frontend
+      const setSessionUrl = `${baseUrl}/api/auth/set-session`
+      
+      // ถ้ากำลัง signout ให้ไป frontend home
+      if (url.includes('signout') || url.includes('logout')) {
+        return 'http://localhost:3000'
+      }
+      
+      // ถ้าเป็น signin หรือ callback ให้ไป set-session
+      return setSessionUrl
+    },
   },
 
   pages: {
-    signIn: '/login',
-    error: '/login',
+    // Redirect ไป frontend (port 3000) เพราะ backend เป็น API-only
+    signIn: 'http://localhost:3000/login',
+    error: 'http://localhost:3000/login',
   },
 
   // NextAuth base URL configuration
