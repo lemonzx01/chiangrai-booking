@@ -73,29 +73,23 @@ function GoogleLoginButton({ callbackUrl, loading, setLoading, lang }: GoogleLog
   const handleGoogleLogin = async () => {
     setLoading(true)
     
-    // Get backend URL
-    const backendUrl = typeof window !== 'undefined' 
-      ? (window.location.hostname === 'localhost' 
-          ? 'http://localhost:3001' 
-          : window.location.origin.replace(':3000', ':3001'))
-      : 'http://localhost:3001'
-    
-    // Frontend URL for callback
-    const frontendUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
-    const fullCallbackUrl = `${frontendUrl}${callbackUrl}`
+    // ใช้ origin เดียวกับ frontend เพื่อให้ proxy rewrites ทำงาน
+    // rewrites จะ forward /api/* ไปยัง backend อัตโนมัติ
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const fullCallbackUrl = `${baseUrl}${callbackUrl}`
     
     try {
-      // First, get CSRF token from NextAuth
-      const csrfResponse = await fetch(`${backendUrl}/api/auth/csrf`, {
+      // First, get CSRF token from NextAuth (ผ่าน proxy)
+      const csrfResponse = await fetch(`${baseUrl}/api/auth/csrf`, {
         credentials: 'include',
       })
       const csrfData = await csrfResponse.json()
       const csrfToken = csrfData.csrfToken
       
-      // Create a hidden form and submit it
+      // Create a hidden form and submit it (ผ่าน proxy)
       const form = document.createElement('form')
       form.method = 'POST'
-      form.action = `${backendUrl}/api/auth/signin/google`
+      form.action = `${baseUrl}/api/auth/signin/google`
       form.style.display = 'none'
       
       // Add CSRF token
