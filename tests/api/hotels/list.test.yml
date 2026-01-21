@@ -1,0 +1,72 @@
+# Hotels API - List Tests
+# Tests for GET /api/hotels endpoint
+
+name: Hotels List Tests
+description: Test hotel listing and filtering functionality
+
+tests:
+  - name: List Hotels - Success
+    description: Test successful retrieval of hotel list
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/hotels
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data
+        type: array
+      - type: json_path
+        path: $.data[0].id
+        exists: true
+      - type: json_path
+        path: $.data[0].name
+        exists: true
+      - type: response_time
+        max: 3000
+
+  - name: List Hotels - With Pagination
+    description: Test hotel list with limit and offset
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/hotels?limit=5&offset=0
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data
+        type: array
+        max_length: 5
+
+  - name: List Hotels - Filter by Location
+    description: Test filtering hotels by location
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/hotels?location=Chiang Rai
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data[*].location
+        all_contain: Chiang Rai
+
+  - name: List Hotels - Empty Result
+    description: Test hotel list with filter that returns no results
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/hotels?location=NonexistentLocation
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data
+        type: array
+        length: 0

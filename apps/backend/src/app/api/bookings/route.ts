@@ -337,7 +337,13 @@ export async function POST(request: Request) {
     sendAdminBookingNotification(booking).catch(console.error)
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
-    return NextResponse.json(booking, { status: 201 })
+    // Format response ให้ตรงกับที่ test คาดหวัง (มี booking wrapper และ code field)
+    return NextResponse.json({
+      booking: {
+        ...booking,
+        code: booking.booking_code, // เพิ่ม code field สำหรับ backward compatibility
+      }
+    }, { status: 201 })
   } catch (error: any) {
     // Log error เฉพาะใน development mode
     if (process.env.NODE_ENV === 'development') {

@@ -131,9 +131,11 @@ export async function GET(request: Request) {
     // ส่งกลับข้อมูลพร้อม pagination info
     return NextResponse.json({
       data,
-      total: count,
-      limit,
-      offset,
+      pagination: {
+        limit,
+        offset,
+        total: count || 0,
+      },
     })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

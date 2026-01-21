@@ -1,0 +1,78 @@
+# TestSprite Configuration
+# Configuration for Chiangrai Booking System test suite
+
+name: chiangrai-booking-tests
+version: 1.0.0
+
+# Test Environment Configuration
+environments:
+  development:
+    backend_url: http://localhost:3001
+    frontend_url: http://localhost:3000
+    mock_mode: true
+    
+  staging:
+    backend_url: https://staging-api.example.com
+    frontend_url: https://staging.example.com
+    mock_mode: false
+    
+  production:
+    backend_url: https://api.example.com
+    frontend_url: https://www.example.com
+    mock_mode: false
+
+# Default Environment
+default_environment: development
+
+# Test Credentials
+credentials:
+  admin:
+    email: admin@gotjourneythailand.com
+    password: admin123
+    role: admin
+    
+  user:
+    email: user@example.com
+    password: user123
+    role: user
+    
+  partner:
+    email: hotel@example.com
+    password: user123
+    role: partner
+
+# Test Data
+test_data:
+  hotel:
+    name: "Test Hotel"
+    location: "Chiang Rai"
+    description: "A beautiful test hotel"
+    
+  car:
+    name: "Test Car"
+    brand: "Toyota"
+    model: "Camry"
+    price_per_day: 1500
+    
+  booking:
+    check_in: "2024-12-25"
+    check_out: "2024-12-27"
+    guests: 2
+
+# Request Configuration
+request:
+  timeout: 30000  # 30 seconds
+  retries: 3
+  retry_delay: 1000  # 1 second
+  
+# Assertions
+assertions:
+  response_time_max: 5000  # 5 seconds max response time
+  status_code_strict: true
+  
+# Reporting
+reporting:
+  format: json
+  output_dir: tests/reports
+  include_request_body: true
+  include_response_body: true

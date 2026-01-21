@@ -92,26 +92,93 @@ export async function GET(request: Request, { params }: Params) {
           '',
       }
 
-      return NextResponse.json(normalizedHotel)
+      // สร้าง mock room_types สำหรับ hotel
+      // Generate UUID-like ID for room_type (format: 8-4-4-4-12)
+      const generateMockUUID = (prefix: string) => {
+        const cleanPrefix = prefix.replace(/-/g, '').substring(0, 20)
+        const parts = [
+          cleanPrefix.padEnd(8, '0').substring(0, 8),
+          '0000',
+          '4000',
+          '8000',
+          cleanPrefix.padEnd(12, '0').substring(0, 12)
+        ]
+        return parts.join('-')
+      }
+      const mockRoomTypes = [
+        {
+          id: generateMockUUID(id),
+          hotel_id: id,
+          name_th: (mockHotel as any).room_type_th || 'ห้องมาตรฐาน',
+          name_en: (mockHotel as any).room_type_en || 'Standard Room',
+          price_per_night: mockHotel.price_per_night,
+          max_guests: mockHotel.max_guests,
+          is_active: true,
+          created_at: mockHotel.created_at,
+          updated_at: mockHotel.created_at,
+        },
+      ]
+
+      return NextResponse.json({
+        hotel: normalizedHotel,
+        room_types: mockRoomTypes,
+      })
     }
 
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     // ----------------------------------------------------------
-    // ดึงข้อมูลโรงแรม
+    // ดึงข้อมูลโรงแรมพร้อม room_types
     // ----------------------------------------------------------
-    const { data, error } = await supabase
+    const { data: hotel, error: hotelError } = await supabase
       .from('hotels')
       .select('*')
       .eq('id', id)
-      .single() // คืนค่าเป็น object เดียว (ไม่ใช่ array)
+      .single()
 
     // ตรวจสอบ Error (รวมถึงกรณีไม่พบข้อมูล)
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 404 })
+    if (hotelError || !hotel) {
+      return NextResponse.json({ error: 'Hotel not found' }, { status: 404 })
     }
 
-    return NextResponse.json(data)
+    // ดึง room_types สำหรับ hotel นี้
+    const { data: roomTypes, error: roomTypesError } = await supabase
+      .from('room_types')
+      .select('*')
+      .eq('hotel_id', id)
+      .eq('is_active', true)
+
+    // ถ้าไม่มี room_types ให้สร้าง default room type จาก hotel data
+    // Generate UUID-like ID for room_type (format: 8-4-4-4-12)
+    const generateMockUUID = (prefix: string) => {
+      const hex = '0123456789abcdef'
+      const parts = [
+        prefix.replace(/-/g, '').padEnd(8, '0').substring(0, 8),
+        '0000',
+        '4000',
+        '8000',
+        prefix.replace(/-/g, '').padEnd(12, '0').substring(0, 12)
+      ]
+      return parts.join('-')
+    }
+    const finalRoomTypes = roomTypes && roomTypes.length > 0 
+      ? roomTypes 
+      : [{
+          id: generateMockUUID(id),
+          hotel_id: id,
+          name_th: hotel.name_th || 'ห้องมาตรฐาน',
+          name_en: hotel.name_en || 'Standard Room',
+          price_per_night: hotel.price_per_night || hotel.base_price_per_night || 0,
+          max_guests: hotel.max_guests || 2,
+          is_active: true,
+          created_at: hotel.created_at,
+          updated_at: hotel.updated_at,
+        }]
+
+    return NextResponse.json({
+      hotel,
+      room_types: finalRoomTypes,
+    })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

@@ -150,7 +150,7 @@ export async function POST(request: Request) {
       if (existingUser) {
         return NextResponse.json(
           { error: 'อีเมลนี้ถูกใช้งานแล้ว' },
-          { status: 400 }
+          { status: 409 }
         )
       }
 
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: 'อีเมลนี้ถูกใช้งานแล้ว' },
-        { status: 400 }
+        { status: 409 }
       )
     }
 

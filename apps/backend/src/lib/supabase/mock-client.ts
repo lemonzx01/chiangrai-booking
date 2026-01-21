@@ -2,6 +2,7 @@ import {
   MOCK_ADMINS,
   MOCK_BOOKINGS,
   MOCK_PAYMENTS,
+  MOCK_USERS,
 } from '../mock-data'
 import { MOCK_HOTELS, MOCK_CARS } from '../constants'
 
@@ -12,6 +13,7 @@ const mockCars = [...MOCK_CARS]
 const mockBookings = [...MOCK_BOOKINGS]
 const mockPayments = [...MOCK_PAYMENTS]
 const mockAdmins = [...MOCK_ADMINS]
+const mockUsers = [...MOCK_USERS]
 
 
 // Helper to build query chain for mock data
@@ -137,6 +139,9 @@ export function createMockSupabaseClient() {
         case 'admins':
           tableData = mockAdmins
           break
+        case 'users':
+          tableData = mockUsers
+          break
         case 'hotels':
           tableData = mockHotels
           break
@@ -148,6 +153,31 @@ export function createMockSupabaseClient() {
           break
         case 'payments':
           tableData = mockPayments
+          break
+        case 'room_types':
+          // Generate room_types from hotels with UUID format
+          const generateMockUUID = (prefix: string) => {
+            const cleanPrefix = prefix.replace(/-/g, '').substring(0, 20)
+            const parts = [
+              cleanPrefix.padEnd(8, '0').substring(0, 8),
+              '0000',
+              '4000',
+              '8000',
+              cleanPrefix.padEnd(12, '0').substring(0, 12)
+            ]
+            return parts.join('-')
+          }
+          tableData = mockHotels.map((hotel, index) => ({
+            id: generateMockUUID(hotel.id),
+            hotel_id: hotel.id,
+            name_th: (hotel as any).room_type_th || 'ห้องมาตรฐาน',
+            name_en: (hotel as any).room_type_en || 'Standard Room',
+            price_per_night: hotel.price_per_night,
+            max_guests: hotel.max_guests,
+            is_active: true,
+            created_at: hotel.created_at,
+            updated_at: hotel.created_at,
+          }))
           break
         default:
           tableData = []
@@ -269,6 +299,12 @@ export function createMockSupabaseClient() {
                 case 'admins':
                   mockAdmins.push(inserted)
                   break
+                case 'users':
+                  mockUsers.push(inserted)
+                  break
+                case 'room_types':
+                  // Room types are generated dynamically, so we don't store them
+                  break
               }
               
               return {
@@ -299,6 +335,9 @@ export function createMockSupabaseClient() {
                   break
                 case 'admins':
                   targetArray = mockAdmins
+                  break
+                case 'users':
+                  targetArray = mockUsers
                   break
               }
               
@@ -340,6 +379,9 @@ export function createMockSupabaseClient() {
                   break
                 case 'admins':
                   targetArray = mockAdmins
+                  break
+                case 'users':
+                  targetArray = mockUsers
                   break
               }
               

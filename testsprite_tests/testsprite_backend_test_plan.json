@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "list_hotels_pagination_and_filtering",
+    "description": "Test the GET /api/hotels endpoint to verify it returns a paginated list of active hotels and supports filtering by location parameter correctly."
+  },
+  {
+    "id": "TC002",
+    "title": "get_hotel_details_by_id",
+    "description": "Test the GET /api/hotels/{id} endpoint to ensure it returns detailed information about a specific hotel including room types, and returns 404 for non-existent hotel IDs."
+  },
+  {
+    "id": "TC003",
+    "title": "list_cars_pagination_and_filtering",
+    "description": "Test the GET /api/cars endpoint to verify it returns a paginated list of active rental cars and supports filtering by car_type parameter correctly."
+  },
+  {
+    "id": "TC004",
+    "title": "get_car_details_by_id",
+    "description": "Test the GET /api/cars/{id} endpoint to ensure it returns detailed information about a specific car and returns 404 for non-existent car IDs."
+  },
+  {
+    "id": "TC005",
+    "title": "user_login_with_email_and_password",
+    "description": "Test the POST /api/auth/login endpoint to verify user and admin authentication with email and password, returning JWT token in HttpOnly cookie, and handling invalid credentials and missing fields."
+  },
+  {
+    "id": "TC006",
+    "title": "user_registration_with_validation",
+    "description": "Test the POST /api/auth/register endpoint to verify new user registration with email, password (minimum 8 characters), and name, including validation errors and duplicate email handling."
+  },
+  {
+    "id": "TC007",
+    "title": "google_oauth_authentication_flow",
+    "description": "Test the GET /api/auth/signin/google and /api/auth/callback/google endpoints to verify the Google OAuth authentication flow including redirection and callback handling."
+  },
+  {
+    "id": "TC008",
+    "title": "create_booking_with_validation_and_price_calculation",
+    "description": "Test the POST /api/bookings endpoint to verify booking creation for hotels or cars with validation of input data, correct total price calculation, unique booking code generation, and authentication enforcement."
+  },
+  {
+    "id": "TC009",
+    "title": "create_stripe_checkout_session",
+    "description": "Test the POST /api/checkout endpoint to verify creation of Stripe Checkout session for payment processing, supporting multiple payment methods and currencies, and handling validation errors and booking not found cases."
+  },
+  {
+    "id": "TC010",
+    "title": "stripe_webhook_event_handling",
+    "description": "Test the POST /api/webhook/stripe endpoint to verify handling of Stripe webhook events for payment status updates, including validation of webhook signatures and error handling for invalid webhooks."
+  }
+]

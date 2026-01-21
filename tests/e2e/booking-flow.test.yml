@@ -1,0 +1,112 @@
+# End-to-End Booking Flow Test
+# Complete user journey from hotel selection to booking confirmation
+
+name: Complete Booking Flow
+description: Test the complete booking flow from start to finish
+
+tests:
+  - name: Complete Booking Journey
+    description: Full flow: List hotels → View hotel → Create booking → Checkout
+    steps:
+      # Step 1: List available hotels
+      - name: List Hotels
+        request:
+          method: GET
+          url: ${BACKEND_URL}/api/hotels
+        extract:
+          json_path: $.data[0].id
+          variable: hotel_id
+        assertions:
+          - type: status_code
+            expected: 200
+
+      # Step 2: Get hotel details
+      - name: Get Hotel Details
+        request:
+          method: GET
+          url: ${BACKEND_URL}/api/hotels/${hotel_id}
+        extract:
+          json_path: $.hotel.room_types[0].id
+          variable: room_type_id
+        assertions:
+          - type: status_code
+            expected: 200
+          - type: json_path
+            path: $.hotel.id
+            expected: ${hotel_id}
+
+      # Step 3: Login as user
+      - name: Login User
+        request:
+          method: POST
+          url: ${BACKEND_URL}/api/auth/login
+          headers:
+            Content-Type: application/json
+          body:
+            email: ${TEST_USER_EMAIL}
+            password: ${TEST_USER_PASSWORD}
+        extract:
+          cookie: user_token
+          variable: auth_cookie
+        assertions:
+          - type: status_code
+            expected: 200
+
+      # Step 4: Create booking
+      - name: Create Booking
+        request:
+          method: POST
+          url: ${BACKEND_URL}/api/bookings
+          headers:
+            Content-Type: application/json
+            Cookie: ${auth_cookie}
+          body:
+            hotel_id: ${hotel_id}
+            room_type_id: ${room_type_id}
+            check_in: "2024-12-25"
+            check_out: "2024-12-27"
+            guests: 2
+            guest_name: "Test User"
+            guest_email: ${TEST_USER_EMAIL}
+            guest_phone: "0812345678"
+        extract:
+          json_path: $.booking.code
+          variable: booking_code
+        assertions:
+          - type: status_code
+            expected: 201
+          - type: json_path
+            path: $.booking.status
+            expected: PENDING
+
+      # Step 5: Get booking details
+      - name: Get Booking Details
+        request:
+          method: GET
+          url: ${BACKEND_URL}/api/bookings/${booking_code}
+        assertions:
+          - type: status_code
+            expected: 200
+          - type: json_path
+            path: $.booking.code
+            expected: ${booking_code}
+          - type: json_path
+            path: $.booking.status
+            expected: PENDING
+
+      # Step 6: Create checkout session (if payment is enabled)
+      - name: Create Checkout Session
+        request:
+          method: POST
+          url: ${BACKEND_URL}/api/checkout
+          headers:
+            Content-Type: application/json
+            Cookie: ${auth_cookie}
+          body:
+            booking_code: ${booking_code}
+        assertions:
+          - type: status_code
+            expected: 200
+          - type: json_path
+            path: $.session_url
+            exists: true

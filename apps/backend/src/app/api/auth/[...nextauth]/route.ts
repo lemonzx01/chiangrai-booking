@@ -43,6 +43,22 @@ export async function GET(request: Request) {
   console.log('[DEBUG] NextAuth GET request:', { pathname, search, isSigninGoogle, isCallback, origin: url.origin, host: url.host })
   fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/[...nextauth]/route.ts:GET',message:'NextAuth GET called',data:{pathname,search,isSigninGoogle,isCallback,hasHandlers:!!handlers,hasGet:!!handlers?.GET,origin:url.origin,host:url.host},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
+  
+  // Handle Google OAuth signin when credentials are missing
+  if (isSigninGoogle && (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)) {
+    console.error('[ERROR] Google OAuth signin attempted but credentials are missing')
+    return new Response(
+      JSON.stringify({ 
+        error: 'Google OAuth is not configured',
+        message: 'GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables'
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
+  }
+  
   try {
     const response = await handlers.GET(request)
     // #region agent log

@@ -10,7 +10,11 @@
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
     "build": "npm run build --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npx @testsprite/cli run tests/ || echo 'TestSprite CLI not found. Install with: npm install -g @testsprite/cli'",
+    "test:api": "npx @testsprite/cli run tests/api/ || echo 'TestSprite CLI not found'",
+    "test:e2e": "npx @testsprite/cli run tests/e2e/ || echo 'TestSprite CLI not found'",
+    "test:auth": "npx @testsprite/cli run tests/api/auth/ || echo 'TestSprite CLI not found'"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

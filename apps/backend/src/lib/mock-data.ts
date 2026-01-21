@@ -8,7 +8,7 @@ export const MOCK_ADMINS: Admin[] = [
   {
     id: 'mock-admin-1',
     email: 'admin@gotjourneythailand.com',
-    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    password_hash: '$2b$10$.Vgi5RAg0fL4fDICUI09e.FOqJC59dyVNfk71aKGf1aPFMNKNIaX2', // admin123
     name: 'Admin User',
     role: 'admin',
     is_active: true,
@@ -24,7 +24,7 @@ export const MOCK_USERS: User[] = [
   {
     id: 'mock-user-1',
     email: 'user@example.com',
-    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS', // user123
     name: 'ผู้ใช้ทดสอบ',
     role: 'user',
     phone: '+66 81 234 5678',
@@ -36,7 +36,7 @@ export const MOCK_USERS: User[] = [
   {
     id: 'mock-partner-hotel-1',
     email: 'hotel@example.com',
-    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS', // user123
     name: 'โรงแรมพาร์ทเนอร์',
     role: 'partner',
     phone: '+66 82 345 6789',
@@ -48,7 +48,7 @@ export const MOCK_USERS: User[] = [
   {
     id: 'mock-partner-car-1',
     email: 'driver@example.com',
-    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS', // user123
     name: 'คนขับรถพาร์ทเนอร์',
     role: 'partner',
     phone: '+66 83 456 7890',
@@ -60,7 +60,7 @@ export const MOCK_USERS: User[] = [
   {
     id: 'mock-partner-1',
     email: 'partner@example.com',
-    password_hash: '$2b$10$lPt1AdU6oNLOjRAUACyK1OAdyxixtcOR3ZrsrbRC/MfuIYaXoZt6K',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS', // user123
     name: 'พาร์ทเนอร์ทดสอบ',
     role: 'partner',
     phone: '+66 84 567 8901',

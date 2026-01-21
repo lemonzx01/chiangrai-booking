@@ -1,0 +1,74 @@
+# Cars API - List Tests
+# Tests for GET /api/cars endpoint
+
+name: Cars List Tests
+description: Test car listing and filtering functionality
+
+tests:
+  - name: List Cars - Success
+    description: Test successful retrieval of car list
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/cars
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data
+        type: array
+      - type: json_path
+        path: $.data[0].id
+        exists: true
+      - type: json_path
+        path: $.data[0].name
+        exists: true
+      - type: response_time
+        max: 3000
+
+  - name: List Cars - With Pagination
+    description: Test car list with limit and offset
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/cars?limit=5&offset=0
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.data
+        type: array
+        max_length: 5
+
+  - name: Get Car Details - Success
+    description: Test retrieving individual car details
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/cars/mock-car-1
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 200
+      - type: json_path
+        path: $.car.id
+        exists: true
+      - type: json_path
+        path: $.car.name
+        exists: true
+      - type: json_path
+        path: $.car.price_per_day
+        type: number
+
+  - name: Get Car Details - Not Found
+    description: Test retrieving non-existent car
+    request:
+      method: GET
+      url: ${BACKEND_URL}/api/cars/nonexistent-car-id
+      headers:
+        Accept: application/json
+    assertions:
+      - type: status_code
+        expected: 404

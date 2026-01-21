@@ -60,10 +60,17 @@
 
 ## 🎯 Quick Start
 
-1. อ่าน [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) เพื่อตั้งค่า Google OAuth
-2. ถ้ามีปัญหา redirect_uri_mismatch → ดู [FIX_CALLBACK_URL.md](./FIX_CALLBACK_URL.md)
-3. สำหรับรายละเอียดการใช้งาน → ดู [GOOGLE_LOGIN_GUIDE.md](./GOOGLE_LOGIN_GUIDE.md)
-4. สำหรับ Forgot Password → ตั้งค่า `RESEND_API_KEY` (optional)
+1. **เริ่มต้น:** อ่าน [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) เพื่อตั้งค่า Google OAuth (แนะนำ)
+2. **รายละเอียด:** สำหรับรายละเอียดการใช้งาน → ดู [GOOGLE_LOGIN_GUIDE.md](./GOOGLE_LOGIN_GUIDE.md)
+3. **แก้ปัญหา:** ถ้ามีปัญหา redirect_uri_mismatch → ดู [FIX_CALLBACK_URL.md](./FIX_CALLBACK_URL.md)
+4. **Forgot Password:** ตั้งค่า `RESEND_API_KEY` (optional)
+
+## ⚠️ TestSprite Test TC007
+
+- **สถานะ:** ⚠️ ต้อง configure Google OAuth credentials
+- **Test:** TC007 - Google OAuth (500 Error → ต้อง configure)
+- **วิธีแก้ไข:** ดู [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)
+- **หมายเหตุ:** Google OAuth เป็น optional feature - ถ้าไม่ต้องการใช้ก็ไม่จำเป็นต้อง configure
 
 ## 🐛 Troubleshooting
 

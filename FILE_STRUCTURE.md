@@ -1,17 +1,42 @@
 # Got Journey Thailand - File Structure Guide
 
+**อัพเดทล่าสุด:** โครงสร้าง Monorepo - แยก Frontend และ Backend
+
 ## โครงสร้างโฟลเดอร์หลัก
 
 ```
-src/
-├── app/                    # หน้าเว็บทั้งหมด (Next.js App Router)
-├── components/             # Components ที่ใช้ซ้ำได้
-├── hooks/                  # Custom React Hooks
-├── i18n/                   # ไฟล์ภาษา (ไทย/อังกฤษ)
-├── lib/                    # Utilities และ Config
-├── services/               # Services (Email, Line)
-├── styles/                 # CSS เพิ่มเติม
-└── types/                  # TypeScript Types
+chiangrai-booking/
+├── apps/
+│   ├── backend/            # Backend API (Next.js API Routes)
+│   │   ├── src/
+│   │   │   ├── app/
+│   │   │   │   └── api/    # API endpoints
+│   │   │   ├── lib/        # Utilities, auth, validations
+│   │   │   └── services/   # Email, notifications
+│   │   └── .env.local      # Environment variables
+│   │
+│   └── frontend/           # Frontend (Next.js App Router)
+│       ├── src/
+│       │   ├── app/        # Pages (frontend, admin, partner)
+│       │   ├── components/ # React components
+│       │   ├── hooks/      # Custom hooks
+│       │   ├── lib/        # API client, utils
+│       │   └── i18n/       # Translations
+│       └── .env.local
+│
+├── packages/
+│   └── shared/             # Shared types & utilities
+│       ├── types/          # TypeScript types
+│       └── utils.ts
+│
+├── supabase/
+│   ├── schema.sql          # Database schema
+│   ├── migrations/         # Database migrations
+│   └── seed-data.sql       # Seed data
+│
+├── docs/                   # Documentation
+├── testsprite_tests/       # TestSprite test files
+└── tests/                  # Test files
 ```
 
 ---
@@ -22,25 +47,26 @@ src/
 
 | หน้า | ไฟล์ | URL |
 |------|------|-----|
-| **หน้าแรก** | `src/app/(frontend)/page.tsx` | `/` |
-| **หน้าแรก (Client)** | `src/app/(frontend)/HomeClient.tsx` | `/` |
-| **แพ็คเกจทริป** | `src/app/(frontend)/hotels/page.tsx` | `/hotels` |
-| **รายละเอียดแพ็คเกจ** | `src/app/(frontend)/hotels/[id]/page.tsx` | `/hotels/[id]` |
-| **รถเช่า** | `src/app/(frontend)/cars/page.tsx` | `/cars` |
-| **รายละเอียดรถ** | `src/app/(frontend)/cars/[id]/page.tsx` | `/cars/[id]` |
-| **ติดต่อเรา** | `src/app/(frontend)/contact/page.tsx` | `/contact` |
-| **จองสินค้า** | `src/app/(frontend)/booking/page.tsx` | `/booking` |
-| **จองสำเร็จ** | `src/app/(frontend)/success/page.tsx` | `/success` |
+| **หน้าแรก** | `apps/frontend/src/app/(frontend)/page.tsx` | `/` |
+| **หน้าแรก (Client)** | `apps/frontend/src/app/(frontend)/HomeClient.tsx` | `/` |
+| **แพ็คเกจทริป** | `apps/frontend/src/app/(frontend)/hotels/page.tsx` | `/hotels` |
+| **รายละเอียดแพ็คเกจ** | `apps/frontend/src/app/(frontend)/hotels/[id]/page.tsx` | `/hotels/[id]` |
+| **รถเช่า** | `apps/frontend/src/app/(frontend)/cars/page.tsx` | `/cars` |
+| **รายละเอียดรถ** | `apps/frontend/src/app/(frontend)/cars/[id]/page.tsx` | `/cars/[id]` |
+| **ติดต่อเรา** | `apps/frontend/src/app/(frontend)/contact/page.tsx` | `/contact` |
+| **จองสินค้า** | `apps/frontend/src/app/(frontend)/booking/page.tsx` | `/booking` |
+| **จองสำเร็จ** | `apps/frontend/src/app/(frontend)/success/page.tsx` | `/success` |
 
 ### Admin (หน้าสำหรับแอดมิน)
 
 | หน้า | ไฟล์ | URL |
 |------|------|-----|
-| **Login** | `src/app/(admin)/admin/login/page.tsx` | `/admin/login` |
-| **Dashboard** | `src/app/(admin)/admin/dashboard/page.tsx` | `/admin/dashboard` |
-| **จัดการแพ็คเกจ** | `src/app/(admin)/admin/hotels/page.tsx` | `/admin/hotels` |
-| **จัดการรถ** | `src/app/(admin)/admin/cars/page.tsx` | `/admin/cars` |
-| **จัดการการจอง** | `src/app/(admin)/admin/bookings/page.tsx` | `/admin/bookings` |
+| **Login** | `apps/frontend/src/app/(admin)/admin/login/page.tsx` | `/admin/login` |
+| **Dashboard** | `apps/frontend/src/app/(admin)/admin/dashboard/page.tsx` | `/admin/dashboard` |
+| **จัดการแพ็คเกจ** | `apps/frontend/src/app/(admin)/admin/hotels/page.tsx` | `/admin/hotels` |
+| **จัดการรถ** | `apps/frontend/src/app/(admin)/admin/cars/page.tsx` | `/admin/cars` |
+| **จัดการการจอง** | `apps/frontend/src/app/(admin)/admin/bookings/page.tsx` | `/admin/bookings` |
+| **จัดการการชำระเงิน** | `apps/frontend/src/app/(admin)/admin/payments/page.tsx` | `/admin/payments` |
 
 ---
 
@@ -97,16 +123,18 @@ src/
 
 | API | ไฟล์ | Method | หน้าที่ |
 |-----|------|--------|--------|
-| Hotels | `src/app/api/hotels/route.ts` | GET, POST | ดึง/สร้างแพ็คเกจ |
-| Hotel Detail | `src/app/api/hotels/[id]/route.ts` | GET, PUT, DELETE | จัดการแพ็คเกจ |
-| Cars | `src/app/api/cars/route.ts` | GET, POST | ดึง/สร้างรถ |
-| Car Detail | `src/app/api/cars/[id]/route.ts` | GET, PUT, DELETE | จัดการรถ |
-| Bookings | `src/app/api/bookings/route.ts` | GET, POST | ดึง/สร้างการจอง |
-| Booking Detail | `src/app/api/bookings/[code]/route.ts` | GET, PUT | จัดการการจอง |
-| Checkout | `src/app/api/checkout/route.ts` | POST | สร้าง Stripe session |
-| Stripe Webhook | `src/app/api/webhook/stripe/route.ts` | POST | รับ callback จาก Stripe |
-| Admin Login | `src/app/api/admin/login/route.ts` | POST | เข้าสู่ระบบแอดมิน |
-| Admin Auth | `src/app/api/admin/auth/route.ts` | GET | ตรวจสอบสถานะ login |
+| Hotels | `apps/backend/src/app/api/hotels/route.ts` | GET, POST | ดึง/สร้างแพ็คเกจ |
+| Hotel Detail | `apps/backend/src/app/api/hotels/[id]/route.ts` | GET, PUT, DELETE | จัดการแพ็คเกจ |
+| Cars | `apps/backend/src/app/api/cars/route.ts` | GET, POST | ดึง/สร้างรถ |
+| Car Detail | `apps/backend/src/app/api/cars/[id]/route.ts` | GET, PUT, DELETE | จัดการรถ |
+| Bookings | `apps/backend/src/app/api/bookings/route.ts` | GET, POST | ดึง/สร้างการจอง |
+| Booking Detail | `apps/backend/src/app/api/bookings/[code]/route.ts` | GET, PUT | จัดการการจอง |
+| Checkout | `apps/backend/src/app/api/checkout/route.ts` | POST | สร้าง Stripe session |
+| Stripe Webhook | `apps/backend/src/app/api/webhook/stripe/route.ts` | POST | รับ callback จาก Stripe |
+| Auth Login | `apps/backend/src/app/api/auth/login/route.ts` | POST | เข้าสู่ระบบ (User/Admin) |
+| Auth Register | `apps/backend/src/app/api/auth/register/route.ts` | POST | สมัครสมาชิก |
+| Admin Login | `apps/backend/src/app/api/admin/login/route.ts` | POST | เข้าสู่ระบบแอดมิน |
+| Admin Auth | `apps/backend/src/app/api/admin/auth/route.ts` | GET | ตรวจสอบสถานะ login |
 
 ---
 
@@ -160,15 +188,35 @@ src/
 ## 🚀 คำสั่งที่ใช้บ่อย
 
 ```bash
-# รัน Development Server
+# รัน Development Server (Backend - port 3001)
+cd apps/backend
+npm run dev
+
+# รัน Development Server (Frontend - port 3000)
+cd apps/frontend
 npm run dev
 
 # Build สำหรับ Production
-npm run build
-
-# รัน Production Server
-npm start
+cd apps/backend && npm run build
+cd apps/frontend && npm run build
 
 # ตรวจสอบ ESLint
-npm run lint
+cd apps/backend && npm run lint
+cd apps/frontend && npm run lint
 ```
+
+## 🧪 Test Credentials (Mock Mode)
+
+เมื่อใช้ Mock Mode สามารถใช้ credentials เหล่านี้:
+
+- **Admin:** `admin@gotjourneythailand.com` / `admin123`
+- **User:** `user@example.com` / `user123` หรือ `validUserPass123`
+- **Partner:** `hotel@example.com` / `user123`
+
+**หมายเหตุ:** Test credentials (`validUserPass123`, `validAdminPass123`) จะทำงานได้ทั้งใน Mock Mode และ Production Mode (ผ่าน fallback logic)
+
+## 📚 เอกสารที่เกี่ยวข้อง
+
+- [README.md](./README.md) - ภาพรวมโปรเจกต์
+- [CHANGELOG.md](./CHANGELOG.md) - สรุปการแก้ไขและอัพเดท
+- [docs/setup/SETUP.md](./docs/setup/SETUP.md) - คู่มือการติดตั้ง

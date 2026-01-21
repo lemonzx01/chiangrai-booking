@@ -15,18 +15,21 @@
   - Request/Response Format
   - Error Handling
 
-- [PAYMENT_TESTING.md](./PAYMENT_TESTING.md) - คู่มือการทดสอบ Payment
+- [PAYMENT_TESTING.md](./PAYMENT_TESTING.md) - คู่มือการทดสอบ Payment (แนะนำ)
   - Test Cards
   - Test Scenarios
   - Debugging
-
-- [TEST_PAYMENT.md](./TEST_PAYMENT.md) - วิธีทดสอบ Payment System
-  - การทดสอบใน Development
-  - การทดสอบ Webhook
-  - Checklist
+  - Webhook Testing
 
 ## 🎯 Quick Start
 
-1. อ่าน [PAYMENT_SETUP.md](./PAYMENT_SETUP.md) เพื่อตั้งค่า Stripe
-2. ดู [PAYMENT_API.md](./PAYMENT_API.md) เพื่อเข้าใจ API
-3. ทดสอบด้วย [PAYMENT_TESTING.md](./PAYMENT_TESTING.md) และ [TEST_PAYMENT.md](./TEST_PAYMENT.md)
+1. **ตั้งค่า:** อ่าน [PAYMENT_SETUP.md](./PAYMENT_SETUP.md) เพื่อตั้งค่า Stripe
+2. **API:** ดู [PAYMENT_API.md](./PAYMENT_API.md) เพื่อเข้าใจ API
+3. **ทดสอบ:** ใช้ [PAYMENT_TESTING.md](./PAYMENT_TESTING.md) สำหรับการทดสอบ
+
+## ⚠️ TestSprite Test TC010
+
+- **สถานะ:** ⚠️ ต้อง configure Stripe webhook secret
+- **Test:** TC010 - Stripe Webhook (400 Error → ต้อง configure)
+- **วิธีแก้ไข:** ดู [PAYMENT_SETUP.md](./PAYMENT_SETUP.md) - ส่วน Webhook Configuration
+- **หมายเหตุ:** Stripe Webhook เป็น optional feature - ถ้าไม่ต้องการใช้ก็ไม่จำเป็นต้อง configure
