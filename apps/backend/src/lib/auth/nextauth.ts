@@ -51,7 +51,7 @@ console.log('[DEBUG] NextAuth Module Load:', {
 
 // Validate Google OAuth credentials
 if (!googleClientId || !googleClientSecret) {
-  console.warn('[WARNING] Google OAuth credentials are missing! Google OAuth will be disabled.', {
+  console.error('[ERROR] Google OAuth credentials are missing!', {
     hasClientId: !!googleClientId,
     hasClientSecret: !!googleClientSecret,
     envKeys: Object.keys(process.env).filter(k => k.includes('GOOGLE') || k.includes('NEXTAUTH') || k.includes('JWT')),
@@ -113,7 +113,6 @@ if (!googleClientId || !googleClientSecret) {
     clientIdLength: googleClientId.length,
     clientSecretLength: googleClientSecret.length,
   })
-  console.warn('[WARNING] Google OAuth will not work without credentials. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local')
 }
 
 const authOptions = {
@@ -125,13 +124,11 @@ const authOptions = {
   // Setting basePath can cause UnknownAction errors in NextAuth v5 beta
   
   providers: [
-    // Google OAuth Provider (only add if credentials are available)
-    ...(googleClientId && googleClientSecret && googleClientId.length > 0 && googleClientSecret.length > 0 ? [
-      GoogleProvider({
-        clientId: googleClientId,
-        clientSecret: googleClientSecret,
-      })
-    ] : []),
+    // Google OAuth Provider
+    GoogleProvider({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    }),
     
     // Credentials Provider (for email/password - backward compatibility)
     CredentialsProvider({
