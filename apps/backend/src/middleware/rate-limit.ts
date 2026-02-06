@@ -61,7 +61,12 @@ export const RATE_LIMIT_CONFIG = {
   },
   // Forgot password - จำกัดเพื่อป้องกัน spam
   '/api/auth/forgot-password': {
-    maxRequests: 3, // 3 requests per email per hour
+    maxRequests: 3,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Resend verification - จำกัดเพื่อป้องกัน spam
+  '/api/auth/resend-verification': {
+    maxRequests: 3,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
   // Default สำหรับ endpoints อื่นๆ

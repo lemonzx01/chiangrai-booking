@@ -185,6 +185,7 @@ export interface Database {
           name_en: string
           price_per_night: number
           max_guests: number
+          total_rooms: number
           is_active: boolean
           created_at: string
           updated_at: string
@@ -196,6 +197,7 @@ export interface Database {
           name_en: string
           price_per_night: number
           max_guests?: number
+          total_rooms?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -207,6 +209,7 @@ export interface Database {
           name_en?: string
           price_per_night?: number
           max_guests?: number
+          total_rooms?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -366,6 +369,8 @@ export interface Database {
           google_id: string | null
           phone: string | null
           is_active: boolean
+          email_verified: boolean
+          email_verified_at: string | null
           created_at: string
           updated_at: string
         }
@@ -378,6 +383,8 @@ export interface Database {
           google_id?: string | null
           phone?: string | null
           is_active?: boolean
+          email_verified?: boolean
+          email_verified_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -390,6 +397,8 @@ export interface Database {
           google_id?: string | null
           phone?: string | null
           is_active?: boolean
+          email_verified?: boolean
+          email_verified_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -458,6 +467,12 @@ export interface Database {
           total_price: number
           currency: CurrencyEnum
           status: BookingStatusEnum
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cancellation_reason: string | null
+          refund_amount: number
+          refund_percentage: number
+          refund_status: string | null
           created_at: string
           updated_at: string
         }
@@ -479,6 +494,12 @@ export interface Database {
           total_price: number
           currency?: CurrencyEnum
           status?: BookingStatusEnum
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancellation_reason?: string | null
+          refund_amount?: number
+          refund_percentage?: number
+          refund_status?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -500,6 +521,12 @@ export interface Database {
           total_price?: number
           currency?: CurrencyEnum
           status?: BookingStatusEnum
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancellation_reason?: string | null
+          refund_amount?: number
+          refund_percentage?: number
+          refund_status?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -569,6 +596,9 @@ export interface Database {
           currency: CurrencyEnum
           status: PaymentStatusEnum
           paid_at: string | null
+          stripe_refund_id: string | null
+          refund_amount: number
+          refunded_at: string | null
           created_at: string
           updated_at: string
         }
@@ -581,6 +611,9 @@ export interface Database {
           currency?: CurrencyEnum
           status?: PaymentStatusEnum
           paid_at?: string | null
+          stripe_refund_id?: string | null
+          refund_amount?: number
+          refunded_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -593,6 +626,9 @@ export interface Database {
           currency?: CurrencyEnum
           status?: PaymentStatusEnum
           paid_at?: string | null
+          stripe_refund_id?: string | null
+          refund_amount?: number
+          refunded_at?: string | null
           created_at?: string
           updated_at?: string
         }

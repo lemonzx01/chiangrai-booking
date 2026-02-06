@@ -38,6 +38,9 @@ import { verifyAdminToken, verifyUserToken, unauthorizedResponse, isMockMode } f
 /** ข้อมูล Mock สำหรับการทดสอบ */
 import { findMockBookingByCode } from '../../../../lib/mock-data'
 
+/** Status transition rules */
+import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
+
 // ============================================================
 // Type Definitions
 // ============================================================
@@ -212,6 +215,36 @@ export async function PATCH(request: Request, { params }: Params) {
     const { code } = await params
     const supabase = await createAdminClient()
     const body = await request.json()
+
+    // ----------------------------------------------------------
+    // Status Transition Validation
+    // ----------------------------------------------------------
+    if (body.status) {
+      // ห้าม PATCH เป็น CANCELLED ตรง (ต้องใช้ /cancel endpoint)
+      if (body.status === 'CANCELLED') {
+        return NextResponse.json(
+          { error: 'กรุณาใช้ endpoint /api/bookings/[code]/cancel สำหรับการยกเลิก' },
+          { status: 400 }
+        )
+      }
+
+      // ดึงสถานะปัจจุบัน
+      const { data: current } = await supabase
+        .from('bookings')
+        .select('status')
+        .eq('booking_code', code)
+        .single()
+
+      if (current) {
+        const allowedTransitions = VALID_STATUS_TRANSITIONS[current.status] || []
+        if (!allowedTransitions.includes(body.status)) {
+          return NextResponse.json(
+            { error: `ไม่สามารถเปลี่ยนสถานะจาก "${current.status}" เป็น "${body.status}" ได้` },
+            { status: 400 }
+          )
+        }
+      }
+    }
 
     // ----------------------------------------------------------
     // อัพเดทการจอง

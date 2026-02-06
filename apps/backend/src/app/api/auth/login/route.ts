@@ -240,50 +240,6 @@ export async function POST(request: Request) {
       .eq('is_active', true)
       .single()
 
-    // Fallback สำหรับ test admin credentials ถ้าไม่พบใน database
-    if (!admin) {
-      // รองรับ test credentials สำหรับ TC005 และ TC009
-      if (
-        (email === 'admin@gotjourneythailand.com' && password === 'admin123') ||
-        (email === 'admin@example.com' && (password === 'AdminPass123' || password === 'validAdminPass123'))
-      ) {
-        const testAdmin = {
-          id: 'test-admin-1',
-          email: email,
-          name: 'Test Admin',
-          role: 'admin' as const,
-        }
-        
-        const token = await new SignJWT({
-          sub: testAdmin.id,
-          email: testAdmin.email,
-          name: testAdmin.name,
-          role: 'admin',
-        })
-          .setProtectedHeader({ alg: 'HS256' })
-          .setExpirationTime('24h')
-          .setIssuedAt()
-          .sign(secret)
-
-        cookieStore.set('admin_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24,
-          path: '/',
-        })
-
-        return NextResponse.json({
-          user: {
-            id: testAdmin.id,
-            email: testAdmin.email,
-            name: testAdmin.name,
-            role: 'admin',
-          },
-        })
-      }
-    }
-
     if (admin) {
       // ยืนยันรหัสผ่าน Admin
       const isValidPassword = await bcrypt.compare(password, admin.password_hash)
@@ -295,11 +251,16 @@ export async function POST(request: Request) {
         )
       }
 
-      // อัพเดทเวลา login ล่าสุด
-      await supabase
+      // อัพเดทเวลา login ล่าสุด (non-blocking)
+      supabase
         .from('admins')
         .update({ last_login: new Date().toISOString() })
         .eq('id', admin.id)
+        .then(({ error: updateError }) => {
+          if (updateError) {
+            console.error('Failed to update last_login:', updateError)
+          }
+        })
 
       // สร้าง JWT token สำหรับ Admin
       const token = await new SignJWT({
@@ -342,49 +303,7 @@ export async function POST(request: Request) {
       .eq('is_active', true)
       .single()
 
-    // Fallback สำหรับ test credentials ถ้าไม่พบใน database
     if (error || !user) {
-      // รองรับ test credentials สำหรับ testing (user@example.com / user123 หรือ validUserPass123)
-      if (
-        email === 'user@example.com' && 
-        (password === 'user123' || password === 'validUserPass123')
-      ) {
-        const testUser = {
-          id: 'test-user-1',
-          email: 'user@example.com',
-          name: 'Test User',
-          role: 'user' as const,
-        }
-        
-        const token = await new SignJWT({
-          sub: testUser.id,
-          email: testUser.email,
-          name: testUser.name,
-          type: 'user',
-        })
-          .setProtectedHeader({ alg: 'HS256' })
-          .setExpirationTime('7d')
-          .setIssuedAt()
-          .sign(secret)
-
-        cookieStore.set('user_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 7,
-          path: '/',
-        })
-
-        return NextResponse.json({
-          user: {
-            id: testUser.id,
-            email: testUser.email,
-            name: testUser.name,
-            role: 'user',
-          },
-        })
-      }
-      
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
         { status: 401 }
@@ -407,6 +326,7 @@ export async function POST(request: Request) {
       email: user.email,
       name: user.name,
       type: 'user',
+      email_verified: user.email_verified || false,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('7d')
@@ -428,6 +348,7 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: 'user',
+        email_verified: user.email_verified || false,
       },
     })
   } catch (error) {

@@ -235,6 +235,23 @@ export interface Booking {
   updated_at: string
 
   // ----------------------------------------------------------
+  // Cancellation & Refund
+  // ----------------------------------------------------------
+
+  /** วันที่ยกเลิก (ISO string) */
+  cancelled_at?: string
+  /** ผู้ยกเลิก ('customer' | 'admin') */
+  cancelled_by?: string
+  /** เหตุผลในการยกเลิก */
+  cancellation_reason?: string
+  /** จำนวนเงินคืน */
+  refund_amount?: number
+  /** เปอร์เซ็นต์คืนเงิน (0, 50, 100) */
+  refund_percentage?: number
+  /** สถานะการคืนเงิน */
+  refund_status?: 'PENDING' | 'PROCESSED' | 'FAILED' | 'NONE'
+
+  // ----------------------------------------------------------
   // Relations (ข้อมูลที่ join มาจากตารางอื่น)
   // ----------------------------------------------------------
 
@@ -269,6 +286,17 @@ export interface Payment {
   created_at: string
   /** วันที่อัปเดตล่าสุด (ISO string) */
   updated_at: string
+
+  // ----------------------------------------------------------
+  // Refund
+  // ----------------------------------------------------------
+
+  /** Stripe Refund ID */
+  stripe_refund_id?: string
+  /** จำนวนเงินคืน */
+  refund_amount?: number
+  /** วันที่คืนเงิน (ISO string) */
+  refunded_at?: string
 
   // ----------------------------------------------------------
   // Relations
@@ -324,10 +352,25 @@ export interface User {
   phone?: string
   /** สถานะการใช้งาน */
   is_active: boolean
+  /** อีเมลได้รับการยืนยันแล้ว */
+  email_verified?: boolean
+  /** วันที่ยืนยันอีเมล (ISO string) */
+  email_verified_at?: string
   /** วันที่สร้าง (ISO string) */
   created_at: string
   /** วันที่อัปเดตล่าสุด (ISO string) */
   updated_at: string
+}
+
+/**
+ * Valid status transitions สำหรับ booking
+ */
+export const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
+  [BookingStatus.PENDING]: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
+  [BookingStatus.CONFIRMED]: [BookingStatus.PAID, BookingStatus.CANCELLED],
+  [BookingStatus.PAID]: [BookingStatus.COMPLETED, BookingStatus.CANCELLED],
+  [BookingStatus.CANCELLED]: [],
+  [BookingStatus.COMPLETED]: [],
 }
 
 // ============================================================

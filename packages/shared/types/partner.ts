@@ -70,6 +70,8 @@ export interface RoomType {
   price_per_night: number
   /** จำนวนผู้เข้าพักสูงสุด */
   max_guests: number
+  /** จำนวนห้องทั้งหมดของประเภทนี้ */
+  total_rooms: number
   /** สถานะการใช้งาน */
   is_active: boolean
   /** วันที่สร้าง (ISO string) */
@@ -112,11 +114,11 @@ export interface RoomTypeFormData {
   price_per_night: number
   /** จำนวนผู้เข้าพักสูงสุด */
   max_guests: number
+  /** จำนวนห้องทั้งหมดของประเภทนี้ */
+  total_rooms: number
   /** สถานะการใช้งาน */
   is_active: boolean
 }
-
-
 
 
 

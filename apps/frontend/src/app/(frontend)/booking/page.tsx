@@ -42,7 +42,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 /** Lucide icons สำหรับ UI */
-import { Calendar, Users, ArrowLeft, Loader2 } from 'lucide-react'
+import { Calendar, Users, ArrowLeft, Loader2, CheckCircle, XCircle } from 'lucide-react'
 
 /** Next.js components */
 import Link from 'next/link'
@@ -122,6 +122,10 @@ function BookingContent() {
   /** State สำหรับข้อความ error */
   const [error, setError] = useState('')
 
+  /** State สำหรับ availability check */
+  const [availability, setAvailability] = useState<{ available: boolean; remaining?: number; total?: number } | null>(null)
+  const [checkingAvailability, setCheckingAvailability] = useState(false)
+
   /** State สำหรับข้อมูลฟอร์ม */
   const [formData, setFormData] = useState({
     check_in_date: '',
@@ -175,6 +179,48 @@ function BookingContent() {
 
     fetchItem()
   }, [type, id, roomTypeIdFromUrl])
+
+  /**
+   * Effect: เช็คห้องว่าง/รถว่างเมื่อเปลี่ยนวันที่หรือประเภทห้อง
+   */
+  useEffect(() => {
+    async function checkAvailability() {
+      if (!formData.check_in_date || !formData.check_out_date || !id) {
+        setAvailability(null)
+        return
+      }
+
+      // สร้าง query params
+      const params = new URLSearchParams({
+        check_in_date: formData.check_in_date,
+        check_out_date: formData.check_out_date,
+      })
+
+      if (type === 'HOTEL' && selectedRoomTypeId) {
+        params.set('room_type_id', selectedRoomTypeId)
+      } else if (type === 'CAR') {
+        params.set('car_id', id)
+      } else {
+        setAvailability(null)
+        return
+      }
+
+      setCheckingAvailability(true)
+      try {
+        const res = await fetch(`/api/availability?${params.toString()}`)
+        if (res.ok) {
+          const data = await res.json()
+          setAvailability(data)
+        }
+      } catch {
+        setAvailability(null)
+      } finally {
+        setCheckingAvailability(false)
+      }
+    }
+
+    checkAvailability()
+  }, [formData.check_in_date, formData.check_out_date, selectedRoomTypeId, id, type])
 
   // ----------------------------------------------------------
   // Computed Values
@@ -344,6 +390,32 @@ function BookingContent() {
                     required
                   />
                 </div>
+
+                {/* Availability Indicator */}
+                {formData.check_in_date && formData.check_out_date && (
+                  <div className="mt-4">
+                    {checkingAvailability ? (
+                      <div className="flex items-center gap-2 text-slate-500 text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        กำลังตรวจสอบห้องว่าง...
+                      </div>
+                    ) : availability ? (
+                      availability.available ? (
+                        <div className="flex items-center gap-2 text-green-600 text-sm">
+                          <CheckCircle className="w-4 h-4" />
+                          {type === 'HOTEL' && availability.remaining != null
+                            ? `ว่าง (เหลือ ${availability.remaining}/${availability.total} ห้อง)`
+                            : 'ว่าง'}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-red-600 text-sm">
+                          <XCircle className="w-4 h-4" />
+                          {type === 'HOTEL' ? 'ห้องเต็มในช่วงวันที่เลือก' : 'รถไม่ว่างในช่วงวันที่เลือก'}
+                        </div>
+                      )
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               {/* ----------------------------------------------------------
@@ -463,8 +535,16 @@ function BookingContent() {
               )}
 
               {/* Submit Button */}
-              <Button type="submit" size="lg" className="w-full" loading={submitting}>
-                {t('booking.proceedToPayment')}
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={submitting}
+                disabled={submitting || (availability !== null && !availability.available)}
+              >
+                {availability !== null && !availability.available
+                  ? (type === 'HOTEL' ? 'ห้องเต็ม - ไม่สามารถจองได้' : 'รถไม่ว่าง - ไม่สามารถจองได้')
+                  : t('booking.proceedToPayment')}
               </Button>
             </form>
           </div>

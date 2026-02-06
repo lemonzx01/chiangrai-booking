@@ -44,8 +44,14 @@ import { NextResponse } from 'next/server'
 /** Library สำหรับ hash password */
 import bcrypt from 'bcryptjs'
 
-/** ฟังก์ชันตรวจสอบ Mock Mode */
-import { isMockMode } from '../../../../lib/auth'
+/** ฟังก์ชันตรวจสอบ Mock Mode และ JWT */
+import { getJwtSecret, isMockMode } from '../../../../lib/auth'
+
+/** Library สำหรับสร้าง JWT */
+import { SignJWT } from 'jose'
+
+/** บริการส่งอีเมล */
+import { sendEmail } from '../../../../services/notifications/email'
 
 /** ฟังก์ชันจัดการข้อมูล Mock */
 import { findMockUser, addMockUser } from '../../../../lib/mock-data'
@@ -231,8 +237,46 @@ export async function POST(request: Request) {
       )
     }
 
+    // ส่ง verification email (non-blocking)
+    try {
+      const secret = getJwtSecret()
+      const verificationToken = await new SignJWT({
+        sub: newUser.id,
+        email: sanitizedEmail,
+        type: 'email_verification',
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('24h')
+        .setIssuedAt()
+        .sign(secret)
+
+      const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`
+
+      sendEmail({
+        to: sanitizedEmail,
+        subject: 'ยืนยันอีเมล - Got Journey Thailand',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #4F46E5;">ยืนยันอีเมลของคุณ</h1>
+            <p>สวัสดีคุณ ${sanitizedName},</p>
+            <p>ขอบคุณที่สมัครสมาชิก กรุณาคลิกลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verifyLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                ยืนยันอีเมล
+              </a>
+            </div>
+            <p style="color: #6B7280; font-size: 14px;">ลิงก์นี้จะหมดอายุใน 24 ชั่วโมง</p>
+          </div>
+        `,
+      }).catch((err) => {
+        console.error('[EMAIL] Failed to send verification email:', err)
+      })
+    } catch (emailErr) {
+      console.error('[EMAIL] Error creating verification token:', emailErr)
+    }
+
     return NextResponse.json({
-      message: 'สมัครสมาชิกสำเร็จ',
+      message: 'สมัครสมาชิกสำเร็จ กรุณาตรวจสอบอีเมลเพื่อยืนยัน',
       user: {
         id: newUser.id,
         email: newUser.email,

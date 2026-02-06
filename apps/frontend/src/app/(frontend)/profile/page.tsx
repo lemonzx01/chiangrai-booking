@@ -40,10 +40,11 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 /** Lucide icons สำหรับ UI */
-import { User, BookOpen, LogOut, Loader2, Calendar, MapPin, Car, Building2 } from 'lucide-react'
+import { User, BookOpen, LogOut, Loader2, Calendar, MapPin, Car, Building2, AlertTriangle, CheckCircle, Mail } from 'lucide-react'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
+import CancelBookingModal from '@/components/ui/CancelBookingModal'
 
 /** Utility functions */
 import { formatCurrency } from '@chiangrai/shared/utils'
@@ -65,6 +66,7 @@ interface UserData {
   id: string
   email: string
   name: string
+  email_verified?: boolean
 }
 
 // ============================================================
@@ -110,6 +112,13 @@ export default function ProfilePage() {
 
   /** State สำหรับสถานะการ logout */
   const [loggingOut, setLoggingOut] = useState(false)
+
+  /** State สำหรับสถานะการส่ง verification email */
+  const [sendingVerification, setSendingVerification] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+
+  /** State สำหรับ cancel modal */
+  const [cancellingBooking, setCancellingBooking] = useState<Booking | null>(null)
 
   // ----------------------------------------------------------
   // Effects
@@ -173,6 +182,23 @@ export default function ProfilePage() {
       router.refresh()
     } catch {
       setLoggingOut(false)
+    }
+  }
+
+  /**
+   * ส่ง verification email อีกครั้ง
+   */
+  const handleResendVerification = async () => {
+    setSendingVerification(true)
+    try {
+      const res = await fetch('/api/auth/resend-verification', { method: 'POST' })
+      if (res.ok) {
+        setVerificationSent(true)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSendingVerification(false)
     }
   }
 
@@ -273,6 +299,40 @@ export default function ProfilePage() {
         </div>
 
         {/* ============================================================
+            Email Verification Banner
+            ============================================================ */}
+        {user && !user.email_verified && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+            <Mail className="w-5 h-5 text-amber-600 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-amber-800 font-medium">
+                {lang === 'th' ? 'อีเมลของคุณยังไม่ได้ยืนยัน' : 'Your email has not been verified'}
+              </p>
+              {verificationSent && (
+                <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  {lang === 'th' ? 'ส่งอีเมลยืนยันแล้ว กรุณาตรวจสอบ inbox' : 'Verification email sent. Check your inbox.'}
+                </p>
+              )}
+            </div>
+            {!verificationSent && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResendVerification}
+                disabled={sendingVerification}
+              >
+                {sendingVerification ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  lang === 'th' ? 'ส่งอีเมลยืนยัน' : 'Verify Email'
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================
             Bookings Section
             ============================================================ */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
@@ -349,11 +409,22 @@ export default function ProfilePage() {
                     <span className="text-lg font-bold text-indigo-600">
                       {formatCurrency(booking.total_price)}
                     </span>
-                    <Link href={`/success?code=${booking.booking_code}`}>
-                      <Button variant="outline" size="sm">
-                        {lang === 'th' ? 'ดูรายละเอียด' : 'View Details'}
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {/* ปุ่มยกเลิก (เฉพาะสถานะที่ยกเลิกได้) */}
+                      {['PENDING', 'CONFIRMED', 'PAID'].includes(booking.status) && (
+                        <button
+                          onClick={() => setCancellingBooking(booking)}
+                          className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
+                        </button>
+                      )}
+                      <Link href={`/success?code=${booking.booking_code}`}>
+                        <Button variant="outline" size="sm">
+                          {lang === 'th' ? 'ดูรายละเอียด' : 'View Details'}
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -361,6 +432,23 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Cancel Booking Modal */}
+      {cancellingBooking && (
+        <CancelBookingModal
+          bookingCode={cancellingBooking.booking_code}
+          bookingStatus={cancellingBooking.status}
+          checkInDate={cancellingBooking.check_in_date}
+          totalPrice={cancellingBooking.total_price}
+          currency={cancellingBooking.currency}
+          onClose={() => setCancellingBooking(null)}
+          onCancelled={() => {
+            setCancellingBooking(null)
+            // รีโหลดข้อมูลการจอง
+            checkAuth()
+          }}
+        />
+      )}
     </div>
   )
 }

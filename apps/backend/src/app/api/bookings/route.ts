@@ -43,6 +43,9 @@ import { generateBookingCode, calculateNights, calculateTotalPrice } from '../..
 /** Validation Schema */
 import { bookingFormSchema } from '../../../lib/validations'
 
+/** Availability checking */
+import { checkRoomAvailability, checkCarAvailability } from '../../../lib/availability'
+
 // ============================================================
 // GET Handler - ดึงรายการการจอง
 // ============================================================
@@ -98,7 +101,7 @@ export async function GET(request: Request) {
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
     if (status) {
-      query = query.eq('status', status)
+      query = query.eq('status', status as any)
     }
 
     // ----------------------------------------------------------
@@ -288,6 +291,39 @@ export async function POST(request: Request) {
       // Log เฉพาะใน development mode
       if (process.env.NODE_ENV === 'development') {
         console.warn('Price mismatch detected. Using server-calculated price.')
+      }
+    }
+
+    // ----------------------------------------------------------
+    // ตรวจสอบห้องว่าง / รถว่าง (Availability Check)
+    // ----------------------------------------------------------
+    if (validatedData.room_type_id) {
+      const availability = await checkRoomAvailability(
+        supabase,
+        validatedData.room_type_id,
+        validatedData.check_in_date,
+        validatedData.check_out_date
+      )
+      if (!availability.available) {
+        return NextResponse.json(
+          { error: 'ห้องพักเต็มในช่วงวันที่เลือก กรุณาเลือกวันอื่น' },
+          { status: 409 }
+        )
+      }
+    }
+
+    if (validatedData.car_id) {
+      const availability = await checkCarAvailability(
+        supabase,
+        validatedData.car_id,
+        validatedData.check_in_date,
+        validatedData.check_out_date
+      )
+      if (!availability.available) {
+        return NextResponse.json(
+          { error: 'รถไม่ว่างในช่วงวันที่เลือก กรุณาเลือกวันอื่น' },
+          { status: 409 }
+        )
       }
     }
 

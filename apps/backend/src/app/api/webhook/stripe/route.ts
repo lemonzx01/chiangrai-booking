@@ -22,151 +22,80 @@
  * ============================================================
  */
 
-// ============================================================
-// การนำเข้า Dependencies
-// ============================================================
-
-/** Stripe client instance */
 import { stripe } from '../../../../lib/stripe'
-
-/** Supabase Admin client สำหรับ Server-side */
 import { createAdminClient } from '../../../../lib/supabase/server'
-
-/** Next.js Response utility */
 import { NextResponse } from 'next/server'
-
-/** ฟังก์ชันดึง headers จาก request */
 import { headers } from 'next/headers'
-
-/** Stripe types */
 import Stripe from 'stripe'
-
-/** บริการส่งอีเมลยืนยันการจอง */
 import { sendBookingConfirmationEmail } from '../../../../services/notifications/email'
-
-/** บริการแจ้งเตือน Partner และ Admin */
 import { sendPartnerBookingNotification, sendAdminBookingNotification } from '../../../../services/notifications/partner'
 
-// ============================================================
-// POST Handler - รับ Stripe Webhook Events
-// ============================================================
-
-/**
- * รับและประมวลผล Webhook events จาก Stripe
- *
- * @description
- *   ขั้นตอนการทำงาน:
- *   1. ตรวจสอบ Stripe Signature เพื่อยืนยันว่า request มาจาก Stripe จริง
- *   2. ประมวลผลตาม event type:
- *      - checkout.session.completed: อัพเดทสถานะเป็น SUCCEEDED และ PAID
- *      - checkout.session.expired: อัพเดทสถานะเป็น FAILED
- *      - payment_intent.payment_failed: อัพเดทสถานะเป็น FAILED
- *   3. ส่งอีเมลยืนยันเมื่อชำระเงินสำเร็จ
- *
- * @param {Request} request - HTTP Request object
- * @returns {Promise<NextResponse>} สถานะการรับ webhook
- *
- * @example
- *   // Stripe จะส่ง request มาเมื่อมี event เกิดขึ้น
- *   POST /api/webhook/stripe
- *   Headers: { "stripe-signature": "xxx" }
- */
 export async function POST(request: Request) {
-  // ดึง body เป็น text (Stripe ต้องการ raw body)
   const body = await request.text()
 
-  // ดึง Stripe signature จาก headers
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')
 
-  // ----------------------------------------------------------
-  // ตรวจสอบ Signature
-  // ----------------------------------------------------------
-  /** Stripe event object */
   let event: Stripe.Event
 
-  // ถ้าไม่มี webhook secret หรือ signature ให้ใช้ test mode (parse JSON โดยตรง)
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-  
+
   if (!webhookSecret || !signature) {
-    // Test mode: Parse event โดยตรง (ไม่ verify signature)
-    // ใช้เฉพาะเมื่อไม่มี webhook secret (สำหรับ testing)
+    // Test mode: อนุญาตเฉพาะ development เท่านั้น
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Webhook rejected: missing secret or signature in production')
+      return NextResponse.json({ error: 'Webhook secret and signature required in production' }, { status: 400 })
+    }
+
     try {
       event = JSON.parse(body) as Stripe.Event
-      console.log('[TEST MODE] Webhook event parsed without signature verification:', event.type)
+      console.warn('[DEV] Webhook event parsed without signature verification:', event.type)
     } catch (parseError) {
       console.error('Failed to parse webhook body:', parseError)
       return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 })
     }
   } else {
-    // Production mode: Verify signature
+    // Production mode: Verify signature strictly
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('Webhook rejected: STRIPE_SECRET_KEY not configured')
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+    }
+
     try {
-      // ตรวจสอบว่ามี STRIPE_SECRET_KEY หรือไม่
-      if (!process.env.STRIPE_SECRET_KEY) {
-        // ถ้าไม่มี secret key ให้ใช้ test mode (parse JSON โดยตรง)
-        event = JSON.parse(body) as Stripe.Event
-        console.log('[TEST MODE] Webhook event parsed without Stripe SDK (no STRIPE_SECRET_KEY):', event.type)
-      } else {
-        // ตรวจสอบและ parse event ด้วย Stripe SDK
-        try {
-          event = stripe.webhooks.constructEvent(
-            body,
-            signature,
-            webhookSecret
-          )
-        } catch (verifyError) {
-          // ถ้า signature verification fail แต่เป็น test event ให้ parse โดยตรง
-          console.warn('[TEST MODE] Webhook signature verification failed, parsing as test event:', verifyError)
-          event = JSON.parse(body) as Stripe.Event
-        }
-      }
-    } catch (error) {
-      console.error('Webhook processing error:', error)
-      // Fallback: ถ้าเกิด error ใดๆ ให้ลอง parse โดยตรง (สำหรับ test mode)
-      try {
-        event = JSON.parse(body) as Stripe.Event
-        console.log('[TEST MODE] Webhook parsed as test event after error:', event.type)
-      } catch (parseError) {
-        return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 })
-      }
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    } catch (verifyError) {
+      console.error('Webhook signature verification failed:', verifyError)
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 })
     }
   }
 
-  // สร้าง Supabase Admin client
   const supabase = await createAdminClient()
 
-  // ----------------------------------------------------------
-  // ประมวลผลตาม Event Type
-  // ----------------------------------------------------------
   try {
-        switch (event.type) {
-      // ============================================================
-      // Case: Stripe Connect Account Updated
-      // ============================================================
+    switch (event.type) {
       case 'account.updated': {
-        const account = event.data.object as Stripe.Account;
+        const account = event.data.object as Stripe.Account
 
-        // Check if the account is now able to receive payouts
         if (account.payouts_enabled && account.details_submitted) {
-          // Update the partner record in your database
-          await supabase
+          const { error } = await supabase
             .from('partners')
-            .update({ 
+            .update({
               stripe_onboarding_complete: true,
             })
-            .eq('stripe_account_id', account.id);
+            .eq('stripe_account_id', account.id)
+
+          if (error) {
+            console.error('Failed to update partner onboarding status:', error)
+          }
         }
-        break;
+        break
       }
 
-      // ============================================================
-      // Case: การชำระเงินสำเร็จ
-      // ============================================================
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
 
         // อัพเดทสถานะ Payment เป็น SUCCEEDED
-        await supabase
+        const { error: paymentError } = await supabase
           .from('payments')
           .update({
             status: 'SUCCEEDED',
@@ -175,20 +104,29 @@ export async function POST(request: Request) {
           })
           .eq('stripe_checkout_session_id', session.id)
 
+        if (paymentError) {
+          console.error('Failed to update payment status:', paymentError)
+          return NextResponse.json({ error: 'Failed to update payment status' }, { status: 500 })
+        }
+
         // อัพเดทสถานะ Booking เป็น PAID
         if (session.metadata?.booking_id) {
-          const { data: booking } = await supabase
+          const { data: booking, error: bookingError } = await supabase
             .from('bookings')
             .update({ status: 'PAID' })
             .eq('id', session.metadata.booking_id)
             .select('*, hotel:hotels(*, owner_id), car:cars(*, owner_id)')
             .single()
 
+          if (bookingError) {
+            console.error('Failed to update booking status:', bookingError)
+            return NextResponse.json({ error: 'Failed to update booking status' }, { status: 500 })
+          }
+
           // ส่งอีเมลยืนยันการจอง (non-blocking)
           if (booking) {
-            // Convert database booking to BookingEmailData format
-            const itemName = booking.hotel?.name_th || booking.hotel?.name_en || 
-                           booking.car?.name_th || booking.car?.name_en || 
+            const itemName = booking.hotel?.name_th || booking.hotel?.name_en ||
+                           booking.car?.name_th || booking.car?.name_en ||
                            'รายการที่จอง'
             const emailData = {
               customerName: booking.customer_name,
@@ -203,51 +141,68 @@ export async function POST(request: Request) {
             }
             sendBookingConfirmationEmail(emailData).catch(console.error)
 
-            // ส่งอีเมลแจ้งเตือน Partner (owner) และ Admin
-            // หา owner_id จาก hotel หรือ car
             const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
-            
+
             if (ownerId) {
               sendPartnerBookingNotification(ownerId, booking).catch(console.error)
             }
-            
-            // ส่งอีเมลแจ้งเตือน Admin
+
             sendAdminBookingNotification(booking).catch(console.error)
           }
         }
         break
       }
 
-      // ============================================================
-      // Case: Checkout Session หมดอายุ
-      // ============================================================
       case 'checkout.session.expired': {
         const session = event.data.object as Stripe.Checkout.Session
 
-        // อัพเดทสถานะ Payment เป็น FAILED
-        await supabase
+        const { error } = await supabase
           .from('payments')
           .update({ status: 'FAILED' })
           .eq('stripe_checkout_session_id', session.id)
+
+        if (error) {
+          console.error('Failed to update expired payment status:', error)
+        }
         break
       }
 
-      // ============================================================
-      // Case: การชำระเงินล้มเหลว
-      // ============================================================
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
 
-        // อัพเดทสถานะ Payment เป็น FAILED
-        await supabase
+        const { error } = await supabase
           .from('payments')
           .update({ status: 'FAILED' })
           .eq('stripe_payment_intent_id', paymentIntent.id)
+
+        if (error) {
+          console.error('Failed to update failed payment status:', error)
+        }
+        break
+      }
+
+      case 'charge.refunded': {
+        const charge = event.data.object as Stripe.Charge
+        const paymentIntentId = charge.payment_intent as string
+
+        if (paymentIntentId) {
+          // อัพเดทสถานะ payment เป็น REFUNDED
+          const { error } = await supabase
+            .from('payments')
+            .update({
+              status: 'REFUNDED',
+              refunded_at: new Date().toISOString(),
+            })
+            .eq('stripe_payment_intent_id', paymentIntentId)
+
+          if (error) {
+            console.error('Failed to update refunded payment status:', error)
+          }
+        }
         break
       }
     }
 
-    // ส่งกลับ response ยืนยันว่ารับ event แล้ว
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('Webhook processing error:', error)

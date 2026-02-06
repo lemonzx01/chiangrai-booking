@@ -47,21 +47,15 @@ import { NextResponse } from 'next/server'
 export const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET
 
-  // ใน Production ต้องมี JWT_SECRET
-  if (process.env.NODE_ENV === 'production' && !secret) {
-    throw new Error('JWT_SECRET environment variable is required in production')
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is required')
   }
 
-  // ใช้ค่า fallback เฉพาะใน Development เท่านั้น
-  const finalSecret = secret || 'development-secret-key-change-in-production-12345'
-
-  // เตือนถ้า secret สั้นเกินไป (ควรมีอย่างน้อย 32 ตัวอักษร)
-  if (finalSecret.length < 32) {
-    console.warn('WARNING: JWT_SECRET should be at least 32 characters for security')
+  if (secret.length < 32) {
+    console.warn('[WARN] JWT_SECRET should be at least 32 characters for security')
   }
 
-  // แปลงเป็น Uint8Array สำหรับใช้กับ jose library
-  return new TextEncoder().encode(finalSecret)
+  return new TextEncoder().encode(secret)
 }
 
 // ============================================================
@@ -158,6 +152,7 @@ export async function verifyUserToken() {
         id: payload.sub as string,
         email: payload.email as string,
         name: payload.name as string,
+        email_verified: (payload.email_verified as boolean) || false,
       }
     }
   } catch {

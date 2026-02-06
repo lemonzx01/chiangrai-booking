@@ -35,6 +35,9 @@ import { useRouter } from 'next/navigation'
 /** React hooks สำหรับจัดการ state */
 import { useState } from 'react'
 
+/** Status transition rules */
+import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
+
 // ============================================================
 // Constants
 // ============================================================
@@ -109,6 +112,33 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
     // ถ้าสถานะเหมือนเดิม ไม่ต้องทำอะไร
     if (newStatus === currentStatus) return
 
+    // ถ้าเลือก CANCELLED ให้ใช้ cancel endpoint แทน
+    if (newStatus === 'CANCELLED') {
+      const confirmed = window.confirm('ต้องการยกเลิกการจองนี้หรือไม่? (ถ้ามีการชำระเงินแล้ว ระบบจะคืนเงินตามนโยบาย)')
+      if (!confirmed) return
+
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/bookings/${bookingCode}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'ยกเลิกโดย Admin' }),
+        })
+
+        if (res.ok) {
+          router.refresh()
+        } else {
+          const data = await res.json().catch(() => ({}))
+          alert(data.error || 'ไม่สามารถยกเลิกได้')
+        }
+      } catch {
+        alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
     setLoading(true)
     try {
       // ----------------------------------------------------------
@@ -142,6 +172,12 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
   /** หาตัวเลือกปัจจุบันเพื่อใช้สี */
   const currentOption = statusOptions.find(s => s.value === currentStatus)
 
+  /** กรองตัวเลือกตาม valid transitions */
+  const allowedValues = VALID_STATUS_TRANSITIONS[currentStatus] || []
+  const availableOptions = statusOptions.filter(
+    opt => opt.value === currentStatus || allowedValues.includes(opt.value)
+  )
+
   // ----------------------------------------------------------
   // Render Component
   // ----------------------------------------------------------
@@ -149,13 +185,13 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
     <select
       value={currentStatus}
       onChange={(e) => handleChange(e.target.value)}
-      disabled={loading}
+      disabled={loading || allowedValues.length === 0}
       className={`px-2.5 py-1 rounded-full text-xs font-medium border-0 cursor-pointer ${
         currentOption?.color || 'bg-gray-100 text-gray-700'
       } ${loading ? 'opacity-50' : ''}`}
     >
-      {/* แสดงตัวเลือกทั้งหมด */}
-      {statusOptions.map((option) => (
+      {/* แสดงเฉพาะตัวเลือกที่เปลี่ยนได้ */}
+      {availableOptions.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
