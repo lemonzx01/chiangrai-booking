@@ -106,15 +106,9 @@ function ResetPasswordContent() {
 
     // ตรวจสอบว่า token ถูกต้องหรือไม่
     const validateToken = async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reset-password/page.tsx:validateToken',message:'Validating token',data:{hasToken:!!token,tokenLength:token?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       try {
         const res = await fetch(`/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`)
         const data = await res.json()
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reset-password/page.tsx:validateToken',message:'Token validation response',data:{status:res.status,valid:data.valid,hasError:!!data.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
 
         if (!res.ok || !data.valid) {
           setError(
@@ -128,9 +122,6 @@ function ResetPasswordContent() {
         // Token ถูกต้อง
         setVerifying(false)
       } catch (err) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reset-password/page.tsx:validateToken',message:'Token validation error',data:{error:String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         setError(lang === 'th' ? 'เกิดข้อผิดพลาดในการตรวจสอบ token' : 'Error validating token')
         setVerifying(false)
       }

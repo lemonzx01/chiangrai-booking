@@ -72,18 +72,12 @@ import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
  *   Body: { "email": "user@example.com" }
  */
 export async function POST(request: Request) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Forgot password called',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
   try {
     // ----------------------------------------------------------
     // Rate Limiting - ป้องกัน spam
     // ----------------------------------------------------------
     const rateLimitResponse = rateLimitMiddleware(request, '/api/auth/forgot-password')
     if (rateLimitResponse) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Rate limited',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { 
@@ -98,9 +92,6 @@ export async function POST(request: Request) {
     // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { email } = body
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Email received',data:{emailLength:email?.length || 0,hasEmail:!!email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
 
     // ----------------------------------------------------------
     // ตรวจสอบข้อมูลที่จำเป็น
@@ -227,7 +218,7 @@ export async function POST(request: Request) {
       } else {
         console.log('[INFO] Password reset email sent successfully:', {
           email,
-          emailId: emailResult.id || 'unknown',
+          emailId: (emailResult as any)?.id || 'unknown',
         })
       }
     } catch (emailError: any) {
@@ -246,9 +237,6 @@ export async function POST(request: Request) {
     // หมายเหตุ: เรายังคง return success แม้ว่าอีเมลจะส่งไม่สำเร็จ
     // เพื่อความปลอดภัย (ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่)
     // แต่ error จะถูก log ไว้ใน server logs
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba1e1129-bb25-4b0f-bb1d-cc362a0f368a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/auth/forgot-password/route.ts:POST',message:'Forgot password success',data:{hasUser:!!user,hasAdmin:!!admin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     return NextResponse.json({
       message: 'If the email exists, a password reset link has been sent.',
     })

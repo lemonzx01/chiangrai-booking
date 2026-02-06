@@ -73,7 +73,11 @@ export function isValidCurrency(value: string): boolean {
  */
 export function sanitizeString(value: string): string {
   return value
-    .replace(/[<>]/g, '') // ลบ < และ >
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
     .trim()
 }
 
