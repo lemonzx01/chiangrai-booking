@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'

@@ -233,7 +233,7 @@ INSERT INTO hotels (name_th, name_en, description_th, description_en, location, 
   'Beachfront Villa',
   ARRAY['สระว่ายน้ำส่วนตัว', 'วิวทะเล', 'อาหารเช้า', 'รถรับส่งสนามบิน', 'สปา'],
   ARRAY['Private Pool', 'Sea View', 'Breakfast', 'Airport Transfer', 'Spa'],
-  ARRAY['https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800', 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1582719508461-905c673771fd', 'https://images.unsplash.com/photo-1571896349842-33c89424de2d'],
   true
 ),
 (
@@ -249,7 +249,7 @@ INSERT INTO hotels (name_th, name_en, description_th, description_en, location, 
   'Mountain Lodge',
   ARRAY['วิวภูเขา', 'อาหารเช้า', 'ทัวร์ธรรมชาติ', 'จักรยาน', 'ไฟแคมป์'],
   ARRAY['Mountain View', 'Breakfast', 'Nature Tour', 'Bicycles', 'Campfire'],
-  ARRAY['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800', 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4', 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c'],
   true
 ),
 (
@@ -265,7 +265,7 @@ INSERT INTO hotels (name_th, name_en, description_th, description_en, location, 
   'Penthouse Suite',
   ARRAY['วิวเมือง 360°', 'อาหารเช้า', 'สระว่ายน้ำดาดฟ้า', 'ฟิตเนส', 'บริการรถลีมูซีน'],
   ARRAY['360° City View', 'Breakfast', 'Rooftop Pool', 'Fitness', 'Limousine Service'],
-  ARRAY['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800', 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1566073771259-6a8506099945', 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa'],
   true
 );
 
@@ -282,7 +282,7 @@ INSERT INTO cars (name_th, name_en, description_th, description_en, car_type_th,
   8500,
   ARRAY['ประกันชั้น 1', 'GPS นำทาง', 'คนขับ (เสริม)', 'ส่งรถถึงที่'],
   ARRAY['Full Insurance', 'GPS Navigation', 'Driver (Optional)', 'Door-to-door Delivery'],
-  ARRAY['https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800', 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1494976388531-d1058494cdd8', 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b'],
   true
 ),
 (
@@ -296,7 +296,7 @@ INSERT INTO cars (name_th, name_en, description_th, description_en, car_type_th,
   6500,
   ARRAY['ประกันชั้น 1', 'คนขับ', 'น้ำดื่ม-ขนม', 'WiFi', 'ที่ชาร์จ USB'],
   ARRAY['Full Insurance', 'Driver', 'Drinks & Snacks', 'WiFi', 'USB Charger'],
-  ARRAY['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800', 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2', 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a'],
   true
 ),
 (
@@ -310,7 +310,7 @@ INSERT INTO cars (name_th, name_en, description_th, description_en, car_type_th,
   12000,
   ARRAY['ประกันชั้น 1', 'คนขับมืออาชีพ', 'น้ำดื่มพรีเมียม', 'WiFi', 'นิตยสาร'],
   ARRAY['Full Insurance', 'Professional Driver', 'Premium Drinks', 'WiFi', 'Magazines'],
-  ARRAY['https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800', 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800'],
+  ARRAY['https://images.unsplash.com/photo-1563720360172-67b8f3dce741', 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8'],
   true
 );
 

@@ -30,6 +30,8 @@
  *
  * ============================================================
  */
+export const dynamic = 'force-dynamic'
+
 
 // ============================================================
 // การนำเข้า Dependencies
@@ -251,6 +253,14 @@ export async function POST(request: Request) {
         .sign(secret)
 
       const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`
+
+      // Log verification link for development (when no email service)
+      if (!process.env.RESEND_API_KEY) {
+        console.log('\n========================================')
+        console.log('[DEV] Email verification link:')
+        console.log(verifyLink)
+        console.log('========================================\n')
+      }
 
       sendEmail({
         to: sanitizedEmail,

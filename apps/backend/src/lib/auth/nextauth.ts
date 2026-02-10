@@ -164,9 +164,18 @@ const authOptions = {
               .single()
 
             if (userByEmail) {
+              const updateData: Record<string, any> = { google_id: profile.sub }
+              // อัปเดตชื่อจาก Google ถ้า user ยังไม่มีชื่อจริง
+              if (profile.name && (!userByEmail.name || userByEmail.name.length <= 3)) {
+                updateData.name = profile.name
+              }
+              // ยืนยันอีเมลอัตโนมัติเมื่อ link กับ Google (Google ยืนยัน email แล้ว)
+              if (!userByEmail.email_verified) {
+                updateData.email_verified = true
+              }
               const { data: updatedUser, error: updateError } = await supabase
                 .from('users')
-                .update({ google_id: profile.sub })
+                .update(updateData)
                 .eq('id', userByEmail.id)
                 .select()
                 .single()
@@ -221,8 +230,8 @@ const authOptions = {
         }
       }
 
-      // เมื่อ login ด้วย credentials
-      if (user) {
+      // เมื่อ login ด้วย credentials (ไม่ overwrite ถ้า Google OAuth ตั้งค่าแล้ว)
+      if (user && account?.provider !== 'google') {
         token.id = user.id
         token.email = user.email
         token.name = user.name

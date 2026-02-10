@@ -141,7 +141,7 @@ export default function CarCard({ car }: CarCardProps) {
         <div className="relative h-56 overflow-hidden bg-slate-100">
           {/* รูปภาพรถ - ใช้รูปแรกจาก array หรือ placeholder */}
           <Image
-            src={car.images[0] || '/placeholder-car.jpg'}
+            src={car.images?.[0] || '/placeholder-car.jpg'}
             alt={name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

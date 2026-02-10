@@ -82,14 +82,14 @@ export async function generateMetadata({ params }: Props) {
   const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
     cache: 'no-store',
   })
-  const json = (await res.json()) as { data?: any; error?: string }
-  const car = json.data
+  const json = await res.json()
+  const car = json.data ?? json
 
   // ----------------------------------------------------------
   // Return Metadata
   // ----------------------------------------------------------
   // ถ้าไม่พบรถ
-  if (!car) {
+  if (!car || car.error) {
     return {
       title: 'Car Not Found | Got Journey Thailand',
     }
@@ -131,13 +131,12 @@ export default async function CarDetailPage({ params }: Props) {
   const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
     cache: 'no-store',
   })
-  const json = (await res.json()) as { data?: any; error?: string }
+  const json = await res.json()
+  const car = json.data ?? json
 
-  if (!res.ok || !json.data) {
+  if (!res.ok || !car || car.error) {
     notFound()
   }
-
-  const car = json.data
 
   // ----------------------------------------------------------
   // Render Client Component

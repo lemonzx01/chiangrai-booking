@@ -23,6 +23,8 @@
  * ============================================================
  */
 
+export const dynamic = 'force-dynamic'
+
 // ============================================================
 // การนำเข้า Dependencies
 // ============================================================
@@ -102,18 +104,18 @@ export async function POST(request: Request) {
       body = await request.json()
     } catch (error) {
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA },
+        { error: 'ไม่สามารถอ่านข้อมูลได้ กรุณาลองใหม่อีกครั้ง' },
         { status: 400 }
       )
       return addSecurityHeaders(response)
     }
 
-    const { booking_id, success_url, cancel_url } = body
+    const { booking_id, payment_method, success_url, cancel_url } = body
 
     // ตรวจสอบว่ามี booking_id หรือไม่
     if (!booking_id) {
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.VALIDATION_MISSING_FIELD + ': booking_id' },
+        { error: 'ไม่พบรหัสการจอง (booking_id) กรุณากลับไปเลือกการจองใหม่' },
         { status: 400 }
       )
       return addSecurityHeaders(response)
@@ -122,7 +124,7 @@ export async function POST(request: Request) {
     // ตรวจสอบว่า booking_id เป็น UUID หรือไม่
     if (!isValidUUID(booking_id)) {
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid booking_id format' },
+        { error: 'รหัสการจองไม่ถูกต้อง กรุณากลับไปเลือกการจองใหม่' },
         { status: 400 }
       )
       return addSecurityHeaders(response)
@@ -131,7 +133,7 @@ export async function POST(request: Request) {
     // Validate URLs (ถ้ามี)
     if (success_url && !validateInput(success_url)) {
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid success_url' },
+        { error: 'URL สำหรับ redirect ไม่ถูกต้อง' },
         { status: 400 }
       )
       return addSecurityHeaders(response)
@@ -139,7 +141,7 @@ export async function POST(request: Request) {
 
     if (cancel_url && !validateInput(cancel_url)) {
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.VALIDATION_INVALID_DATA + ': Invalid cancel_url' },
+        { error: 'URL สำหรับ redirect ไม่ถูกต้อง' },
         { status: 400 }
       )
       return addSecurityHeaders(response)
@@ -149,30 +151,57 @@ export async function POST(request: Request) {
     const supabase = await createAdminClient()
 
     // ----------------------------------------------------------
-    // ดึงข้อมูลการจองพร้อม partner information
+    // ดึงข้อมูลการจองพร้อม hotel/car information
     // ----------------------------------------------------------
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select(
-        '*, hotel:hotels(*, partner:partners(*)), car:cars(*, partner:partners(*))'
-      )
+      .select('*, hotel:hotels(*), car:cars(*)')
       .eq('id', booking_id)
       .single()
 
     // ตรวจสอบว่าพบการจองหรือไม่
     if (bookingError || !booking) {
+      console.error('Booking query error:', bookingError)
       const response = NextResponse.json(
-        { error: ERROR_MESSAGES.PAYMENT_INVALID_BOOKING },
+        { error: 'ไม่พบข้อมูลการจองนี้ในระบบ อาจถูกยกเลิกไปแล้ว กรุณาทำการจองใหม่' },
         { status: 404 }
       )
       return addSecurityHeaders(response)
     }
 
     // ----------------------------------------------------------
-    // ตรวจสอบว่ามีพาร์ทเนอร์หรือไม่ (สำหรับ Stripe Connect)
+    // ตรวจสอบสถานะการจอง - ชำระเงินได้เฉพาะ PENDING, CONFIRMED
     // ----------------------------------------------------------
-    const partner =
-      booking.hotel?.partner || booking.car?.partner || null
+    const payableStatuses = ['PENDING', 'CONFIRMED']
+    if (!payableStatuses.includes(booking.status)) {
+      let statusMessage = 'การจองนี้ไม่สามารถชำระเงินได้'
+      if (booking.status === 'CANCELLED') {
+        statusMessage = 'การจองนี้ถูกยกเลิกแล้ว ไม่สามารถชำระเงินได้'
+      } else if (booking.status === 'PAID') {
+        statusMessage = 'การจองนี้ได้ชำระเงินเรียบร้อยแล้ว'
+      } else if (booking.status === 'COMPLETED') {
+        statusMessage = 'การจองนี้เสร็จสิ้นแล้ว'
+      }
+      const response = NextResponse.json(
+        { error: statusMessage },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    // ----------------------------------------------------------
+    // ดึงข้อมูล partner (ถ้ามี) สำหรับ Stripe Connect
+    // ----------------------------------------------------------
+    let partner: any = null
+    const partnerId = booking.hotel?.partner_id || booking.car?.partner_id
+    if (partnerId) {
+      const { data: partnerData } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('id', partnerId)
+        .single()
+      partner = partnerData
+    }
     const partnerStripeAccountId = partner?.stripe_account_id
 
     // ----------------------------------------------------------
@@ -185,11 +214,23 @@ export async function POST(request: Request) {
         : booking.car?.name_en || 'Car Rental'
 
     // ----------------------------------------------------------
+    // ตรวจสอบราคา
+    // ----------------------------------------------------------
+    if (!booking.total_price || booking.total_price <= 0) {
+      console.error('Invalid total_price:', booking.total_price, 'for booking:', booking.id)
+      const response = NextResponse.json(
+        { error: `ราคาการจองไม่ถูกต้อง (${booking.total_price || 0} บาท) กรุณาทำการจองใหม่` },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    // ----------------------------------------------------------
     // กำหนดสกุลเงินและแปลงราคา
     // ----------------------------------------------------------
     const bookingCurrency = (booking.currency || 'THB') as Currency
     const currency = bookingCurrency.toLowerCase()
-    
+
     // แปลงราคาเป็นสกุลเงินที่เลือก (ถ้าไม่ใช่ THB)
     let finalAmount = booking.total_price
     if (bookingCurrency !== Currency.THB) {
@@ -235,9 +276,25 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // สร้าง Stripe Checkout Session
     // ----------------------------------------------------------
+    // กำหนด payment methods ตามการเลือกของผู้ใช้หรือสกุลเงิน
+    let paymentMethods: string[]
+    if (payment_method === 'promptpay' && currency === 'thb') {
+      paymentMethods = ['promptpay']
+    } else if (payment_method === 'paypal') {
+      paymentMethods = ['paypal']
+    } else if (payment_method === 'card') {
+      paymentMethods = ['card']
+    } else {
+      // default: card + paypal + promptpay (ถ้าเป็น THB)
+      paymentMethods = ['card', 'paypal']
+      if (currency === 'thb') {
+        paymentMethods.push('promptpay')
+      }
+    }
+
     const sessionConfig: any = {
-      // วิธีการชำระเงินที่รองรับ
-      payment_method_types: ['card', 'promptpay', 'paypal'],
+      // วิธีการชำระเงินที่รองรับ (dynamic ตามสกุลเงิน)
+      payment_method_types: paymentMethods,
 
       // รายการสินค้า
       line_items: [
@@ -291,24 +348,54 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // สร้าง Stripe Checkout Session
     // ----------------------------------------------------------
+    // Debug: แสดงข้อมูลที่จะส่งไป Stripe
+    console.log('[Checkout] Creating Stripe session:', JSON.stringify({
+      payment_method_types: sessionConfig.payment_method_types,
+      amount: sessionConfig.line_items?.[0]?.price_data?.unit_amount,
+      currency: sessionConfig.line_items?.[0]?.price_data?.currency,
+      customer_email: sessionConfig.customer_email,
+      success_url: sessionConfig.success_url,
+      cancel_url: sessionConfig.cancel_url,
+      has_connect: !!sessionConfig.payment_intent_data,
+    }, null, 2))
+
     let session
     try {
       session = await stripe.checkout.sessions.create(sessionConfig)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Stripe checkout session creation error:', error)
-      const errorMessage = handleStripeError(error)
-      return NextResponse.json({ error: errorMessage }, { status: 500 })
+      // ส่ง error ที่เข้าใจง่ายกลับไป
+      let errorMsg = 'ไม่สามารถเชื่อมต่อระบบชำระเงินได้'
+      if (error?.type === 'StripeInvalidRequestError') {
+        if (error.message?.includes('payment_method_types')) {
+          errorMsg = `วิธีชำระเงินที่เลือก (${payment_method || 'ไม่ระบุ'}) ไม่รองรับสกุลเงิน ${bookingCurrency} กรุณาเลือกวิธีอื่น`
+        } else if (error.message?.includes('currency')) {
+          errorMsg = `สกุลเงิน ${bookingCurrency} ไม่รองรับวิธีชำระเงินนี้ กรุณาเลือกวิธีอื่น`
+        } else {
+          errorMsg = `ข้อมูลการชำระเงินไม่ถูกต้อง: ${error.message}`
+        }
+      } else if (error?.type === 'StripeConnectionError') {
+        errorMsg = 'ไม่สามารถเชื่อมต่อ Stripe ได้ กรุณาลองใหม่ในอีกสักครู่'
+      } else if (error?.type === 'StripeAuthenticationError') {
+        errorMsg = 'เกิดข้อผิดพลาดในการตั้งค่าระบบชำระเงิน กรุณาติดต่อผู้ดูแลระบบ'
+      }
+      const response = NextResponse.json({ error: errorMsg }, { status: 500 })
+      return addSecurityHeaders(response)
     }
 
     // ----------------------------------------------------------
     // บันทึก Payment Record
     // ----------------------------------------------------------
     try {
+      // currency_type enum ใน DB รองรับเฉพาะ THB, USD, EUR
+      const validCurrencies = ['THB', 'USD', 'EUR']
+      const paymentCurrency = validCurrencies.includes(bookingCurrency) ? bookingCurrency : 'THB'
+
       const { error: paymentError } = await supabase.from('payments').insert({
         booking_id: booking.id,
         stripe_checkout_session_id: session.id,
         amount: booking.total_price,
-        currency: booking.currency || 'THB',
+        currency: paymentCurrency,
         status: 'PENDING', // รอการชำระ
       })
 
@@ -329,8 +416,10 @@ export async function POST(request: Request) {
     return addSecurityHeaders(response)
   } catch (error) {
     console.error('Checkout error:', error)
-    const errorMessage = handleError(error, ERROR_MESSAGES.PAYMENT_CREATE_FAILED)
-    const response = NextResponse.json({ error: errorMessage }, { status: 500 })
+    const response = NextResponse.json(
+      { error: 'เกิดข้อผิดพลาดในการสร้างการชำระเงิน กรุณาลองใหม่อีกครั้ง หากปัญหายังคงอยู่ กรุณาติดต่อเรา' },
+      { status: 500 }
+    )
     return addSecurityHeaders(response)
   }
 }

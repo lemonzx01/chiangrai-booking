@@ -103,6 +103,9 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
   /** State สำหรับ index ของรูปที่แสดงอยู่ */
   const [currentImage, setCurrentImage] = useState(0)
 
+  /** รูปภาพ (fallback เป็น array ว่างถ้าไม่มี) */
+  const images = hotel.images || []
+
   /** State สำหรับประเภทห้อง */
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [loadingRoomTypes, setLoadingRoomTypes] = useState(true)
@@ -153,7 +156,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
    *   ถ้าอยู่รูปสุดท้ายจะวนกลับไปรูปแรก
    */
   const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % hotel.images.length)
+    setCurrentImage((prev) => (prev + 1) % images.length)
   }
 
   /**
@@ -164,7 +167,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
    *   ถ้าอยู่รูปแรกจะวนกลับไปรูปสุดท้าย
    */
   const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + hotel.images.length) % hotel.images.length)
+    setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
   }
 
   // ----------------------------------------------------------
@@ -195,14 +198,14 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             {/* รูปหลัก */}
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
               <Image
-                src={hotel.images[currentImage] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}
+                src={images[currentImage] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'}
                 alt={name}
                 fill
                 className="object-cover"
               />
 
               {/* ปุ่มเลื่อนรูป - แสดงเมื่อมีมากกว่า 1 รูป */}
-              {hotel.images.length > 1 && (
+              {images.length > 1 && (
                 <>
                   {/* ปุ่มรูปก่อนหน้า */}
                   <button
@@ -224,9 +227,9 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             </div>
 
             {/* Thumbnail Gallery - แสดงเมื่อมีมากกว่า 1 รูป */}
-            {hotel.images.length > 1 && (
+            {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {hotel.images.map((img, idx) => (
+                {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentImage(idx)}

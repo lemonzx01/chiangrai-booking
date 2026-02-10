@@ -26,6 +26,8 @@
 // ============================================================
 
 /** Next.js Response utility */
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันจัดการ cookies */

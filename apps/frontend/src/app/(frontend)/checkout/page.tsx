@@ -45,7 +45,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 /** Lucide icons สำหรับ UI */
-import { CreditCard, Loader2, ArrowLeft, Lock, Shield } from 'lucide-react'
+import { CreditCard, Loader2, ArrowLeft, Lock, Shield, Check, ShieldCheck, QrCode, CalendarDays, Users } from 'lucide-react'
 
 /** Type definition สำหรับ Booking */
 import { Booking, Currency } from '@chiangrai/shared/types'
@@ -105,6 +105,9 @@ function CheckoutContent() {
   /** State สำหรับ error message */
   const [error, setError] = useState<string>('')
 
+  /** State สำหรับ payment method ที่เลือก */
+  const [selectedMethod, setSelectedMethod] = useState<string>('card')
+
   // ----------------------------------------------------------
   // Effects
   // ----------------------------------------------------------
@@ -154,6 +157,12 @@ function CheckoutContent() {
   const handlePayNow = async () => {
     if (!booking) return
 
+    // ตรวจสอบว่ามี booking.id หรือไม่ (ถ้าไม่มีจะส่ง checkout ไม่ได้)
+    if (!booking.id) {
+      setError('ข้อมูลการจองไม่ครบ (ไม่มีรหัสอ้างอิง) กรุณากลับไปทำการจองใหม่')
+      return
+    }
+
     setProcessing(true)
     setError('')
 
@@ -164,24 +173,30 @@ function CheckoutContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           booking_id: booking.id,
+          payment_method: selectedMethod,
           success_url: `${window.location.origin}/success?code=${booking.booking_code}`,
           cancel_url: `${window.location.origin}/checkout?booking_code=${booking.booking_code}`,
         }),
       })
 
       if (!checkoutRes.ok) {
-        let errorMessage = t('checkout.paymentError') || 'ไม่สามารถสร้างการชำระเงินได้'
+        // ดึง error message จาก API (backend ส่ง error เฉพาะเจาะจงกลับมา)
+        let errorMessage = 'ไม่สามารถสร้างการชำระเงินได้'
         try {
           const errorData = await checkoutRes.json()
-          errorMessage = errorData.error || errorMessage
+          if (errorData.error) {
+            errorMessage = errorData.error
+          }
         } catch {
-          // ถ้า parse JSON ไม่ได้ ใช้ default message
+          // ถ้า parse JSON ไม่ได้ ใช้ default ตาม status
           if (checkoutRes.status === 404) {
-            errorMessage = t('checkout.bookingNotFound') || 'ไม่พบข้อมูลการจอง'
+            errorMessage = 'ไม่พบข้อมูลการจองนี้ กรุณาทำการจองใหม่'
           } else if (checkoutRes.status === 400) {
-            errorMessage = t('checkout.invalidData') || 'ข้อมูลไม่ถูกต้อง'
+            errorMessage = 'ข้อมูลการจองไม่ครบถ้วน กรุณากลับไปกรอกข้อมูลใหม่'
+          } else if (checkoutRes.status === 429) {
+            errorMessage = 'คุณส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่'
           } else if (checkoutRes.status >= 500) {
-            errorMessage = t('checkout.serverError') || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์'
+            errorMessage = 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่ในอีกสักครู่'
           }
         }
         setError(errorMessage)
@@ -195,7 +210,7 @@ function CheckoutContent() {
         responseData = await checkoutRes.json()
       } catch (err) {
         console.error('Error parsing checkout response:', err)
-        setError(t('checkout.paymentError') || 'ไม่สามารถสร้างการชำระเงินได้')
+        setError('ได้รับข้อมูลจากเซิร์ฟเวอร์ไม่สมบูรณ์ กรุณาลองใหม่อีกครั้ง')
         setProcessing(false)
         return
       }
@@ -204,18 +219,15 @@ function CheckoutContent() {
       if (url) {
         window.location.href = url
       } else {
-        setError(t('checkout.paymentError') || 'ไม่สามารถสร้างการชำระเงินได้')
+        setError('ไม่สามารถสร้างลิงก์ชำระเงินได้ กรุณาลองใหม่อีกครั้ง')
         setProcessing(false)
       }
     } catch (err) {
       console.error('Checkout error:', err)
-      // ตรวจสอบว่าเป็น network error หรือไม่
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError(t('checkout.networkError') || 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต')
-      } else if (err instanceof Error) {
-        setError(err.message || t('checkout.error') || 'เกิดข้อผิดพลาด')
+        setError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')
       } else {
-        setError(t('checkout.error') || 'เกิดข้อผิดพลาด')
+        setError('เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง')
       }
       setProcessing(false)
     }
@@ -261,6 +273,44 @@ function CheckoutContent() {
   }
 
   // ----------------------------------------------------------
+  // Booking Status Check - ตรวจสอบสถานะก่อนแสดง form ชำระเงิน
+  // ----------------------------------------------------------
+  if (booking.status === 'CANCELLED') {
+    return (
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">การจองนี้ถูกยกเลิกแล้ว</h2>
+        <p className="text-slate-500 text-sm">ไม่สามารถชำระเงินสำหรับการจองที่ถูกยกเลิกได้</p>
+        <Link href="/">
+          <Button>{t('common.back') || 'กลับหน้าหลัก'}</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  if (booking.status === 'PAID' || booking.status === 'COMPLETED') {
+    return (
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">ชำระเงินเรียบร้อยแล้ว</h2>
+        <p className="text-slate-500 text-sm">การจองนี้ได้รับการชำระเงินเรียบร้อยแล้ว</p>
+        <p className="text-sm text-slate-400">รหัสการจอง: <span className="font-mono font-semibold">{booking.booking_code}</span></p>
+        <Link href="/">
+          <Button>{t('common.back') || 'กลับหน้าหลัก'}</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // ----------------------------------------------------------
   // Render
   // ----------------------------------------------------------
   /** ข้อมูลโรงแรม/รถ */
@@ -268,148 +318,266 @@ function CheckoutContent() {
   const itemName = item ? getField(item, 'name') : ''
 
   /** รูปภาพ */
-  const imageUrl = item?.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'
+  const imageUrl = item?.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'
 
   /** สกุลเงิน */
   const currency = (booking.currency || Currency.THB) as Currency
 
-  return (
-    <div className="min-h-screen pt-24 pb-12">
-      <div className="max-w-4xl mx-auto px-6 sm:px-8">
-        {/* ============================================================
-            ปุ่มกลับ
-            ============================================================ */}
-        <Link
-          href={`/booking?type=${booking.booking_type}&id=${booking.hotel_id || booking.car_id}`}
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-6 transition-colors"
-        >
-          <ArrowLeft size={20} />
-          <span className="font-medium">{t('common.back')}</span>
-        </Link>
+  /** จำนวนคืน */
+  const nights = booking.check_in_date && booking.check_out_date
+    ? Math.max(1, Math.ceil((new Date(booking.check_out_date).getTime() - new Date(booking.check_in_date).getTime()) / (1000 * 60 * 60 * 24)))
+    : 1
 
-        {/* Page Title */}
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 sm:mb-8">
-          {t('checkout.title') || 'ชำระเงิน'}
-        </h1>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 pt-24 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ============================================================
+            Header - ปุ่มกลับ + ชื่อหน้า
+            ============================================================ */}
+        <div className="mb-8">
+          <Link
+            href={`/booking?type=${booking.booking_type}&id=${booking.hotel_id || booking.car_id}`}
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-4 transition-colors text-sm"
+          >
+            <ArrowLeft size={16} />
+            <span>{t('common.back')}</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
+              <Lock size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+                {t('checkout.title') || 'ชำระเงิน'}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {t('checkout.bookingCode') || 'รหัสการจอง'}: <span className="font-mono font-semibold text-slate-700">{booking.booking_code}</span>
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* ============================================================
             Main Content - 2 Columns Grid
             ============================================================ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* ============================================================
-              คอลัมน์ซ้าย - Payment Methods
+              คอลัมน์ซ้าย - Payment Methods (3/5)
               ============================================================ */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
+          <div className="lg:col-span-3 order-2 lg:order-1 space-y-6">
             {/* Payment Methods Section */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Lock size={20} className="text-indigo-600" />
-                {t('checkout.paymentMethods') || 'วิธีการชำระเงิน'}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 sm:p-6">
+              <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <CreditCard size={18} className="text-indigo-600" />
+                {t('checkout.paymentMethods') || 'เลือกวิธีการชำระเงิน'}
               </h2>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3">
                 {/* Credit Card */}
-                <div className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition-colors">
-                  <CreditCard size={24} className="text-indigo-600" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{t('checkout.creditCard') || 'บัตรเครดิต/เดบิต'}</p>
-                    <p className="text-sm text-slate-500">{t('checkout.creditCardDesc') || 'Visa, Mastercard, Amex'}</p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod('card')}
+                  className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
+                    selectedMethod === 'card'
+                      ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                    selectedMethod === 'card' ? 'bg-indigo-100' : 'bg-slate-100'
+                  }`}>
+                    <CreditCard size={20} className={selectedMethod === 'card' ? 'text-indigo-600' : 'text-slate-500'} />
                   </div>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900">{t('checkout.creditCard') || 'บัตรเครดิต / เดบิต'}</p>
+                    <p className="text-sm text-slate-500">Visa, Mastercard, American Express</p>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                    selectedMethod === 'card'
+                      ? 'border-indigo-600 bg-indigo-600'
+                      : 'border-slate-300'
+                  }`}>
+                    {selectedMethod === 'card' && <Check size={12} className="text-white" />}
+                  </div>
+                </button>
 
                 {/* PayPal */}
-                <div className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition-colors">
-                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">PP</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod('paypal')}
+                  className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
+                    selectedMethod === 'paypal'
+                      ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                    selectedMethod === 'paypal' ? 'bg-blue-100' : 'bg-slate-100'
+                  }`}>
+                    <span className={`text-sm font-extrabold ${selectedMethod === 'paypal' ? 'text-blue-600' : 'text-slate-500'}`}>P</span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-900">PayPal</p>
-                    <p className="text-sm text-slate-500">{t('checkout.paypalDesc') || 'ชำระเงินผ่าน PayPal'}</p>
+                    <p className="text-sm text-slate-500">{t('checkout.paypalDesc') || 'ชำระเงินผ่านบัญชี PayPal'}</p>
                   </div>
-                </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                    selectedMethod === 'paypal'
+                      ? 'border-indigo-600 bg-indigo-600'
+                      : 'border-slate-300'
+                  }`}>
+                    {selectedMethod === 'paypal' && <Check size={12} className="text-white" />}
+                  </div>
+                </button>
 
-                {/* PromptPay */}
-                <div className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 transition-colors">
-                  <Shield size={24} className="text-green-600" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">PromptPay</p>
-                    <p className="text-sm text-slate-500">{t('checkout.promptpayDesc') || 'ชำระเงินผ่าน PromptPay'}</p>
-                  </div>
-                </div>
+                {/* PromptPay - แสดงเฉพาะสกุลเงิน THB */}
+                {currency === Currency.THB && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod('promptpay')}
+                    className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
+                      selectedMethod === 'promptpay'
+                        ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      selectedMethod === 'promptpay' ? 'bg-green-100' : 'bg-slate-100'
+                    }`}>
+                      <QrCode size={20} className={selectedMethod === 'promptpay' ? 'text-green-600' : 'text-slate-500'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900">PromptPay</p>
+                      <p className="text-sm text-slate-500">{t('checkout.promptpayDesc') || 'สแกน QR Code ชำระผ่าน PromptPay'}</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                      selectedMethod === 'promptpay'
+                        ? 'border-indigo-600 bg-indigo-600'
+                        : 'border-slate-300'
+                    }`}>
+                      {selectedMethod === 'promptpay' && <Check size={12} className="text-white" />}
+                    </div>
+                  </button>
+                )}
               </div>
-
-              <p className="text-sm text-slate-500 text-center">
-                {t('checkout.redirectMessage') || 'คุณจะถูกนำไปยังหน้า Stripe Checkout เพื่อชำระเงิน'}
-              </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 text-sm font-medium">{error}</p>
               </div>
             )}
 
             {/* Pay Now Button */}
-            <Button
-              size="lg"
-              className="w-full"
+            <button
+              type="button"
               onClick={handlePayNow}
-              loading={processing}
               disabled={processing}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-200 flex items-center justify-center gap-3 text-base"
             >
-              {t('checkout.payNow') || 'ชำระเงินตอนนี้'}
-            </Button>
+              {processing ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  <span>{t('checkout.processing') || 'กำลังดำเนินการ...'}</span>
+                </>
+              ) : (
+                <>
+                  <Lock size={18} />
+                  <span>{t('checkout.payNow') || 'ชำระเงิน'} {formatCurrencyWithType(booking.total_price, currency)}</span>
+                </>
+              )}
+            </button>
+
+            {/* Security Badges */}
+            <div className="flex items-center justify-center gap-6 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={14} />
+                <span>SSL Encrypted</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Shield size={14} />
+                <span>Secured by Stripe</span>
+              </div>
+            </div>
+
+            {/* Redirect Message */}
+            <p className="text-xs text-slate-400 text-center">
+              {t('checkout.redirectMessage') || 'คุณจะถูกนำไปยังหน้าชำระเงินที่ปลอดภัยของ Stripe'}
+            </p>
           </div>
 
           {/* ============================================================
-              คอลัมน์ขวา - Booking Summary
+              คอลัมน์ขวา - Booking Summary (2/5)
               ============================================================ */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 lg:sticky lg:top-24">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                {t('booking.summary') || 'สรุปการจอง'}
-              </h2>
-
-              {/* รูปภาพ */}
-              <div className="relative h-40 rounded-xl overflow-hidden mb-4">
+          <div className="lg:col-span-2 order-1 lg:order-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden lg:sticky lg:top-24">
+              {/* รูปภาพ - ใหญ่ขึ้น พร้อม overlay */}
+              <div className="relative h-44 sm:h-48">
                 <Image
                   src={imageUrl}
                   alt={itemName}
                   fill
                   className="object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4">
+                  <span className="inline-block bg-white/90 backdrop-blur-sm text-xs font-semibold text-indigo-700 px-2.5 py-1 rounded-full mb-1.5">
+                    {booking.booking_type === 'HOTEL'
+                      ? (t('common.hotel') || 'โรงแรม')
+                      : (t('common.car') || 'รถเช่า')}
+                  </span>
+                  <h3 className="font-bold text-white text-lg leading-tight drop-shadow-sm break-words">{itemName}</h3>
+                </div>
               </div>
-
-              {/* ชื่อ */}
-              <h3 className="font-bold text-slate-900 mb-4 break-words">{itemName}</h3>
 
               {/* รายละเอียดการจอง */}
-              <div className="space-y-3 text-sm border-t border-slate-100 pt-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{t('booking.checkIn') || 'วันเช็คอิน'}</span>
-                  <span className="font-medium">{formatDate(booking.check_in_date)}</span>
+              <div className="p-5">
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    <CalendarDays size={16} className="text-slate-400 shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-slate-500 text-xs">{t('booking.checkIn') || 'เช็คอิน'}</p>
+                      <p className="font-medium text-slate-800">{formatDate(booking.check_in_date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CalendarDays size={16} className="text-slate-400 shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-slate-500 text-xs">{t('booking.checkOut') || 'เช็คเอาท์'}</p>
+                      <p className="font-medium text-slate-800">{formatDate(booking.check_out_date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Users size={16} className="text-slate-400 shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-slate-500 text-xs">
+                        {booking.booking_type === 'HOTEL'
+                          ? t('booking.guests') || 'ผู้เข้าพัก'
+                          : t('common.passengers') || 'ผู้โดยสาร'}
+                      </p>
+                      <p className="font-medium text-slate-800">{booking.number_of_guests} {t('common.persons') || 'ท่าน'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{t('booking.checkOut') || 'วันเช็คเอาท์'}</span>
-                  <span className="font-medium">{formatDate(booking.check_out_date)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">
-                    {booking.booking_type === 'HOTEL'
-                      ? t('booking.guests') || 'จำนวนผู้เข้าพัก'
-                      : t('common.passengers') || 'ผู้โดยสาร'}
-                  </span>
-                  <span className="font-medium">{booking.number_of_guests} {t('common.persons') || 'ท่าน'}</span>
-                </div>
-              </div>
 
-              {/* ราคารวม */}
-              <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                <span className="font-bold text-slate-900">{t('booking.totalPrice') || 'ราคารวม'}</span>
-                <span className="font-bold text-xl text-indigo-600">
-                  {formatCurrencyWithType(booking.total_price, currency)}
-                </span>
+                {/* Price Breakdown */}
+                <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">
+                      {formatCurrencyWithType(Math.round(booking.total_price / nights), currency)} x {nights} {t('common.nights') || 'คืน'}
+                    </span>
+                    <span className="text-slate-700">{formatCurrencyWithType(booking.total_price, currency)}</span>
+                  </div>
+                </div>
+
+                {/* ราคารวม */}
+                <div className="mt-4 pt-4 border-t-2 border-slate-900 flex justify-between items-center">
+                  <span className="font-bold text-slate-900">{t('booking.totalPrice') || 'ยอดชำระ'}</span>
+                  <span className="font-black text-2xl text-indigo-600">
+                    {formatCurrencyWithType(booking.total_price, currency)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

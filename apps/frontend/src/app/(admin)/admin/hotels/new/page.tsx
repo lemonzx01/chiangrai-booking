@@ -14,6 +14,7 @@ const STAR_RATINGS = [
   { value: 1, label: '1 ดาว' },
 ] as const
 import ImageUpload from '@/components/ui/ImageUpload'
+import SelectDropdown from '@/components/ui/SelectDropdown'
 import { Partner } from '@chiangrai/shared/types'
 import { Currency } from '@chiangrai/shared/types'
 import { CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
@@ -237,45 +238,22 @@ export default function NewHotelPage() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     ระดับดาว *
                   </label>
-                  <div className="relative">
-                    <select
-                      value={formData.star_rating}
-                      onChange={(e) => setFormData({ ...formData, star_rating: parseInt(e.target.value) })}
-                      className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200 appearance-none cursor-pointer"
-                      required
-                    >
-                      {STAR_RATINGS.map((rating) => (
-                        <option key={rating.value} value={rating.value}>
-                          {rating.label}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+                  <SelectDropdown
+                    options={STAR_RATINGS.map(r => ({ value: r.value, label: r.label }))}
+                    value={formData.star_rating}
+                    onChange={(v) => setFormData({ ...formData, star_rating: parseInt(v) })}
+                  />
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       สกุลเงิน *
                     </label>
-                    <select
+                    <SelectDropdown
+                      options={CURRENCY_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
                       value={formData.currency}
-                      onChange={(e) =>
-                        setFormData({ ...formData, currency: e.target.value as Currency })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
-                      required
-                    >
-                      {CURRENCY_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setFormData({ ...formData, currency: v as Currency })}
+                    />
                   </div>
                   <Input
                     type="number"
@@ -297,18 +275,14 @@ export default function NewHotelPage() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     พาร์ทเนอร์ (โรงแรม)
                   </label>
-                  <select
+                  <SelectDropdown
+                    options={[
+                      { value: '', label: '-- ไม่ระบุพาร์ทเนอร์ --' },
+                      ...partners.map(p => ({ value: p.id, label: p.name })),
+                    ]}
                     value={formData.partner_id}
-                    onChange={(e) => setFormData({ ...formData, partner_id: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
-                  >
-                    <option value="">-- ไม่ระบุพาร์ทเนอร์ --</option>
-                    {partners.map((partner) => (
-                      <option key={partner.id} value={partner.id}>
-                        {partner.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => setFormData({ ...formData, partner_id: v })}
+                  />
                 </div>
                 <Input
                   type="number"

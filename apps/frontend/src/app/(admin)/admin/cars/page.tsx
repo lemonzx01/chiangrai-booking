@@ -36,18 +36,13 @@ import AdminSidebar from '@/components/admin/Sidebar'
 import Link from 'next/link'
 
 /** Lucide icons สำหรับ UI */
-import { Plus, Pencil } from 'lucide-react'
-
-/** Utility functions */
-import { formatCurrency } from '@chiangrai/shared/utils'
-
-/** Delete Button component (Client) */
-import DeleteCarButton from './DeleteButton'
+import { Plus } from 'lucide-react'
 
 /** Type definitions */
 import { Car } from '@chiangrai/shared/types'
 
-/** Mock data สำหรับ fallback */
+/** Cars Table component (Client) */
+import CarsTable from './CarsTable'
 
 
 // ============================================================
@@ -133,79 +128,8 @@ export default async function AdminCarsPage() {
           </Link>
         </div>
 
-        {/* ============================================================
-            Cars Table
-            ============================================================ */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
-              {/* Table Header */}
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">ชื่อ</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">ประเภท</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">ราคา/วัน</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">สถานะ</th>
-                  <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase">จัดการ</th>
-                </tr>
-              </thead>
-
-              {/* Table Body */}
-              <tbody className="divide-y divide-slate-100">
-                {cars.map((car) => (
-                  <tr key={car.id} className="hover:bg-slate-50">
-                    {/* ชื่อรถ (TH/EN) */}
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{car.name_th}</div>
-                      <div className="text-sm text-slate-500">{car.name_en}</div>
-                    </td>
-
-                    {/* ประเภทรถ */}
-                    <td className="px-6 py-4 text-sm text-slate-500">{car.car_type_th}</td>
-
-                    {/* ราคาต่อวัน */}
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                      {formatCurrency(car.price_per_day)}
-                    </td>
-
-                    {/* สถานะ Badge */}
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                        car.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {car.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
-                      </span>
-                    </td>
-
-                    {/* Action Buttons */}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* ปุ่มแก้ไข */}
-                        <Link
-                          href={`/admin/cars/${car.id}/edit`}
-                          className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                        >
-                          <Pencil size={18} />
-                        </Link>
-                        {/* ปุ่มลบ */}
-                        <DeleteCarButton id={car.id} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
-                {/* Empty State */}
-                {cars.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                      ยังไม่มีรถ
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* Cars Table with Search/Filter/Pagination */}
+        <CarsTable cars={cars} />
       </main>
     </div>
   )

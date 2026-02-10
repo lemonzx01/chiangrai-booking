@@ -12,6 +12,8 @@
  *
  * ============================================================
  */
+export const dynamic = 'force-dynamic'
+
 
 // Imports
 import { NextResponse } from 'next/server'

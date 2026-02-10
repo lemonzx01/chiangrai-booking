@@ -22,6 +22,8 @@
  * ============================================================
  */
 
+export const dynamic = 'force-dynamic'
+
 import { stripe } from '../../../../lib/stripe'
 import { createAdminClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'

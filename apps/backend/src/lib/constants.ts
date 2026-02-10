@@ -132,10 +132,10 @@ export const STAR_RATINGS = [
 // ============================================================
 
 /** รูปภาพเริ่มต้นสำหรับโรงแรม (ถ้าไม่มีรูป) */
-export const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'
+export const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945'
 
 /** รูปภาพเริ่มต้นสำหรับรถ (ถ้าไม่มีรูป) */
-export const DEFAULT_CAR_IMAGE = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800'
+export const DEFAULT_CAR_IMAGE = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70'
 
 // ============================================================
 // Pagination (การแบ่งหน้า)
@@ -215,9 +215,9 @@ export const MOCK_HOTELS = [
     room_type_th: 'รถหรู + วิลล่าสระน้ำส่วนตัว',
     room_type_en: 'Luxury Car + Private Pool Villa',
     images: [
-      'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200',
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+      'https://images.unsplash.com/photo-1519046904884-53103b34b206',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
     ],
     amenities_th: ['รถเปิดประทุน', 'สระว่ายน้ำส่วนตัว', 'รับส่งสนามบิน VIP', 'อาหารเย็นชมพระอาทิตย์ตก'],
     amenities_en: ['Convertible Car', 'Private Pool', 'VIP Airport Transfer', 'Sunset Dinner'],
@@ -241,9 +241,9 @@ export const MOCK_HOTELS = [
     room_type_th: 'SUV + รีสอร์ทภูเขา',
     room_type_en: 'SUV + Mountain Resort',
     images: [
-      'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200',
-      'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=800',
-      'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?w=800',
+      'https://images.unsplash.com/photo-1501785888041-af3ef285b470',
+      'https://images.unsplash.com/photo-1544644181-1484b3fdfc62',
+      'https://images.unsplash.com/photo-1527004013197-933c4bb611b3',
     ],
     amenities_th: ['4x4 SUV', 'อาหารเช้าล้านนา', 'ไกด์ท้องถิ่น', 'ประกันภัยรวม'],
     amenities_en: ['4x4 SUV', 'Lanna Breakfast', 'Local Guide', 'Insurance Included'],
@@ -266,9 +266,9 @@ export const MOCK_HOTELS = [
     room_type_th: 'Sedan + Riverside Suite',
     room_type_en: 'Sedan + Riverside Suite',
     images: [
-      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200',
-      'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800',
-      'https://images.unsplash.com/photo-1563911546344-647715ed5d76?w=800',
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2',
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd',
+      'https://images.unsplash.com/photo-1563911546344-647715ed5d76',
     ],
     amenities_th: ['รถยุโรป Sedan', 'ดินเนอร์ล่องเรือ', 'เข้า Rooftop Bar', 'แชมเปญต้อนรับ'],
     amenities_en: ['European Sedan', 'Dinner Cruise', 'Rooftop Bar Access', 'Champagne Welcome'],
@@ -298,7 +298,7 @@ export const MOCK_CARS = [
     price_per_day: 9500,
     base_price_per_day: 9500,
     currency: Currency.THB,
-    images: ['https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=1200'],
+    images: ['https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd'],
     includes_th: ['ประกันชั้นหนึ่ง', 'ทำความสะอาดและฆ่าเชื้อ', 'น้ำมันเต็มถัง', 'Apple CarPlay'],
     includes_en: ['First Class Insurance', 'Cleaned & Disinfected', 'Full Tank', 'Apple CarPlay'],
     owner_id: 'mock-partner-car-1', // Partner คนขับรถ
@@ -317,7 +317,7 @@ export const MOCK_CARS = [
     price_per_day: 5500,
     base_price_per_day: 5500,
     currency: Currency.THB,
-    images: ['https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=1200'],
+    images: ['https://images.unsplash.com/photo-1621939514649-280e2ee25f60'],
     includes_th: ['พร้อมคนขับ', 'WIFI', 'น้ำและเครื่องดื่ม', 'บริการ VIP Lane'],
     includes_en: ['Driver Available', 'WIFI', 'Water & Refreshment', 'VIP Lane Service'],
     is_active: true,

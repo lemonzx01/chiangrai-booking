@@ -24,6 +24,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isAfter, isBefore, isWithinInterval, differenceInDays } from 'date-fns'
 import { useTranslation } from 'react-i18next'
@@ -48,7 +49,8 @@ interface DateRangePickerProps {
   minDate?: Date
   /** Locale สำหรับ date-fns */
   locale?: any
-  /** ฟังก์ชันสำหรับดึงราคาตามวันที่ (optional) */
+  /** Custom trigger element (แทนข้อความ default) */
+  children?: React.ReactNode
 }
 
 // ============================================================
@@ -79,6 +81,7 @@ const DateRangePicker = ({
   onChange,
   placeholder = 'เลือกวันที่',
   minDate,
+  children,
 }: DateRangePickerProps) => {
   // ----------------------------------------------------------
   // Hooks
@@ -147,16 +150,6 @@ const DateRangePicker = ({
     }
   }, [isOpen, startDate, endDate])
 
-  /** ปิด popup เมื่อคลิกด้านนอก */
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   // ----------------------------------------------------------
   // Constants (ค่าคงที่)
@@ -372,20 +365,24 @@ const DateRangePicker = ({
   return (
     <div ref={containerRef} className="relative">
       {/* ปุ่ม Trigger */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full text-left text-base font-semibold bg-transparent outline-none cursor-pointer"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsOpen(!isOpen) }}
+        className="w-full cursor-pointer"
       >
-        <span className={startDate ? 'text-slate-800' : 'text-slate-400'}>
-          {displayText()}
-        </span>
-      </button>
+        {children || (
+          <span className={`text-base font-semibold ${startDate ? 'text-slate-800' : 'text-slate-400'}`}>
+            {displayText()}
+          </span>
+        )}
+      </div>
 
-      {/* Calendar Popup */}
-      {isOpen && (
-        <div className={`fixed inset-0 z-50 ${isMobile ? 'flex flex-col' : 'flex items-center justify-center p-4'} bg-black/50`} onClick={() => setIsOpen(false)}>
-          <div className={`bg-white ${isMobile ? 'flex-1 flex flex-col' : 'rounded-2xl shadow-2xl overflow-hidden animate-scale-up w-full max-w-4xl max-h-[90vh] overflow-y-auto'}`} onClick={(e) => e.stopPropagation()}>
+      {/* Calendar Popup - ใช้ Portal เพื่อหลีกเลี่ยง CSS transform containment */}
+      {isOpen && mounted && createPortal(
+        <div className={`fixed inset-0 z-50 ${isMobile ? 'flex flex-col' : 'flex items-center justify-center p-4'} bg-black/50`}>
+          <div className={`bg-white ${isMobile ? 'flex-1 flex flex-col' : 'rounded-2xl shadow-2xl overflow-hidden animate-scale-up w-full max-w-4xl max-h-[90vh] overflow-y-auto'}`}>
             {/* Header */}
             <div className={`flex items-center justify-between ${isMobile ? 'px-4 py-3' : 'px-6 py-4'} border-b border-slate-200 bg-white ${isMobile ? '' : 'sticky top-0 z-10'}`}>
               {!isMobile && (
@@ -428,7 +425,7 @@ const DateRangePicker = ({
                         {lang === 'th' ? 'วันเช็คอิน' : 'Check-in'}
                       </p>
                       <p className={`text-base font-bold ${tempStartDate ? 'text-indigo-600' : 'text-slate-400'}`}>
-                        {tempStartDate 
+                        {tempStartDate
                           ? format(tempStartDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
                           : '—'
                         }
@@ -439,7 +436,7 @@ const DateRangePicker = ({
                         {lang === 'th' ? 'วันเช็คเอาท์' : 'Check-out'}
                       </p>
                       <p className={`text-base font-bold ${tempEndDate ? 'text-indigo-600' : 'text-slate-400'}`}>
-                        {tempEndDate 
+                        {tempEndDate
                           ? format(tempEndDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
                           : '—'
                         }
@@ -494,7 +491,8 @@ const DateRangePicker = ({
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

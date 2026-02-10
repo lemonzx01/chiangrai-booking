@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
+import { Pencil, Search } from 'lucide-react'
 import DeletePartnerButton from './DeleteButton'
 import { Partner, PartnerType } from '@chiangrai/shared/types'
+
+const ITEMS_PER_PAGE = 10
 
 interface PartnersTableProps {
   partners: Partner[]
@@ -14,6 +16,8 @@ interface PartnersTableProps {
 
 export default function PartnersTable({ partners, hotelCount, driverCount }: PartnersTableProps) {
   const [filterType, setFilterType] = useState<'ALL' | PartnerType>('ALL')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   const getTypeLabel = (type: PartnerType) => {
     return type === PartnerType.HOTEL ? 'โรงแรม' : 'คนขับรถ'
@@ -25,47 +29,83 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
       : 'bg-purple-100 text-purple-700'
   }
 
-  // กรองพาร์ทเนอร์ตามประเภทที่เลือก
-  const filteredPartners =
-    filterType === 'ALL'
-      ? partners
-      : partners.filter((partner) => partner.type === filterType)
+  // Filter + Search
+  const filtered = partners.filter((partner) => {
+    const matchesType = filterType === 'ALL' || partner.type === filterType
+
+    const matchesSearch =
+      !search ||
+      partner.name.toLowerCase().includes(search.toLowerCase()) ||
+      partner.email.toLowerCase().includes(search.toLowerCase()) ||
+      (partner.phone || '').toLowerCase().includes(search.toLowerCase())
+
+    return matchesType && matchesSearch
+  })
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
+  const safeCurrentPage = Math.min(page, totalPages)
+  const paginated = filtered.slice(
+    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+    safeCurrentPage * ITEMS_PER_PAGE
+  )
+
+  const handleSearch = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+  const handleFilterType = (value: 'ALL' | PartnerType) => {
+    setFilterType(value)
+    setPage(1)
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Filter Tabs */}
+    <div className="space-y-4">
+      {/* Filter Tabs + Search */}
       <div className="bg-white rounded-2xl border border-slate-100 p-4">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilterType('ALL')}
-            className={`px-4 py-2 rounded-xl font-medium transition-colors ${
-              filterType === 'ALL'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            ทั้งหมด ({partners.length})
-          </button>
-          <button
-            onClick={() => setFilterType(PartnerType.HOTEL)}
-            className={`px-4 py-2 rounded-xl font-medium transition-colors ${
-              filterType === PartnerType.HOTEL
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            โรงแรม ({hotelCount})
-          </button>
-          <button
-            onClick={() => setFilterType(PartnerType.DRIVER)}
-            className={`px-4 py-2 rounded-xl font-medium transition-colors ${
-              filterType === PartnerType.DRIVER
-                ? 'bg-purple-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            คนขับรถ ({driverCount})
-          </button>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => handleFilterType('ALL')}
+              className={`px-4 py-2 rounded-xl font-medium transition-colors ${
+                filterType === 'ALL'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              ทั้งหมด ({partners.length})
+            </button>
+            <button
+              onClick={() => handleFilterType(PartnerType.HOTEL)}
+              className={`px-4 py-2 rounded-xl font-medium transition-colors ${
+                filterType === PartnerType.HOTEL
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              โรงแรม ({hotelCount})
+            </button>
+            <button
+              onClick={() => handleFilterType(PartnerType.DRIVER)}
+              className={`px-4 py-2 rounded-xl font-medium transition-colors ${
+                filterType === PartnerType.DRIVER
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              คนขับรถ ({driverCount})
+            </button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="ค้นหาชื่อ, อีเมล, เบอร์โทร..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -96,7 +136,7 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredPartners.map((partner) => (
+              {paginated.map((partner) => (
                 <tr key={partner.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900">{partner.name}</div>
@@ -141,14 +181,12 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
                   </td>
                 </tr>
               ))}
-              {filteredPartners.length === 0 && (
+              {paginated.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                    {filterType === 'ALL'
-                      ? 'ยังไม่มีพาร์ทเนอร์'
-                      : filterType === PartnerType.HOTEL
-                        ? 'ยังไม่มีพาร์ทเนอร์ประเภทโรงแรม'
-                        : 'ยังไม่มีพาร์ทเนอร์ประเภทคนขับรถ'}
+                    {search || filterType !== 'ALL'
+                      ? 'ไม่พบผลลัพธ์'
+                      : 'ยังไม่มีพาร์ทเนอร์'}
                   </td>
                 </tr>
               )}
@@ -156,9 +194,42 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-100 px-4 py-3">
+          <span className="text-sm text-slate-500">
+            แสดง {(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(safeCurrentPage * ITEMS_PER_PAGE, filtered.length)} จาก {filtered.length}
+          </span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={safeCurrentPage === 1}
+              className="px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-slate-100 transition-colors"
+            >
+              &#9664;
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                  p === safeCurrentPage ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={safeCurrentPage === totalPages}
+              className="px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-slate-100 transition-colors"
+            >
+              &#9654;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
-
-

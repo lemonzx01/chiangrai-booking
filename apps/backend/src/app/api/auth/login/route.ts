@@ -35,6 +35,8 @@
 // ============================================================
 
 /** Supabase Admin client สำหรับ Server-side */
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/server'
 
 /** Next.js Response utility */

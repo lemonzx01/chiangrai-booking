@@ -205,6 +205,31 @@ function LoginContent() {
   // Effects
   // ----------------------------------------------------------
   /**
+   * Effect: ถ้า login อยู่แล้ว ให้ redirect ไปหน้าที่ต้องการ
+   */
+  useEffect(() => {
+    const checkIfLoggedIn = async () => {
+      // เช็ค logged_in cookie ก่อน - ถ้าไม่มี ไม่ต้องเรียก API
+      const hasCookie = document.cookie.split(';').some(c => c.trim().startsWith('logged_in='))
+      if (!hasCookie) return
+
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const redirect = searchParams.get('redirect') || '/'
+          router.push(redirect)
+        } else {
+          // token หมดอายุ - ลบ logged_in cookie
+          document.cookie = 'logged_in=; path=/; max-age=0'
+        }
+      } catch {
+        // Not logged in - show login form
+      }
+    }
+    checkIfLoggedIn()
+  }, [router, searchParams])
+
+  /**
    * Effect: ตรวจสอบว่ามาจากหน้าสมัครสมาชิกหรือรีเซ็ตรหัสผ่าน
    */
   useEffect(() => {
@@ -259,6 +284,9 @@ function LoginContent() {
 
       const data = await res.json()
 
+      // ตั้ง flag cookie ให้ Navbar รู้ว่า login แล้ว (ป้องกัน 401 ใน console)
+      document.cookie = 'logged_in=1; path=/; max-age=604800'
+
       // ----------------------------------------------------------
       // Redirect ตาม Role
       // ----------------------------------------------------------
@@ -266,9 +294,9 @@ function LoginContent() {
         // Admin ไป Dashboard (ใช้ window.location เพื่อ full refresh)
         window.location.href = '/admin/dashboard'
       } else {
-        // User ไป Profile หรือ redirect URL
-        const redirect = searchParams.get('redirect') || '/profile'
-        router.push(redirect)
+        // User ไปหน้าแรก หรือ redirect URL (ใช้ full page reload เพื่อให้ Navbar re-mount)
+        const redirect = searchParams.get('redirect') || '/'
+        window.location.href = redirect
         router.refresh()
       }
     } catch (error) {

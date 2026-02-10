@@ -28,6 +28,8 @@
  * ============================================================
  */
 
+export const dynamic = 'force-dynamic'
+
 // ============================================================
 // การนำเข้า Dependencies
 // ============================================================
@@ -156,86 +158,6 @@ export async function POST(request: Request) {
       .eq('email', email)
       .eq('is_active', true) // ต้องเป็น Admin ที่ active เท่านั้น
       .single()
-
-    // Fallback สำหรับ test admin credentials ถ้าไม่พบใน database
-    if ((error || !admin) && email === 'admin@gotjourneythailand.com' && password === 'admin123') {
-      const testAdmin = {
-        id: 'test-admin-1',
-        email: 'admin@gotjourneythailand.com',
-        name: 'Test Admin',
-        role: 'admin' as const,
-      }
-      
-      const secret = getJwtSecret()
-      const token = await new SignJWT({
-        sub: testAdmin.id,
-        email: testAdmin.email,
-        name: testAdmin.name,
-        role: 'admin',
-      })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('24h')
-        .setIssuedAt()
-        .sign(secret)
-
-      const cookieStore = await cookies()
-      cookieStore.set('admin_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24,
-        path: '/',
-      })
-
-      return NextResponse.json({
-        user: {
-          id: testAdmin.id,
-          email: testAdmin.email,
-          name: testAdmin.name,
-          role: 'admin',
-        },
-      })
-    }
-
-    // Fallback สำหรับ test admin credentials อื่นๆ (admin@example.com)
-    if ((error || !admin) && email === 'admin@example.com' && password === 'AdminPass123') {
-      const testAdmin = {
-        id: 'test-admin-2',
-        email: 'admin@example.com',
-        name: 'Test Admin',
-        role: 'admin' as const,
-      }
-      
-      const secret = getJwtSecret()
-      const token = await new SignJWT({
-        sub: testAdmin.id,
-        email: testAdmin.email,
-        name: testAdmin.name,
-        role: 'admin',
-      })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime('24h')
-        .setIssuedAt()
-        .sign(secret)
-
-      const cookieStore = await cookies()
-      cookieStore.set('admin_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24,
-        path: '/',
-      })
-
-      return NextResponse.json({
-        user: {
-          id: testAdmin.id,
-          email: testAdmin.email,
-          name: testAdmin.name,
-          role: 'admin',
-        },
-      })
-    }
 
     if (error || !admin) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })

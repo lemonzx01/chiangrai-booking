@@ -21,13 +21,15 @@
  *
  * ============================================================
  */
+export const dynamic = 'force-dynamic'
+
 
 // ============================================================
 // การนำเข้า Dependencies
 // ============================================================
 
 /** Supabase client สำหรับ Server-side */
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
@@ -97,7 +99,7 @@ export async function GET() {
     // ----------------------------------------------------------
     // Production Mode: ดึงจาก Supabase
     // ----------------------------------------------------------
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     const { data: bookings, error, count } = await supabase
       .from('bookings')

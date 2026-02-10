@@ -6,12 +6,15 @@
  * วัตถุประสงค์:
  *   - ส่งอีเมลยืนยันการจอง
  *   - ส่งอีเมลอัปเดตสถานะการจอง
- *   - ใช้ Resend API สำหรับการส่งอีเมล
+ *   - ใช้ Brevo (formerly Sendinblue) API
  *
  * Environment Variables:
- *   - RESEND_API_KEY: API key สำหรับ Resend
+ *   - BREVO_API_KEY: API key สำหรับ Brevo
+ *   - EMAIL_FROM_NAME: ชื่อผู้ส่ง (default: APP_NAME)
+ *   - EMAIL_FROM_ADDRESS: อีเมลผู้ส่ง (default: noreply@gotjourneythailand.com)
  *
  * ฟังก์ชันหลัก:
+ *   - sendEmail(): ส่งอีเมลทั่วไป
  *   - sendBookingConfirmationEmail(): ส่งอีเมลยืนยันการจอง
  *   - sendBookingStatusUpdateEmail(): ส่งอีเมลอัปเดตสถานะ
  *
@@ -22,77 +25,63 @@
 // Imports
 // ============================================================
 
-import { Resend } from 'resend'
 import { APP_NAME } from '../../lib/constants'
 
 // ============================================================
-// Resend Client (Singleton Pattern)
+// Config
 // ============================================================
 
-/**
- * ตัวแปรเก็บ Resend instance
- * @description ใช้ Lazy initialization เพื่อหลีกเลี่ยง error ตอน build
- */
-let resendInstance: Resend | null = null
-
-/**
- * ดึง Resend instance
- *
- * @description สร้าง Resend client ถ้ามี API key
- *              คืนค่า null ถ้าไม่ได้ตั้งค่า
- *
- * @returns Resend instance หรือ null
- */
-function getResend(): Resend | null {
-  // ตรวจสอบว่ามี API key หรือไม่
-  if (!process.env.RESEND_API_KEY) {
-    return null
-  }
-
-  // สร้าง instance ถ้ายังไม่มี (Singleton)
-  if (!resendInstance) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY)
-  }
-
-  return resendInstance
-}
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME
+const EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || 'noreply@gotjourneythailand.com'
 
 // ============================================================
 // Generic Send Email Function
 // ============================================================
 
 /**
- * ส่งอีเมลทั่วไป
+ * ส่งอีเมลผ่าน Brevo API
  *
  * @param options - ข้อมูลอีเมล (to, subject, html)
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
+ * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า
  */
 export async function sendEmail(options: {
   to: string
   subject: string
   html: string
 }) {
-  const resend = getResend()
+  const apiKey = process.env.BREVO_API_KEY
 
-  if (!resend) {
-    console.warn('[EMAIL] Resend not configured - RESEND_API_KEY is not set. Email will not be sent.')
-    console.warn('[EMAIL] To enable email service, set RESEND_API_KEY in .env.local')
+  if (!apiKey) {
+    console.warn('[EMAIL] Brevo not configured - BREVO_API_KEY is not set. Email will not be sent.')
+    console.warn('[EMAIL] To enable email service, set BREVO_API_KEY in .env.local')
     return null
   }
 
   try {
-    const result = await resend.emails.send({
-      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
+    const response = await fetch(BREVO_API_URL, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: EMAIL_FROM_NAME, email: EMAIL_FROM_ADDRESS },
+        to: [{ email: options.to }],
+        subject: options.subject,
+        htmlContent: options.html,
+      }),
     })
 
-    if (result.error) {
+    const data = await response.json()
+
+    if (!response.ok) {
       console.error('[EMAIL] Failed to send email:', {
         to: options.to,
         subject: options.subject,
-        error: result.error,
+        status: response.status,
+        error: data,
       })
       return null
     }
@@ -100,16 +89,15 @@ export async function sendEmail(options: {
     console.log('[EMAIL] Email sent successfully:', {
       to: options.to,
       subject: options.subject,
-      emailId: result.data?.id || 'unknown',
+      messageId: data.messageId || 'unknown',
     })
 
-    return result
+    return { data }
   } catch (error: any) {
     console.error('[EMAIL] Exception while sending email:', {
       to: options.to,
       subject: options.subject,
       error: error?.message || String(error),
-      stack: error?.stack,
     })
     return null
   }
@@ -151,87 +139,34 @@ interface BookingEmailData {
 /**
  * ส่งอีเมลยืนยันการจอง
  *
- * @description ส่งอีเมลแจ้งลูกค้าเมื่อสร้างการจองใหม่
- *              มีรายละเอียดการจองครบถ้วน
- *
  * @param data - ข้อมูลการจอง
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
- *
- * @example
- * await sendBookingConfirmationEmail({
- *   customerName: 'John Doe',
- *   customerEmail: 'john@example.com',
- *   bookingCode: 'TE250101-XXXX',
- *   bookingType: 'HOTEL',
- *   itemName: 'Phuket Ocean Drive Package',
- *   checkIn: '2024-01-15',
- *   checkOut: '2024-01-18',
- *   totalPrice: 38700,
- *   status: 'CONFIRMED'
- * })
+ * @returns ผลการส่งอีเมล หรือ null
  */
 export async function sendBookingConfirmationEmail(data: BookingEmailData) {
-  const resend = getResend()
+  return sendEmail({
+    to: data.customerEmail,
+    subject: `Booking Confirmation - ${data.bookingCode}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #4F46E5;">Booking Confirmed!</h1>
+        <p>Dear ${data.customerName},</p>
+        <p>Thank you for your booking with ${APP_NAME}.</p>
 
-  // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
-  if (!resend) {
-    console.warn('[EMAIL] Resend not configured, skipping booking confirmation email')
-    return null
-  }
-
-  try {
-    // ส่งอีเมล
-    const result = await resend.emails.send({
-      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
-      to: data.customerEmail,
-      subject: `Booking Confirmation - ${data.bookingCode}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">Booking Confirmed!</h1>
-          <p>Dear ${data.customerName},</p>
-          <p>Thank you for your booking with ${APP_NAME}.</p>
-
-          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0;">Booking Details</h2>
-            <p><strong>Booking Code:</strong> ${data.bookingCode}</p>
-            <p><strong>Item:</strong> ${data.itemName}</p>
-            <p><strong>Check-in:</strong> ${data.checkIn}</p>
-            <p><strong>Check-out:</strong> ${data.checkOut}</p>
-            <p><strong>Total:</strong> ฿${data.totalPrice.toLocaleString()}</p>
-            <p><strong>Status:</strong> ${data.status}</p>
-          </div>
-
-          <p>If you have any questions, please contact us.</p>
-          <p>Best regards,<br>${APP_NAME} Team</p>
+        <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h2 style="margin-top: 0;">Booking Details</h2>
+          <p><strong>Booking Code:</strong> ${data.bookingCode}</p>
+          <p><strong>Item:</strong> ${data.itemName}</p>
+          <p><strong>Check-in:</strong> ${data.checkIn}</p>
+          <p><strong>Check-out:</strong> ${data.checkOut}</p>
+          <p><strong>Total:</strong> ฿${data.totalPrice.toLocaleString()}</p>
+          <p><strong>Status:</strong> ${data.status}</p>
         </div>
-      `,
-    })
 
-    if (result.error) {
-      console.error('[EMAIL] Failed to send booking confirmation:', {
-        bookingCode: data.bookingCode,
-        customerEmail: data.customerEmail,
-        error: result.error,
-      })
-      return null
-    }
-
-    console.log('[EMAIL] Booking confirmation sent:', {
-      bookingCode: data.bookingCode,
-      customerEmail: data.customerEmail,
-      emailId: result.data?.id || 'unknown',
-    })
-
-    return result
-  } catch (error: any) {
-    console.error('[EMAIL] Exception while sending booking confirmation:', {
-      bookingCode: data.bookingCode,
-      customerEmail: data.customerEmail,
-      error: error?.message || String(error),
-      stack: error?.stack,
-    })
-    return null
-  }
+        <p>If you have any questions, please contact us.</p>
+        <p>Best regards,<br>${APP_NAME} Team</p>
+      </div>
+    `,
+  })
 }
 
 // ============================================================
@@ -241,75 +176,26 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
 /**
  * ส่งอีเมลแจ้งอัปเดตสถานะการจอง
  *
- * @description ส่งอีเมลแจ้งลูกค้าเมื่อสถานะการจองเปลี่ยน
- *
  * @param email - อีเมลลูกค้า
  * @param bookingCode - รหัสการจอง
  * @param status - สถานะใหม่
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า Resend
- *
- * @example
- * await sendBookingStatusUpdateEmail(
- *   'john@example.com',
- *   'TE250101-XXXX',
- *   'PAID'
- * )
+ * @returns ผลการส่งอีเมล หรือ null
  */
 export async function sendBookingStatusUpdateEmail(
   email: string,
   bookingCode: string,
   status: string
 ) {
-  const resend = getResend()
-
-  // ถ้าไม่ได้ตั้งค่า Resend ให้ข้ามไป
-  if (!resend) {
-    console.warn('[EMAIL] Resend not configured, skipping booking status update email')
-    return null
-  }
-
-  try {
-    // ส่งอีเมล
-    const result = await resend.emails.send({
-      from: `${APP_NAME} <noreply@gotjourneythailand.com>`,
-      to: email,
-      subject: `Booking Update - ${bookingCode}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">Booking Status Update</h1>
-          <p>Your booking <strong>${bookingCode}</strong> has been updated.</p>
-          <p>New status: <strong>${status}</strong></p>
-          <p>Best regards,<br>${APP_NAME} Team</p>
-        </div>
-      `,
-    })
-
-    if (result.error) {
-      console.error('[EMAIL] Failed to send booking status update:', {
-        bookingCode,
-        email,
-        status,
-        error: result.error,
-      })
-      return null
-    }
-
-    console.log('[EMAIL] Booking status update sent:', {
-      bookingCode,
-      email,
-      status,
-      emailId: result.data?.id || 'unknown',
-    })
-
-    return result
-  } catch (error: any) {
-    console.error('[EMAIL] Exception while sending booking status update:', {
-      bookingCode,
-      email,
-      status,
-      error: error?.message || String(error),
-      stack: error?.stack,
-    })
-    return null
-  }
+  return sendEmail({
+    to: email,
+    subject: `Booking Update - ${bookingCode}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #4F46E5;">Booking Status Update</h1>
+        <p>Your booking <strong>${bookingCode}</strong> has been updated.</p>
+        <p>New status: <strong>${status}</strong></p>
+        <p>Best regards,<br>${APP_NAME} Team</p>
+      </div>
+    `,
+  })
 }

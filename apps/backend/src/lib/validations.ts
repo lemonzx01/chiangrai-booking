@@ -73,7 +73,7 @@ export const bookingFormSchema = z.object({
   room_type_id: z.string().uuid().optional(),
   
   /** สกุลเงิน */
-  currency: z.enum(['THB', 'USD', 'EUR']).optional(),
+  currency: z.enum(['THB', 'USD', 'EUR', 'JPY', 'CNY', 'GBP']).optional(),
 }).refine(data => {
   // ตรวจสอบว่าเลือกโรงแรม/รถถูกต้องตามประเภทการจอง
   // - HOTEL: ต้องมี hotel_id

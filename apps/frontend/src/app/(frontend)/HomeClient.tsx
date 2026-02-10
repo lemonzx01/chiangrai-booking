@@ -154,13 +154,13 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
       {/* ============================================================
           Hero Section
           ============================================================ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-visible pt-24">
+      <section className="relative min-h-screen flex items-center justify-center overflow-visible pt-24 pb-40">
         {/* ----------------------------------------------------------
             Background Image + Overlay
             ---------------------------------------------------------- */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920"
+            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
             alt="Hero background"
             fill
             className="object-cover"
@@ -207,13 +207,13 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           {/* ----------------------------------------------------------
               Search Box
               ---------------------------------------------------------- */}
-          <div className="mt-8 sm:mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-10">
-            <div className="bg-[#ffffff] rounded-2xl shadow-2xl overflow-visible backdrop-blur-none border-2 border-slate-200">
+          <div className="mt-8 sm:mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-20">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-visible border border-white/50">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-0 overflow-visible items-stretch">
                 {/* ============================================================
                     Destination Field - เลือกจังหวัด
                     ============================================================ */}
-                <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group">
+                <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group rounded-t-2xl lg:rounded-tr-none lg:rounded-bl-2xl">
                   <MapPin className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="overflow-visible flex-1 lg:min-w-[140px]">
                     <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
@@ -308,7 +308,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
       {/* ============================================================
           Featured Hotels Section - โรงแรมแนะนำ
           ============================================================ */}
-      <section className="py-24 bg-white">
+      <section className="relative py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           {/* Section Header */}
           <div className="flex items-center justify-between mb-12">
@@ -333,7 +333,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                   {/* รูปภาพ */}
                   <div className="relative h-52 overflow-hidden">
                     <Image
-                      src={hotel.images[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'}
+                      src={hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'}
                       alt={getField(hotel, 'name')}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -416,7 +416,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     {/* รูปภาพ */}
                     <div className="relative h-40 md:h-auto md:w-5/12 overflow-hidden">
                       <Image
-                        src={car.images[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800'}
+                        src={car.images?.[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70'}
                         alt={getField(car, 'name')}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"

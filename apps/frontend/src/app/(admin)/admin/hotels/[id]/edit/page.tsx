@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { STAR_RATINGS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
+import SelectDropdown from '@/components/ui/SelectDropdown'
 
 export default function EditHotelPage() {
   const params = useParams()
@@ -277,18 +278,11 @@ export default function EditHotelPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">ระดับดาว *</label>
-                <select
+                <SelectDropdown
+                  options={STAR_RATINGS.map(r => ({ value: r.value, label: r.label }))}
                   value={formData.star_rating}
-                  onChange={(e) => setFormData({ ...formData, star_rating: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 bg-white"
-                  required
-                >
-                  {STAR_RATINGS.map((rating) => (
-                    <option key={rating.value} value={rating.value}>
-                      {rating.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setFormData({ ...formData, star_rating: parseInt(v) })}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">ราคาต่อคืน (บาท) *</label>

@@ -43,6 +43,7 @@ import { ArrowLeft } from 'lucide-react'
 
 /** Next.js Link component */
 import Link from 'next/link'
+import SelectDropdown from '@/components/ui/SelectDropdown'
 
 /** Type definitions */
 import { PartnerType } from '@chiangrai/shared/types'
@@ -209,15 +210,14 @@ export default function NewPartnerPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   ประเภท <span className="text-red-500">*</span>
                 </label>
-                <select
+                <SelectDropdown
+                  options={[
+                    { value: PartnerType.HOTEL, label: 'โรงแรม' },
+                    { value: PartnerType.DRIVER, label: 'คนขับรถ' },
+                  ]}
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as PartnerType })}
-                  required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
-                >
-                  <option value={PartnerType.HOTEL}>โรงแรม</option>
-                  <option value={PartnerType.DRIVER}>คนขับรถ</option>
-                </select>
+                  onChange={(v) => setFormData({ ...formData, type: v as PartnerType })}
+                />
               </div>
 
               {/* Stripe Connect Account ID */}

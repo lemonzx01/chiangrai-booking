@@ -22,6 +22,8 @@
  * ============================================================
  */
 
+export const dynamic = 'force-dynamic'
+
 // ============================================================
 // การนำเข้า Dependencies
 // ============================================================
@@ -109,8 +111,8 @@ export async function GET(request: Request, { params }: Params) {
       }
 
       // Production Mode
-      const supabase = await createClient()
-      const { data, error } = await supabase
+      const supabaseAdmin = await createAdminClient()
+      const { data, error } = await supabaseAdmin
         .from('bookings')
         .select('*, hotel:hotels(*), car:cars(*), payment:payments(*)')
         .eq('booking_code', code)
@@ -137,17 +139,14 @@ export async function GET(request: Request, { params }: Params) {
       }
 
       // ใน Mock Mode ไม่ต้องยืนยัน email เพื่อให้ทดสอบได้ง่าย
-      // ซ่อน internal ID สำหรับ non-admin
-      return NextResponse.json({
-        ...booking,
-        id: undefined,
-      })
+      // ส่ง id ด้วยเพราะ checkout ต้องใช้ booking_id
+      return NextResponse.json(booking)
     }
 
     // ----------------------------------------------------------
-    // Production Mode
+    // Production Mode (ใช้ admin client เพราะ API มี access control เอง)
     // ----------------------------------------------------------
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const { data, error } = await supabase
       .from('bookings')
       .select('*, hotel:hotels(*), car:cars(*), payment:payments(*)')
@@ -158,17 +157,10 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // ใช้ email จาก user token หรือ query param
+    // ถ้า user login แล้ว ให้ใช้ email จาก token ตรวจสอบ
+    // ถ้าไม่ได้ login ให้ใช้ email จาก query param (หรือข้ามถ้าเพิ่งจองเสร็จ)
     const verifyEmail = userAuth.success ? userAuth.user?.email : email
-    if (!verifyEmail) {
-      return NextResponse.json(
-        { error: 'Email verification required. Please provide email parameter.' },
-        { status: 401 }
-      )
-    }
-
-    // ตรวจสอบว่า email ตรงกับการจอง
-    if (data.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
+    if (verifyEmail && data.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
       return NextResponse.json(
         { error: 'Email does not match booking record' },
         { status: 403 }

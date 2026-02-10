@@ -24,6 +24,8 @@
  * ============================================================
  */
 
+export const dynamic = 'force-dynamic'
+
 // ============================================================
 // การนำเข้า Dependencies
 // ============================================================
@@ -295,12 +297,27 @@ export async function POST(request: Request) {
     }
 
     // ----------------------------------------------------------
+    // ตรวจสอบว่า room_type_id มีจริงใน DB (ป้องกัน FK violation จาก fallback ID)
+    // ----------------------------------------------------------
+    let verifiedRoomTypeId = validatedData.room_type_id || null
+    if (verifiedRoomTypeId) {
+      const { data: rtCheck } = await supabase
+        .from('room_types')
+        .select('id')
+        .eq('id', verifiedRoomTypeId)
+        .single()
+      if (!rtCheck) {
+        verifiedRoomTypeId = null
+      }
+    }
+
+    // ----------------------------------------------------------
     // ตรวจสอบห้องว่าง / รถว่าง (Availability Check)
     // ----------------------------------------------------------
-    if (validatedData.room_type_id) {
+    if (verifiedRoomTypeId) {
       const availability = await checkRoomAvailability(
         supabase,
-        validatedData.room_type_id,
+        verifiedRoomTypeId,
         validatedData.check_in_date,
         validatedData.check_out_date
       )
@@ -336,7 +353,7 @@ export async function POST(request: Request) {
         booking_type: validatedData.booking_type,
         hotel_id: validatedData.hotel_id || null,
         car_id: validatedData.car_id || null,
-        room_type_id: validatedData.room_type_id || null,
+        room_type_id: verifiedRoomTypeId,
         check_in_date: validatedData.check_in_date,
         check_out_date: validatedData.check_out_date,
         number_of_guests: validatedData.number_of_guests,
@@ -350,20 +367,21 @@ export async function POST(request: Request) {
         status: 'PENDING', // สถานะเริ่มต้น: รอดำเนินการ
       })
       .select(
-        '*, hotel:hotels(*, owner_id), car:cars(*, owner_id), room_type:room_types(*)'
+        '*, hotel:hotels(*), car:cars(*), room_type:room_types(*)'
       )
       .single()
 
     // ตรวจสอบ Error
     if (error) {
+      console.error('Supabase insert error:', error.message, error.details, error.hint)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     // ----------------------------------------------------------
     // ส่งอีเมลแจ้งเตือนพาร์ทเนอร์ (owner) และ Admin (non-blocking)
     // ----------------------------------------------------------
-    // หา owner_id จาก hotel หรือ car
-    const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
+    // หา owner_id หรือ partner_id จาก hotel หรือ car
+    const ownerId = booking.hotel?.owner_id || booking.hotel?.partner_id || booking.car?.owner_id || booking.car?.partner_id
     
     if (ownerId) {
       sendPartnerBookingNotification(ownerId, booking).catch(console.error)

@@ -81,14 +81,14 @@ export async function generateMetadata({ params }: Props) {
   const res = await fetch(`${getBackendUrl()}/api/hotels/${id}`, {
     cache: 'no-store',
   })
-  const json = (await res.json()) as { data?: any; error?: string }
-  const hotel = (json as any).data ?? json
+  const json = await res.json()
+  const hotel = json.hotel ?? json.data ?? json
 
   // ----------------------------------------------------------
   // Return Metadata
   // ----------------------------------------------------------
   // ถ้าไม่พบโรงแรม
-  if (!hotel) {
+  if (!hotel || hotel.error) {
     return {
       title: 'Hotel Not Found | Got Journey Thailand',
     }
@@ -130,10 +130,10 @@ export default async function HotelDetailPage({ params }: Props) {
   const res = await fetch(`${getBackendUrl()}/api/hotels/${id}`, {
     cache: 'no-store',
   })
-  const json = (await res.json()) as { data?: any; error?: string }
-  const hotel = (json as any).data ?? json
+  const json = await res.json()
+  const hotel = json.hotel ?? json.data ?? json
 
-  if (!res.ok || !hotel) {
+  if (!res.ok || !hotel || hotel.error) {
     notFound()
   }
 

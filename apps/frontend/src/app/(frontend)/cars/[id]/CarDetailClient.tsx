@@ -102,6 +102,9 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
   /** State สำหรับ index ของรูปที่แสดงอยู่ */
   const [currentImage, setCurrentImage] = useState(0)
 
+  /** รูปภาพ (fallback เป็น array ว่างถ้าไม่มี) */
+  const images = car.images || []
+
   // ----------------------------------------------------------
   // ดึงข้อมูลตามภาษาปัจจุบัน
   // ----------------------------------------------------------
@@ -128,7 +131,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
    *   ถ้าอยู่รูปสุดท้ายจะวนกลับไปรูปแรก
    */
   const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % car.images.length)
+    setCurrentImage((prev) => (prev + 1) % images.length)
   }
 
   /**
@@ -139,7 +142,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
    *   ถ้าอยู่รูปแรกจะวนกลับไปรูปสุดท้าย
    */
   const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + car.images.length) % car.images.length)
+    setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
   }
 
   // ----------------------------------------------------------
@@ -170,14 +173,14 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
             {/* รูปหลัก */}
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
               <Image
-                src={car.images[currentImage] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800'}
+                src={images[currentImage] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70'}
                 alt={name}
                 fill
                 className="object-cover"
               />
 
               {/* ปุ่มเลื่อนรูป - แสดงเมื่อมีมากกว่า 1 รูป */}
-              {car.images.length > 1 && (
+              {images.length > 1 && (
                 <>
                   {/* ปุ่มรูปก่อนหน้า */}
                   <button
@@ -199,9 +202,9 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
             </div>
 
             {/* Thumbnail Gallery - แสดงเมื่อมีมากกว่า 1 รูป */}
-            {car.images.length > 1 && (
+            {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {car.images.map((img, idx) => (
+                {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentImage(idx)}

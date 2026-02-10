@@ -139,7 +139,7 @@ export default function HotelCard({ hotel }: HotelCardProps) {
         <div className="relative h-56 overflow-hidden">
           {/* รูปภาพโรงแรม - ใช้รูปแรกจาก array หรือ placeholder */}
           <Image
-            src={hotel.images[0] || '/placeholder-hotel.jpg'}
+            src={hotel.images?.[0] || '/placeholder-hotel.jpg'}
             alt={name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

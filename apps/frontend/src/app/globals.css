@@ -9,6 +9,7 @@
 :root {
   --background: #fafbfc;
   --foreground: #0f172a;
+  color-scheme: light;
 }
 
 body {

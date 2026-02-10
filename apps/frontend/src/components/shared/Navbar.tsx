@@ -26,7 +26,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Menu, X, Compass, User, LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -82,7 +82,6 @@ export default function Navbar() {
   // ----------------------------------------------------------
 
   const pathname = usePathname()
-  const router = useRouter()
   const { t } = useTranslation()
 
   // ----------------------------------------------------------
@@ -97,34 +96,6 @@ export default function Navbar() {
 
   /** ตรวจสอบว่า component mount แล้ว (ป้องกัน hydration mismatch) */
   const [mounted, setMounted] = useState(false)
-
-  /** Lock body scroll when mobile menu is open */
-  useEffect(() => {
-    const isMobileView = window.innerWidth < 1024
-    if (isOpen && isMobileView) {
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
-      document.body.style.overflow = 'hidden'
-      
-      return () => {
-        const scrollY = document.body.style.top
-        document.body.style.position = ''
-        document.body.style.top = ''
-        document.body.style.width = ''
-        document.body.style.overflow = ''
-        if (scrollY) {
-          window.scrollTo(0, parseInt(scrollY || '0') * -1)
-        }
-      }
-    } else {
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
 
   /** ข้อมูลผู้ใช้ที่ล็อกอิน */
   const [user, setUser] = useState<UserData | null>(null)
@@ -146,9 +117,13 @@ export default function Navbar() {
   // Effects
   // ----------------------------------------------------------
 
-  /** ตั้ง mounted เป็น true และตรวจสอบ auth เมื่อ component mount */
+  /** ตั้ง mounted เป็น true */
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  /** ตรวจสอบ auth เมื่อ mount (login/logout ใช้ full page reload ทำให้ re-mount เสมอ) */
+  useEffect(() => {
     checkAuth()
   }, [])
 
@@ -206,36 +181,44 @@ export default function Navbar() {
 
   /**
    * ตรวจสอบสถานะ authentication
-   * เรียก API เพื่อดึงข้อมูลผู้ใช้
+   * เรียก API เพื่อดึงข้อมูลผู้ใช้ (เฉพาะตอน mount)
+   * Login/Logout ใช้ window.location.href ทำให้ mount ใหม่เสมอ
    */
   const checkAuth = async () => {
-    // ตรวจสอบว่ามี user_token cookie หรือไม่
-    const hasToken = document.cookie.includes('user_token')
-    if (!hasToken) return
+    // ถ้าไม่มี logged_in cookie → ไม่ต้องเรียก API (ป้องกัน 401 ใน console)
+    const hasLoggedInCookie = document.cookie.split(';').some(c => c.trim().startsWith('logged_in='))
+    if (!hasLoggedInCookie) {
+      setUser(null)
+      return
+    }
 
     try {
       const res = await fetch('/api/auth/me')
       if (res.ok) {
         const data = await res.json()
         setUser(data.user)
+      } else {
+        // Token หมดอายุ → ลบ cookie
+        document.cookie = 'logged_in=; path=/; max-age=0'
+        setUser(null)
       }
     } catch {
-      // ไม่ได้ล็อกอิน
+      setUser(null)
     }
   }
 
   /**
    * ล็อกเอาท์ผู้ใช้
+   * ใช้ window.location.href เพื่อ full page reload (ล้าง state ทุกหน้า)
    */
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-      setUser(null)
-      setUserMenuOpen(false)
-      router.refresh()
     } catch {
-      // เกิดข้อผิดพลาด
+      // ignore - ยังคง redirect ออก
     }
+    document.cookie = 'logged_in=; path=/; max-age=0'
+    window.location.href = '/'
   }
 
   // ----------------------------------------------------------

@@ -55,9 +55,11 @@ function AuthCallbackContent() {
           return
         }
 
-        // Redirect ไปหน้า profile
-        router.push('/profile')
-        router.refresh()
+        // ตั้ง flag cookie ให้ Navbar รู้ว่า login แล้ว
+        document.cookie = 'logged_in=1; path=/; max-age=604800'
+
+        // Redirect ไปหน้าแรก (ใช้ full page reload เพื่อให้ Navbar re-mount)
+        window.location.href = '/'
       } catch (err) {
         console.error('Auth callback error:', err)
         setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
