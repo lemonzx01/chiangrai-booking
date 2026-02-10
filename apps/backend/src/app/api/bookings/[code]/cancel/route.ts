@@ -10,6 +10,8 @@
  * Body:
  *   - reason?: string - เหตุผลในการยกเลิก
  */
+export const dynamic = 'force-dynamic'
+
 
 import { createAdminClient } from '../../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
@@ -115,15 +117,25 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // อัพเดท payment record (ถ้ามี)
-    if (payment && stripeRefundId) {
-      await supabase
-        .from('payments')
-        .update({
-          stripe_refund_id: stripeRefundId,
-          refund_amount: refundAmount,
-          refunded_at: new Date().toISOString(),
-        })
-        .eq('id', payment.id)
+    if (payment) {
+      if (stripeRefundId) {
+        // มีการคืนเงินผ่าน Stripe สำเร็จ
+        await supabase
+          .from('payments')
+          .update({
+            status: 'REFUNDED',
+            stripe_refund_id: stripeRefundId,
+            refund_amount: refundAmount,
+            refunded_at: new Date().toISOString(),
+          })
+          .eq('id', payment.id)
+      } else if (payment.status === 'PENDING') {
+        // ยังไม่ได้ชำระเงิน → ยกเลิก payment
+        await supabase
+          .from('payments')
+          .update({ status: 'FAILED' })
+          .eq('id', payment.id)
+      }
     }
 
     // ส่ง email แจ้งยกเลิก (non-blocking)
