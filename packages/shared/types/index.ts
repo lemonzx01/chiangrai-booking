@@ -276,6 +276,12 @@ export interface Payment {
   stripe_checkout_session_id?: string
   /** จำนวนเงิน (สตางค์) */
   amount: number
+  /** ยอดก่อนหักส่วนลด */
+  original_amount?: number
+  /** มูลค่าส่วนลด */
+  discount_amount?: number
+  /** โค้ดคูปองที่ใช้ (ถ้ามี) */
+  coupon_code?: string
   /** สกุลเงิน */
   currency: Currency
   /** สถานะการชำระเงิน */
@@ -304,6 +310,70 @@ export interface Payment {
 
   /** ข้อมูลการจอง (จาก JOIN query) */
   booking?: Booking
+}
+
+/**
+ * Interface สำหรับรีวิวที่พัก/รถเช่า
+ */
+export interface Review {
+  /** รหัสรีวิว (UUID) */
+  id: string
+  /** รหัสโรงแรม (ถ้าเป็นรีวิวโรงแรม) */
+  hotel_id?: string
+  /** รหัสรถ (ถ้าเป็นรีวิวรถ) */
+  car_id?: string
+  /** ชื่อลูกค้าที่รีวิว */
+  customer_name: string
+  /** อีเมลลูกค้าที่รีวิว */
+  customer_email: string
+  /** คะแนน 1-5 */
+  rating: number
+  /** ความคิดเห็นเพิ่มเติม */
+  comment?: string
+  /** สถานะการอนุมัติ */
+  is_approved: boolean
+  /** วันที่สร้าง (ISO string) */
+  created_at: string
+  /** วันที่อัปเดตล่าสุด (ISO string) */
+  updated_at: string
+
+  // ----------------------------------------------------------
+  // Relations
+  // ----------------------------------------------------------
+  hotel?: Hotel
+  car?: Car
+}
+
+/**
+ * Interface สำหรับคูปองส่วนลด
+ */
+export interface Coupon {
+  /** รหัสคูปอง (UUID) */
+  id: string
+  /** โค้ดคูปอง (ไม่ซ้ำ) */
+  code: string
+  /** คำอธิบายคูปอง */
+  description?: string
+  /** ประเภทส่วนลด */
+  discount_type: 'PERCENT' | 'FIXED'
+  /** ค่าส่วนลด (เปอร์เซ็นต์ หรือ จำนวนเงิน) */
+  discount_value: number
+  /** ยอดขั้นต่ำที่ใช้คูปองได้ */
+  min_spend: number
+  /** เพดานส่วนลดสูงสุด (กรณี PERCENT) */
+  max_discount?: number
+  /** ประเภทการจองที่ใช้ได้ */
+  applies_to: 'ALL' | 'HOTEL' | 'CAR'
+  /** วันเริ่มใช้งาน (ISO string) */
+  starts_at?: string
+  /** วันหมดอายุ (ISO string) */
+  expires_at?: string
+  /** สถานะการใช้งาน */
+  is_active: boolean
+  /** วันที่สร้าง (ISO string) */
+  created_at: string
+  /** วันที่อัปเดตล่าสุด (ISO string) */
+  updated_at: string
 }
 
 /**

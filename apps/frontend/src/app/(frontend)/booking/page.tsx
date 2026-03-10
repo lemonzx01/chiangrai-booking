@@ -340,7 +340,11 @@ function BookingContent() {
       // ----------------------------------------------------------
       // 2. Redirect ไปหน้า Checkout
       // ----------------------------------------------------------
-      router.push(`/checkout?booking_code=${booking.booking_code}`)
+      const checkoutParams = new URLSearchParams({
+        booking_code: booking.booking_code,
+        email: booking.customer_email,
+      })
+      router.push(`/checkout?${checkoutParams.toString()}`)
     } catch (err: any) {
       setError(err?.message || t('booking.errorMessage'))
       setSubmitting(false)

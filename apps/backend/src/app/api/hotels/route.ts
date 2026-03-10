@@ -87,13 +87,22 @@ export async function GET(request: Request) {
     // ตั้งค่า Pagination
     // ----------------------------------------------------------
     /** จำนวนรายการต่อหน้า (default: 10) */
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '10')))
 
     /** ตำแหน่งเริ่มต้น (default: 0) */
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'))
 
     /** ตัวกรองที่ตั้ง (optional) */
     const location = searchParams.get('location')
+    /** คำค้นหา (optional) */
+    const q = searchParams.get('q')
+    /** ตัวกรองราคาต่ำสุด/สูงสุด (optional) */
+    const minPrice = Number(searchParams.get('min_price'))
+    const maxPrice = Number(searchParams.get('max_price'))
+    /** ตัวกรองดาวขั้นต่ำ (optional) */
+    const minStar = Number(searchParams.get('min_star'))
+    /** การเรียงผลลัพธ์ (optional) */
+    const sort = searchParams.get('sort') || 'newest'
 
     // ----------------------------------------------------------
     // สร้าง Query ตาม Role
@@ -101,7 +110,6 @@ export async function GET(request: Request) {
     let query = supabase
       .from('hotels')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
 
     // Filter ตาม role
     if (role === 'admin') {
@@ -118,6 +126,38 @@ export async function GET(request: Request) {
     // เพิ่มตัวกรองที่ตั้ง (ถ้ามี)
     if (location) {
       query = query.ilike('location', `%${location}%`)
+    }
+
+    // ค้นหาตามชื่อ/รายละเอียด/ที่ตั้ง
+    if (q) {
+      const escaped = q.trim()
+      query = query.or(
+        `name_th.ilike.%${escaped}%,name_en.ilike.%${escaped}%,description_th.ilike.%${escaped}%,description_en.ilike.%${escaped}%,location.ilike.%${escaped}%,location_th.ilike.%${escaped}%,location_en.ilike.%${escaped}%`
+      )
+    }
+
+    // กรองช่วงราคา (ใช้ base_price_per_night เป็นหลัก)
+    if (!Number.isNaN(minPrice)) {
+      query = query.gte('base_price_per_night', minPrice)
+    }
+    if (!Number.isNaN(maxPrice)) {
+      query = query.lte('base_price_per_night', maxPrice)
+    }
+
+    // กรองดาวขั้นต่ำ
+    if (!Number.isNaN(minStar)) {
+      query = query.gte('star_rating', minStar)
+    }
+
+    // เรียงผลลัพธ์
+    if (sort === 'price_asc') {
+      query = query.order('base_price_per_night', { ascending: true })
+    } else if (sort === 'price_desc') {
+      query = query.order('base_price_per_night', { ascending: false })
+    } else if (sort === 'star_desc') {
+      query = query.order('star_rating', { ascending: false })
+    } else {
+      query = query.order('created_at', { ascending: false })
     }
 
     // ----------------------------------------------------------

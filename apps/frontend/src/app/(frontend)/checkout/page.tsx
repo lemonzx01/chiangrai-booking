@@ -48,7 +48,7 @@ import Image from 'next/image'
 import { CreditCard, Loader2, ArrowLeft, Lock, Shield, Check, ShieldCheck, QrCode, CalendarDays, Users } from 'lucide-react'
 
 /** Type definition สำหรับ Booking */
-import { Booking, Currency } from '@chiangrai/shared/types'
+import { Booking, Coupon, Currency } from '@chiangrai/shared/types'
 
 /** Utility functions */
 import { formatDate } from '@chiangrai/shared/utils'
@@ -59,6 +59,12 @@ import useLocalize from '@/hooks/useLocalize'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+
+type AppliedCoupon = Pick<
+  Coupon,
+  'code' | 'description' | 'discount_type' | 'discount_value' | 'min_spend' | 'max_discount' | 'applies_to'
+>
 
 // ============================================================
 // Checkout Content Component
@@ -89,6 +95,7 @@ function CheckoutContent() {
 
   /** Booking Code จาก URL */
   const bookingCode = searchParams.get('booking_code') || searchParams.get('code')
+  const bookingEmail = searchParams.get('email') || ''
 
   // ----------------------------------------------------------
   // State
@@ -107,6 +114,12 @@ function CheckoutContent() {
 
   /** State สำหรับ payment method ที่เลือก */
   const [selectedMethod, setSelectedMethod] = useState<string>('card')
+  const [couponCode, setCouponCode] = useState('')
+  const [couponApplying, setCouponApplying] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null)
+  const [discountAmount, setDiscountAmount] = useState(0)
+  const [finalAmount, setFinalAmount] = useState<number | null>(null)
 
   // ----------------------------------------------------------
   // Effects
@@ -125,10 +138,12 @@ function CheckoutContent() {
 
       try {
         // ดึงข้อมูลจาก API โดยใช้ booking_code
-        const res = await fetch(`/api/bookings/${bookingCode}`)
+        const query = bookingEmail ? `?email=${encodeURIComponent(bookingEmail)}` : ''
+        const res = await fetch(`/api/bookings/${bookingCode}${query}`)
         if (res.ok) {
           const data = await res.json()
           setBooking(data)
+          setFinalAmount(data.total_price)
         } else {
           setError(t('checkout.bookingNotFound') || 'ไม่พบข้อมูลการจอง')
         }
@@ -146,7 +161,7 @@ function CheckoutContent() {
     }
 
     fetchBooking()
-  }, [bookingCode, t])
+  }, [bookingCode, bookingEmail, t])
 
   // ----------------------------------------------------------
   // Handlers
@@ -154,6 +169,59 @@ function CheckoutContent() {
   /**
    * Handler: เมื่อกดปุ่ม Pay Now
    */
+  const handleApplyCoupon = async () => {
+    if (!booking) return
+
+    const normalizedCode = couponCode.trim()
+    if (!normalizedCode) {
+      setCouponError('กรุณากรอกรหัสคูปอง')
+      return
+    }
+
+    setCouponApplying(true)
+    setCouponError('')
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: normalizedCode,
+          booking_type: booking.booking_type,
+          total_price: booking.total_price,
+        }),
+      })
+
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data?.valid) {
+        setAppliedCoupon(null)
+        setDiscountAmount(0)
+        setFinalAmount(booking.total_price)
+        setCouponError(data?.error || 'ไม่สามารถใช้คูปองนี้ได้')
+        return
+      }
+
+      setAppliedCoupon(data.coupon)
+      setCouponCode(data.coupon.code)
+      setDiscountAmount(data.discount_amount || 0)
+      setFinalAmount(data.final_amount || booking.total_price)
+    } catch (err) {
+      console.error('Coupon validation error:', err)
+      setCouponError('ไม่สามารถตรวจสอบคูปองได้ กรุณาลองใหม่อีกครั้ง')
+    } finally {
+      setCouponApplying(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    if (!booking) return
+    setCouponCode('')
+    setCouponError('')
+    setAppliedCoupon(null)
+    setDiscountAmount(0)
+    setFinalAmount(booking.total_price)
+  }
+
   const handlePayNow = async () => {
     if (!booking) return
 
@@ -174,8 +242,9 @@ function CheckoutContent() {
         body: JSON.stringify({
           booking_id: booking.id,
           payment_method: selectedMethod,
-          success_url: `${window.location.origin}/success?code=${booking.booking_code}`,
-          cancel_url: `${window.location.origin}/checkout?booking_code=${booking.booking_code}`,
+          coupon_code: appliedCoupon?.code,
+          success_url: `${window.location.origin}/success?code=${booking.booking_code}&email=${encodeURIComponent(booking.customer_email || bookingEmail)}`,
+          cancel_url: `${window.location.origin}/checkout?booking_code=${booking.booking_code}&email=${encodeURIComponent(booking.customer_email || bookingEmail)}`,
         }),
       })
 
@@ -322,6 +391,7 @@ function CheckoutContent() {
 
   /** สกุลเงิน */
   const currency = (booking.currency || Currency.THB) as Currency
+  const payableAmount = finalAmount ?? booking.total_price
 
   /** จำนวนคืน */
   const nights = booking.check_in_date && booking.check_out_date
@@ -462,6 +532,73 @@ function CheckoutContent() {
               </div>
             </div>
 
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">คูปองส่วนลด</h2>
+                  <p className="text-sm text-slate-500">ใส่โค้ดโปรโมชั่นก่อนชำระเงิน</p>
+                </div>
+                {appliedCoupon && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-sm font-medium text-slate-500 hover:text-slate-900"
+                  >
+                    ลบคูปอง
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <Input
+                    label="รหัสคูปอง"
+                    value={couponCode}
+                    onChange={(e) => {
+                      const nextCode = e.target.value.toUpperCase()
+                      setCouponCode(nextCode)
+                      setCouponError('')
+                      if (appliedCoupon && nextCode !== appliedCoupon.code) {
+                        setAppliedCoupon(null)
+                        setDiscountAmount(0)
+                        setFinalAmount(booking.total_price)
+                      }
+                    }}
+                    placeholder="เช่น SAVE10"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleApplyCoupon}
+                  loading={couponApplying}
+                  className="sm:self-end"
+                >
+                  ใช้คูปอง
+                </Button>
+              </div>
+
+              {couponError && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-sm font-medium text-red-600">{couponError}</p>
+                </div>
+              )}
+
+              {appliedCoupon && (
+                <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 space-y-1">
+                  <p className="text-sm font-semibold text-green-700">
+                    ใช้คูปอง `{appliedCoupon.code}` สำเร็จ
+                  </p>
+                  {appliedCoupon.description && (
+                    <p className="text-sm text-green-700/80">{appliedCoupon.description}</p>
+                  )}
+                  <p className="text-sm text-green-700/80">
+                    ส่วนลด {formatCurrencyWithType(discountAmount, currency)}
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -484,7 +621,7 @@ function CheckoutContent() {
               ) : (
                 <>
                   <Lock size={18} />
-                  <span>{t('checkout.payNow') || 'ชำระเงิน'} {formatCurrencyWithType(booking.total_price, currency)}</span>
+                  <span>{t('checkout.payNow') || 'ชำระเงิน'} {formatCurrencyWithType(payableAmount, currency)}</span>
                 </>
               )}
             </button>
@@ -569,13 +706,21 @@ function CheckoutContent() {
                     </span>
                     <span className="text-slate-700">{formatCurrencyWithType(booking.total_price, currency)}</span>
                   </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">
+                        ส่วนลด {appliedCoupon ? `(${appliedCoupon.code})` : ''}
+                      </span>
+                      <span className="font-medium text-green-600">-{formatCurrencyWithType(discountAmount, currency)}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* ราคารวม */}
                 <div className="mt-4 pt-4 border-t-2 border-slate-900 flex justify-between items-center">
                   <span className="font-bold text-slate-900">{t('booking.totalPrice') || 'ยอดชำระ'}</span>
                   <span className="font-black text-2xl text-indigo-600">
-                    {formatCurrencyWithType(booking.total_price, currency)}
+                    {formatCurrencyWithType(payableAmount, currency)}
                   </span>
                 </div>
               </div>

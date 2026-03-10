@@ -51,6 +51,7 @@ import useLocalize from '@/hooks/useLocalize'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
+import ReviewsSection from '@/components/shared/ReviewsSection'
 
 // ============================================================
 // Type Definitions
@@ -283,6 +284,8 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
             </div>
           </div>
         </div>
+
+        <ReviewsSection carId={car.id} />
       </div>
     </div>
   )

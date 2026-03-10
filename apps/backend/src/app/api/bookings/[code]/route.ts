@@ -158,9 +158,18 @@ export async function GET(request: Request, { params }: Params) {
     }
 
     // ถ้า user login แล้ว ให้ใช้ email จาก token ตรวจสอบ
-    // ถ้าไม่ได้ login ให้ใช้ email จาก query param (หรือข้ามถ้าเพิ่งจองเสร็จ)
+    // ถ้าไม่ได้ login ให้ต้องส่ง email มาใน query param เสมอ
     const verifyEmail = userAuth.success ? userAuth.user?.email : email
-    if (verifyEmail && data.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
+
+    // Guest ต้องระบุ email เพื่อป้องกันเดารหัส booking
+    if (!userAuth.success && !verifyEmail) {
+      return NextResponse.json(
+        { error: 'Email is required for booking lookup' },
+        { status: 400 }
+      )
+    }
+
+    if (!verifyEmail || data.customer_email.toLowerCase() !== verifyEmail.toLowerCase()) {
       return NextResponse.json(
         { error: 'Email does not match booking record' },
         { status: 403 }

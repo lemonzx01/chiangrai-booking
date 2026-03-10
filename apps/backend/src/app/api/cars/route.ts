@@ -87,13 +87,22 @@ export async function GET(request: Request) {
     // ตั้งค่า Pagination
     // ----------------------------------------------------------
     /** จำนวนรายการต่อหน้า (default: 10) */
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '10')))
 
     /** ตำแหน่งเริ่มต้น (default: 0) */
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'))
 
     /** ตัวกรองประเภทรถ (optional) */
     const carType = searchParams.get('car_type')
+    /** คำค้นหา (optional) */
+    const q = searchParams.get('q')
+    /** ตัวกรองราคาต่ำสุด/สูงสุด (optional) */
+    const minPrice = Number(searchParams.get('min_price'))
+    const maxPrice = Number(searchParams.get('max_price'))
+    /** จำนวนผู้โดยสารขั้นต่ำ (optional) */
+    const minPassengers = Number(searchParams.get('min_passengers'))
+    /** การเรียงผลลัพธ์ */
+    const sort = searchParams.get('sort') || 'newest'
 
     // ----------------------------------------------------------
     // สร้าง Query ตาม Role
@@ -101,7 +110,6 @@ export async function GET(request: Request) {
     let query = supabase
       .from('cars')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
 
     // Filter ตาม role
     if (role === 'admin') {
@@ -118,6 +126,31 @@ export async function GET(request: Request) {
     // เพิ่มตัวกรองประเภทรถ (ถ้ามี) - ค้นหาทั้งไทยและอังกฤษ
     if (carType) {
       query = query.or(`car_type_th.ilike.%${carType}%,car_type_en.ilike.%${carType}%`)
+    }
+
+    if (q) {
+      const escaped = q.trim()
+      query = query.or(
+        `name_th.ilike.%${escaped}%,name_en.ilike.%${escaped}%,description_th.ilike.%${escaped}%,description_en.ilike.%${escaped}%,car_type_th.ilike.%${escaped}%,car_type_en.ilike.%${escaped}%`
+      )
+    }
+
+    if (!Number.isNaN(minPrice)) {
+      query = query.gte('base_price_per_day', minPrice)
+    }
+    if (!Number.isNaN(maxPrice)) {
+      query = query.lte('base_price_per_day', maxPrice)
+    }
+    if (!Number.isNaN(minPassengers)) {
+      query = query.gte('max_passengers', minPassengers)
+    }
+
+    if (sort === 'price_asc') {
+      query = query.order('base_price_per_day', { ascending: true })
+    } else if (sort === 'price_desc') {
+      query = query.order('base_price_per_day', { ascending: false })
+    } else {
+      query = query.order('created_at', { ascending: false })
     }
 
     // ----------------------------------------------------------

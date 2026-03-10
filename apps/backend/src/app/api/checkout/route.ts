@@ -53,7 +53,8 @@ import { addSecurityHeaders, validateInput, isValidUUID } from '../../../lib/sec
 
 /** Currency conversion */
 import { convertCurrencyAmount } from '../../../lib/exchange-rate'
-import { Currency } from '@chiangrai/shared/types'
+import { BookingType, Currency } from '@chiangrai/shared/types'
+import { validateCouponForBooking } from '../../../lib/coupons'
 
 // ============================================================
 // POST Handler - สร้าง Stripe Checkout Session
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
       return addSecurityHeaders(response)
     }
 
-    const { booking_id, payment_method, success_url, cancel_url } = body
+    const { booking_id, payment_method, success_url, cancel_url, coupon_code } = body
 
     // ตรวจสอบว่ามี booking_id หรือไม่
     if (!booking_id) {
@@ -225,6 +226,39 @@ export async function POST(request: Request) {
       return addSecurityHeaders(response)
     }
 
+    const originalAmount = Number(booking.total_price)
+    let discountAmount = 0
+    let appliedCouponCode: string | null = null
+
+    if (typeof coupon_code === 'string' && coupon_code.trim()) {
+      const couponValidation = await validateCouponForBooking(
+        supabase,
+        coupon_code,
+        booking.booking_type as BookingType,
+        originalAmount
+      )
+
+      if (!couponValidation.valid) {
+        const response = NextResponse.json(
+          { error: couponValidation.error },
+          { status: 400 }
+        )
+        return addSecurityHeaders(response)
+      }
+
+      discountAmount = couponValidation.discountAmount
+      appliedCouponCode = couponValidation.coupon.code
+    }
+
+    const payableAmountThb = Math.round((originalAmount - discountAmount) * 100) / 100
+    if (payableAmountThb <= 0) {
+      const response = NextResponse.json(
+        { error: 'ยอดชำระไม่ถูกต้องหลังหักส่วนลด' },
+        { status: 400 }
+      )
+      return addSecurityHeaders(response)
+    }
+
     // ----------------------------------------------------------
     // กำหนดสกุลเงินและแปลงราคา
     // ----------------------------------------------------------
@@ -232,21 +266,21 @@ export async function POST(request: Request) {
     const currency = bookingCurrency.toLowerCase()
 
     // แปลงราคาเป็นสกุลเงินที่เลือก (ถ้าไม่ใช่ THB)
-    let finalAmount = booking.total_price
+    let finalAmount = payableAmountThb
     if (bookingCurrency !== Currency.THB) {
       // แปลงจาก THB เป็นสกุลเงินที่เลือก
       try {
         finalAmount = await convertCurrencyAmount(
-          booking.total_price,
+          payableAmountThb,
           Currency.THB,
           bookingCurrency
         )
       } catch (error) {
-        console.error('Currency conversion error:', error)
+      console.error('Currency conversion error:', error)
         console.warn(
           `Currency conversion failed for ${bookingCurrency}, using original price`
         )
-        finalAmount = booking.total_price
+        finalAmount = payableAmountThb
       }
     }
     
@@ -261,7 +295,7 @@ export async function POST(request: Request) {
     if (partnerStripeAccountId && partner?.commission_rate) {
       // คำนวณ platform fee (commission rate)
       const commissionRate = partner.commission_rate / 100
-      applicationFeeAmount = Math.round(booking.total_price * commissionRate * 100)
+      applicationFeeAmount = Math.round(payableAmountThb * commissionRate * 100)
 
       // ตั้งค่า payment intent data สำหรับ Connect
       paymentIntentData = {
@@ -317,15 +351,18 @@ export async function POST(request: Request) {
       // URL สำหรับ redirect
       success_url:
         success_url ||
-        `${process.env.NEXT_PUBLIC_APP_URL}/success?code=${booking.booking_code}`,
+        `${process.env.NEXT_PUBLIC_APP_URL}/success?code=${booking.booking_code}&email=${encodeURIComponent(booking.customer_email)}`,
       cancel_url:
         cancel_url ||
-        `${process.env.NEXT_PUBLIC_APP_URL}/booking?cancelled=true`,
+        `${process.env.NEXT_PUBLIC_APP_URL}/checkout?booking_code=${booking.booking_code}&email=${encodeURIComponent(booking.customer_email)}`,
 
       // Metadata สำหรับ webhook
       metadata: {
         booking_id: booking.id,
         booking_code: booking.booking_code,
+        original_amount: String(originalAmount),
+        discount_amount: String(discountAmount),
+        ...(appliedCouponCode && { coupon_code: appliedCouponCode }),
         ...(partnerStripeAccountId && { partner_account_id: partnerStripeAccountId }),
       },
 
@@ -388,13 +425,20 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     try {
       // currency_type enum ใน DB รองรับเฉพาะ THB, USD, EUR
-      const validCurrencies = ['THB', 'USD', 'EUR']
-      const paymentCurrency = validCurrencies.includes(bookingCurrency) ? bookingCurrency : 'THB'
+      const paymentCurrency: 'THB' | 'USD' | 'EUR' =
+        bookingCurrency === Currency.USD
+          ? 'USD'
+          : bookingCurrency === Currency.EUR
+            ? 'EUR'
+            : 'THB'
 
       const { error: paymentError } = await supabase.from('payments').insert({
         booking_id: booking.id,
         stripe_checkout_session_id: session.id,
-        amount: booking.total_price,
+        amount: payableAmountThb,
+        original_amount: originalAmount,
+        discount_amount: discountAmount,
+        coupon_code: appliedCouponCode,
         currency: paymentCurrency,
         status: 'PENDING', // รอการชำระ
       })

@@ -52,6 +52,7 @@ import useLocalize from '@/hooks/useLocalize'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
+import ReviewsSection from '@/components/shared/ReviewsSection'
 
 // ============================================================
 // Type Definitions
@@ -370,6 +371,8 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             )}
           </div>
         </div>
+
+        <ReviewsSection hotelId={hotel.id} />
       </div>
     </div>
   )

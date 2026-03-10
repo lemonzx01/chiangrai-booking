@@ -308,6 +308,114 @@ export interface Database {
       }
 
       // ------------------------------------------------------------
+      // Reviews
+      // ------------------------------------------------------------
+      reviews: {
+        Row: {
+          id: string
+          hotel_id: string | null
+          car_id: string | null
+          customer_name: string
+          customer_email: string
+          rating: number
+          comment: string | null
+          is_approved: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          hotel_id?: string | null
+          car_id?: string | null
+          customer_name: string
+          customer_email: string
+          rating: number
+          comment?: string | null
+          is_approved?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          hotel_id?: string | null
+          car_id?: string | null
+          customer_name?: string
+          customer_email?: string
+          rating?: number
+          comment?: string | null
+          is_approved?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'reviews_hotel_id_fkey'
+            columns: ['hotel_id']
+            referencedRelation: 'hotels'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'reviews_car_id_fkey'
+            columns: ['car_id']
+            referencedRelation: 'cars'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+
+      // ------------------------------------------------------------
+      // Coupons
+      // ------------------------------------------------------------
+      coupons: {
+        Row: {
+          id: string
+          code: string
+          description: string | null
+          discount_type: 'PERCENT' | 'FIXED'
+          discount_value: number
+          min_spend: number
+          max_discount: number | null
+          applies_to: 'ALL' | 'HOTEL' | 'CAR'
+          starts_at: string | null
+          expires_at: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          description?: string | null
+          discount_type: 'PERCENT' | 'FIXED'
+          discount_value: number
+          min_spend?: number
+          max_discount?: number | null
+          applies_to?: 'ALL' | 'HOTEL' | 'CAR'
+          starts_at?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          description?: string | null
+          discount_type?: 'PERCENT' | 'FIXED'
+          discount_value?: number
+          min_spend?: number
+          max_discount?: number | null
+          applies_to?: 'ALL' | 'HOTEL' | 'CAR'
+          starts_at?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+
+      // ------------------------------------------------------------
       // Car Packages
       // ------------------------------------------------------------
       car_packages: {
@@ -593,6 +701,9 @@ export interface Database {
           stripe_payment_intent_id: string | null
           stripe_checkout_session_id: string | null
           amount: number
+          original_amount: number | null
+          discount_amount: number
+          coupon_code: string | null
           currency: CurrencyEnum
           status: PaymentStatusEnum
           paid_at: string | null
@@ -608,6 +719,9 @@ export interface Database {
           stripe_payment_intent_id?: string | null
           stripe_checkout_session_id?: string | null
           amount: number
+          original_amount?: number | null
+          discount_amount?: number
+          coupon_code?: string | null
           currency?: CurrencyEnum
           status?: PaymentStatusEnum
           paid_at?: string | null
@@ -623,6 +737,9 @@ export interface Database {
           stripe_payment_intent_id?: string | null
           stripe_checkout_session_id?: string | null
           amount?: number
+          original_amount?: number | null
+          discount_amount?: number
+          coupon_code?: string | null
           currency?: CurrencyEnum
           status?: PaymentStatusEnum
           paid_at?: string | null
