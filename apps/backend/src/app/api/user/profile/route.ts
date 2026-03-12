@@ -3,24 +3,27 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
+
 import { verifyUserToken, createToken, isMockMode } from '../../../../lib/auth'
 import { createAdminClient } from '../../../../lib/supabase/server'
 
 export async function GET() {
   try {
     const auth = await verifyUserToken()
-    if (!auth.success) {
+    if (!auth.success || !auth.user) {
       return NextResponse.json({ error: 'ไม่ได้เข้าสู่ระบบ' }, { status: 401 })
     }
+
+    const authUser = auth.user
 
     if (isMockMode()) {
       return NextResponse.json({
         user: {
-          id: auth.user.id,
-          email: auth.user.email,
-          name: auth.user.name,
+          id: authUser.id,
+          email: authUser.email,
+          name: authUser.name,
           phone: null,
-          email_verified: auth.user.email_verified || false,
+          email_verified: authUser.email_verified || false,
           created_at: new Date().toISOString(),
           has_password: true,
           has_google: false,
@@ -32,12 +35,12 @@ export async function GET() {
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', auth.user.id)
+      .eq('id', authUser.id)
       .single()
 
     if (error || !user) {
       if (error?.code === 'PGRST116' || !user) {
-        console.error('User not found in DB. JWT user ID:', auth.user.id, 'email:', auth.user.email)
+        console.error('User not found in DB. JWT user ID:', authUser.id, 'email:', authUser.email)
         return NextResponse.json({ error: 'ไม่พบผู้ใช้ในระบบ' }, { status: 404 })
       }
       console.error('Profile query error:', error)
@@ -65,14 +68,19 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const auth = await verifyUserToken()
-    if (!auth.success) {
+    if (!auth.success || !auth.user) {
       return NextResponse.json({ error: 'ไม่ได้เข้าสู่ระบบ' }, { status: 401 })
     }
 
+    const authUser = auth.user
     const body = await request.json()
-    const { name, phone, current_password, new_password } = body
+    const { name, phone, current_password, new_password } = body as {
+      name?: unknown
+      phone?: unknown
+      current_password?: unknown
+      new_password?: unknown
+    }
 
-    // Validation
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim().length === 0 || name.trim().length > 100) {
         return NextResponse.json({ error: 'ชื่อต้องมี 1-100 ตัวอักษร' }, { status: 400 })
@@ -85,11 +93,11 @@ export async function PATCH(request: Request) {
       }
     }
 
-    if (new_password) {
-      if (!current_password) {
+    if (new_password !== undefined && new_password !== null && new_password !== '') {
+      if (typeof current_password !== 'string' || current_password.length === 0) {
         return NextResponse.json({ error: 'กรุณากรอกรหัสผ่านปัจจุบัน' }, { status: 400 })
       }
-      if (new_password.length < 8) {
+      if (typeof new_password !== 'string' || new_password.length < 8) {
         return NextResponse.json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร' }, { status: 400 })
       }
     }
@@ -97,11 +105,11 @@ export async function PATCH(request: Request) {
     if (isMockMode()) {
       return NextResponse.json({
         user: {
-          id: auth.user.id,
-          email: auth.user.email,
-          name: name?.trim() || auth.user.name,
-          phone: phone || null,
-          email_verified: auth.user.email_verified || false,
+          id: authUser.id,
+          email: authUser.email,
+          name: typeof name === 'string' ? name.trim() : authUser.name,
+          phone: typeof phone === 'string' ? phone : null,
+          email_verified: authUser.email_verified || false,
           created_at: new Date().toISOString(),
           has_password: true,
           has_google: false,
@@ -111,12 +119,10 @@ export async function PATCH(request: Request) {
     }
 
     const supabase = await createAdminClient()
-
-    // Get current user data for password verification
     const { data: currentUser, error: fetchError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', auth.user.id)
+      .eq('id', authUser.id)
       .single()
 
     if (fetchError) {
@@ -128,8 +134,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 })
     }
 
-    // Password change validation
-    if (new_password) {
+    if (typeof new_password === 'string' && new_password.length > 0) {
       if (!currentUser.password_hash) {
         return NextResponse.json(
           { error: 'บัญชีนี้ใช้ Google login ไม่สามารถเปลี่ยนรหัสผ่านได้' },
@@ -137,34 +142,32 @@ export async function PATCH(request: Request) {
         )
       }
 
-      const isValidPassword = await bcrypt.compare(current_password, currentUser.password_hash)
+      const isValidPassword = await bcrypt.compare(String(current_password), currentUser.password_hash)
       if (!isValidPassword) {
         return NextResponse.json({ error: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' }, { status: 400 })
       }
     }
 
-    // Build update data
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string | null> = {
       updated_at: new Date().toISOString(),
     }
 
-    if (name !== undefined) {
+    if (typeof name === 'string') {
       updateData.name = name.trim()
     }
 
     if (phone !== undefined) {
-      updateData.phone = phone === '' ? null : phone
+      updateData.phone = phone === '' ? null : String(phone)
     }
 
-    if (new_password) {
+    if (typeof new_password === 'string' && new_password.length > 0) {
       updateData.password_hash = await bcrypt.hash(new_password, 12)
     }
 
-    // Update in Supabase
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', auth.user.id)
+      .eq('id', authUser.id)
       .select('*')
       .single()
 
@@ -173,15 +176,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'อัปเดตข้อมูลไม่สำเร็จ' }, { status: 500 })
     }
 
-    // Re-issue JWT token if name changed (so Navbar updates)
     if (updateData.name && updateData.name !== currentUser.name) {
-      const newToken = await createToken({
-        sub: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        type: 'user',
-        email_verified: updatedUser.email_verified || false,
-      }, '7d')
+      const role =
+        updatedUser.role === 'admin' || updatedUser.role === 'partner' ? updatedUser.role : 'user'
+
+      const newToken = await createToken(
+        {
+          sub: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          role,
+          type: role,
+          email_verified: updatedUser.email_verified || false,
+        },
+        '7d'
+      )
 
       const cookieStore = await cookies()
       cookieStore.set('user_token', newToken, {

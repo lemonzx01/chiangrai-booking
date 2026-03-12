@@ -50,6 +50,13 @@ export const metadata = {
   description: 'Browse our exclusive hotel packages and villa stays',
 }
 
+type PageSearchParams = Record<string, string | string[] | undefined>
+
+function getFirstParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] || ''
+  return value || ''
+}
+
 // ============================================================
 // Page Component - Server Component
 // ============================================================
@@ -70,16 +77,81 @@ export const metadata = {
  *
  * @returns {Promise<JSX.Element>} HotelsClient component พร้อมข้อมูลโรงแรม
  */
-export default async function HotelsPage() {
-  const res = await fetch(`${getBackendUrl()}/api/hotels?is_active=true`, {
-    cache: 'no-store',
-  })
-  const json = (await res.json()) as { data?: any[]; error?: string }
+export default async function HotelsPage({
+  searchParams,
+}: {
+  searchParams?: PageSearchParams
+}) {
+  const q = getFirstParam(searchParams?.q)?.trim()
+  const location = getFirstParam(searchParams?.location)?.trim()
+  const price = getFirstParam(searchParams?.price)
+  const sort = getFirstParam(searchParams?.sort) || 'newest'
 
-  if (!res.ok) {
-    console.error(json.error || 'Failed to fetch hotels')
-    return <HotelsClient hotels={[]} />
+  const query = new URLSearchParams({
+    limit: '100',
+    sort,
+  })
+
+  if (q) query.set('q', q)
+  if (location) query.set('location', location)
+
+  if (price === 'low') {
+    query.set('min_price', '0')
+    query.set('max_price', '20000')
+  } else if (price === 'mid') {
+    query.set('min_price', '20000')
+    query.set('max_price', '40000')
+  } else if (price === 'high') {
+    query.set('min_price', '40000')
   }
 
-  return <HotelsClient hotels={(json.data as any[]) || []} />
+  const [filteredRes, allRes] = await Promise.all([
+    fetch(`${getBackendUrl()}/api/hotels?${query.toString()}`, {
+      cache: 'no-store',
+    }),
+    fetch(`${getBackendUrl()}/api/hotels?limit=100`, {
+      cache: 'no-store',
+    }),
+  ])
+
+  const filteredJson = (await filteredRes.json()) as { data?: any[]; error?: string }
+  const allJson = (await allRes.json()) as { data?: any[]; error?: string }
+
+  if (!filteredRes.ok) {
+    console.error(filteredJson.error || 'Failed to fetch hotels')
+    return (
+      <HotelsClient
+        hotels={[]}
+        initialFilters={{
+          q,
+          location,
+          price,
+          sort,
+        }}
+        allLocations={[]}
+      />
+    )
+  }
+
+  const allHotels = Array.isArray(allJson.data) ? allJson.data : []
+  const allLocations = [
+    ...new Set(
+      allHotels
+        .map((hotel) => hotel.location || hotel.location_th || hotel.location_en)
+        .filter(Boolean)
+    ),
+  ] as string[]
+
+  return (
+    <HotelsClient
+      hotels={(filteredJson.data as any[]) || []}
+      initialFilters={{
+        q,
+        location,
+        price,
+        sort,
+      }}
+      allLocations={allLocations}
+    />
+  )
 }

@@ -196,12 +196,16 @@ export async function POST(request: Request) {
         )
       }
 
-      // สร้าง JWT token สำหรับ User
+      const mockUserRole =
+        mockUser.role === 'partner' || mockUser.role === 'admin' ? mockUser.role : 'user'
+
+      // สร้าง JWT token สำหรับ User/Partner
       const token = await new SignJWT({
         sub: mockUser.id,
         email: mockUser.email,
         name: mockUser.name,
-        type: 'user',
+        role: mockUserRole,
+        type: mockUserRole,
       })
         .setProtectedHeader({ alg: 'HS256' })
         .setExpirationTime('7d') // หมดอายุใน 7 วัน
@@ -222,7 +226,7 @@ export async function POST(request: Request) {
           id: mockUser.id,
           email: mockUser.email,
           name: mockUser.name,
-          role: 'user',
+          role: mockUserRole,
         },
       })
     }
@@ -312,6 +316,15 @@ export async function POST(request: Request) {
       )
     }
 
+    const userRole = user.role === 'partner' || user.role === 'admin' ? user.role : 'user'
+
+    if (!user.password_hash) {
+      return NextResponse.json(
+        { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
+        { status: 401 }
+      )
+    }
+
     // ยืนยันรหัสผ่าน User
     const isValidPassword = await bcrypt.compare(password, user.password_hash)
 
@@ -322,12 +335,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // สร้าง JWT token สำหรับ User
+    // สร้าง JWT token สำหรับ User/Partner
     const token = await new SignJWT({
       sub: user.id,
       email: user.email,
       name: user.name,
-      type: 'user',
+      role: userRole,
+      type: userRole,
       email_verified: user.email_verified || false,
     })
       .setProtectedHeader({ alg: 'HS256' })
@@ -349,7 +363,7 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: 'user',
+        role: userRole,
         email_verified: user.email_verified || false,
       },
     })

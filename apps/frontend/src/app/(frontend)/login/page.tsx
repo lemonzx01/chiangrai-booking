@@ -48,9 +48,6 @@ import { LogIn, Loader2, CheckCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
-/** API Utilities */
-import { getBackendUrl } from '@/lib/api'
-
 // ============================================================
 // Google Login Button Component
 // ============================================================
@@ -293,6 +290,10 @@ function LoginContent() {
       if (data.user?.role === 'admin') {
         // Admin ไป Dashboard (ใช้ window.location เพื่อ full refresh)
         window.location.href = '/admin/dashboard'
+      } else if (data.user?.role === 'partner') {
+        // Partner ไปหน้า dashboard ของพาร์ทเนอร์
+        const redirect = searchParams.get('redirect')
+        window.location.href = redirect?.startsWith('/partner') ? redirect : '/partner/dashboard'
       } else {
         // User ไปหน้าแรก หรือ redirect URL (ใช้ full page reload เพื่อให้ Navbar re-mount)
         const redirect = searchParams.get('redirect') || '/'

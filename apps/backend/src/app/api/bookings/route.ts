@@ -48,6 +48,12 @@ import { bookingFormSchema } from '../../../lib/validations'
 /** Availability checking */
 import { checkRoomAvailability, checkCarAvailability } from '../../../lib/availability'
 
+/** Authentication helpers */
+import { verifyAdminToken, verifyPartnerToken } from '../../../lib/auth'
+import { BookingStatusEnum, CurrencyEnum } from '@chiangrai/shared/types/supabase'
+
+const SUPPORTED_BOOKING_CURRENCIES: CurrencyEnum[] = ['THB', 'USD', 'EUR']
+
 // ============================================================
 // GET Handler - ดึงรายการการจอง
 // ============================================================
@@ -91,6 +97,15 @@ export async function GET(request: Request) {
     /** ตัวกรองสถานะ (optional) */
     const status = searchParams.get('status')
 
+    const adminAuth = await verifyAdminToken()
+    const partnerAuth = await verifyPartnerToken()
+    const role: 'admin' | 'partner' | 'public' =
+      adminAuth.success
+        ? 'admin'
+        : (partnerAuth.success && partnerAuth.user?.role === 'partner')
+          ? 'partner'
+          : 'public'
+
     // ----------------------------------------------------------
     // สร้าง Query พร้อม JOIN กับตารางโรงแรมและรถเช่า
     // ----------------------------------------------------------
@@ -102,8 +117,46 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false }) // เรียงจากใหม่ไปเก่า
 
     // เพิ่มตัวกรองสถานะ (ถ้ามี)
+    if (role === 'partner' && partnerAuth.user) {
+      const partnerId = partnerAuth.user.id
+
+      const [{ data: cars, error: carsError }, { data: hotels, error: hotelsError }] = await Promise.all([
+        supabase.from('cars').select('id').eq('owner_id', partnerId),
+        supabase.from('hotels').select('id').eq('owner_id', partnerId),
+      ])
+
+      if (carsError || hotelsError) {
+        return NextResponse.json(
+          { error: carsError?.message || hotelsError?.message || 'Failed to load partner assets' },
+          { status: 500 }
+        )
+      }
+
+      const carIds = (cars || []).map((car) => car.id).filter(Boolean)
+      const hotelIds = (hotels || []).map((hotel) => hotel.id).filter(Boolean)
+
+      if (carIds.length === 0 && hotelIds.length === 0) {
+        return NextResponse.json({
+          data: [],
+          total: 0,
+          limit,
+          offset,
+        })
+      }
+
+      const ownerFilters: string[] = []
+      if (carIds.length > 0) {
+        ownerFilters.push(`car_id.in.(${carIds.map((id) => `"${id}"`).join(',')})`)
+      }
+      if (hotelIds.length > 0) {
+        ownerFilters.push(`hotel_id.in.(${hotelIds.map((id) => `"${id}"`).join(',')})`)
+      }
+
+      query = query.or(ownerFilters.join(','))
+    }
+
     if (status) {
-      query = query.eq('status', status as any)
+      query = query.eq('status', status as BookingStatusEnum)
     }
 
     // ----------------------------------------------------------
@@ -183,11 +236,20 @@ export async function POST(request: Request) {
         customer_phone: body.customer_phone,
         special_requests: body.special_requests || undefined,
       })
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+      const details =
+        typeof validationError === 'object' &&
+        validationError !== null &&
+        'errors' in validationError
+          ? (validationError as { errors: unknown }).errors
+          : validationError instanceof Error
+            ? validationError.message
+            : 'Validation failed'
+
       return NextResponse.json(
-        { 
-          error: 'ข้อมูลไม่ถูกต้อง',
-          details: validationError.errors || validationError.message 
+        {
+          error: 'Invalid booking payload',
+          details,
         },
         { status: 400 }
       )
@@ -347,6 +409,13 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // บันทึกการจองลง Database
     // ----------------------------------------------------------
+    const requestedCurrency = validatedData.currency || 'THB'
+    const bookingCurrency: CurrencyEnum = SUPPORTED_BOOKING_CURRENCIES.includes(
+      requestedCurrency as CurrencyEnum
+    )
+      ? (requestedCurrency as CurrencyEnum)
+      : 'THB'
+
     const { data: booking, error } = await supabase
       .from('bookings')
       .insert({
@@ -363,7 +432,7 @@ export async function POST(request: Request) {
         special_requests: validatedData.special_requests || null,
         booking_code,
         total_price, // ใช้ราคาที่คำนวณใน server-side
-        currency: validatedData.currency || 'THB',
+        currency: bookingCurrency,
         status: 'PENDING', // สถานะเริ่มต้น: รอดำเนินการ
       })
       .select(
@@ -392,7 +461,7 @@ export async function POST(request: Request) {
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Log error เฉพาะใน development mode
     if (process.env.NODE_ENV === 'development') {
       console.error('Booking error:', error)
@@ -401,3 +470,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+

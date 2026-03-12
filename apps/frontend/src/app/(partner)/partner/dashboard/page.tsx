@@ -18,6 +18,8 @@ import { Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import { BookingStatus } from '@chiangrai/shared/types'
 import Link from 'next/link'
+import { getBackendUrl } from '@/lib/api'
+import { cookies } from 'next/headers'
 
 export const metadata = {
   title: 'Dashboard | Partner',
@@ -32,40 +34,56 @@ interface RecentBooking {
   total_price: number
   status: BookingStatus
   car?: { name_th: string } | null
+  hotel?: { name_th: string } | null
+}
+
+async function fetchPartnerApi(path: string) {
+  const cookieStore = await cookies()
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ')
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+
+  if (cookieHeader) {
+    headers.Cookie = cookieHeader
+  }
+
+  return fetch(`${getBackendUrl()}${path}`, {
+    cache: 'no-store',
+    headers,
+  })
 }
 
 async function getPartnerStats() {
   try {
-    // ใช้ relative path เพื่อให้ rewrite rule ทำงาน
-    // หรือใช้ absolute URL ถ้า BACKEND_URL ถูกตั้งค่า
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001'
-    const apiUrl = process.env.BACKEND_URL 
-      ? `${backendUrl}/api/cars`
-      : '/api/cars' // ใช้ relative path เพื่อให้ rewrite rule proxy ไปยัง backend
-    
-    const res = await fetch(apiUrl, {
-      cache: 'no-store',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const [carsRes, bookingsRes] = await Promise.all([
+      fetchPartnerApi('/api/cars?limit=1000'),
+      fetchPartnerApi('/api/bookings?limit=1000'),
+    ])
 
-    if (!res.ok) {
-      console.error('Failed to fetch cars:', res.status, res.statusText)
+    if (!carsRes.ok || !bookingsRes.ok) {
+      console.error('Failed to fetch partner stats:', carsRes.status, bookingsRes.status)
       return { totalCars: 0, totalBookings: 0, totalRevenue: 0 }
     }
 
-    const json = (await res.json()) as { data?: any[]; error?: string }
+    const carsJson = (await carsRes.json()) as { data?: unknown }
+    const bookingsJson = (await bookingsRes.json()) as { data?: RecentBooking[]; total?: number }
 
-    // API อาจ return array โดยตรง หรือ wrap ใน { data: [...] }
-    const cars = Array.isArray(json) ? json : (json.data || [])
-    const totalCars = cars.length
+    const cars = Array.isArray(carsJson.data) ? carsJson.data : []
+    const bookings = Array.isArray(bookingsJson.data) ? bookingsJson.data : []
 
-    // TODO: ดึงข้อมูล bookings และ revenue จาก API
+    const totalRevenue = bookings
+      .filter((booking) => booking.status === 'PAID' || booking.status === 'CONFIRMED' || booking.status === 'COMPLETED')
+      .reduce((sum, booking) => sum + Number(booking.total_price || 0), 0)
+
     return {
-      totalCars,
-      totalBookings: 0,
-      totalRevenue: 0,
+      totalCars: cars.length,
+      totalBookings: typeof bookingsJson.total === 'number' ? bookingsJson.total : bookings.length,
+      totalRevenue,
     }
   } catch (error) {
     console.error('Error fetching partner stats:', error)
@@ -74,8 +92,19 @@ async function getPartnerStats() {
 }
 
 async function getRecentBookings(): Promise<RecentBooking[]> {
-  // TODO: สร้าง API endpoint สำหรับ partner bookings
-  return []
+  try {
+    const res = await fetchPartnerApi('/api/bookings?limit=5')
+    if (!res.ok) {
+      console.error('Failed to fetch recent bookings:', res.status, res.statusText)
+      return []
+    }
+
+    const json = (await res.json()) as { data?: RecentBooking[] }
+    return Array.isArray(json.data) ? json.data : []
+  } catch (error) {
+    console.error('Error fetching recent bookings:', error)
+    return []
+  }
 }
 
 export default async function PartnerDashboardPage() {
@@ -181,7 +210,7 @@ export default async function PartnerDashboardPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-900 font-medium">{booking.customer_name}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {booking.car?.name_th || '-'}
+                        {booking.car?.name_th || booking.hotel?.name_th || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-slate-900">
                         {formatCurrency(booking.total_price)}

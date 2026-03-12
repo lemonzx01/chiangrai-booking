@@ -50,6 +50,13 @@ export const metadata = {
   description: 'Browse our premium car rental collection',
 }
 
+type PageSearchParams = Record<string, string | string[] | undefined>
+
+function getFirstParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] || ''
+  return value || ''
+}
+
 // ============================================================
 // Page Component - Server Component
 // ============================================================
@@ -70,19 +77,68 @@ export const metadata = {
  *
  * @returns {Promise<JSX.Element>} CarsClient component พร้อมข้อมูลรถ
  */
-export default async function CarsPage() {
-  // Fetch from backend API
-  const res = await fetch(`${getBackendUrl()}/api/cars?is_active=true`, {
-    cache: 'no-store',
+export default async function CarsPage({
+  searchParams,
+}: {
+  searchParams?: PageSearchParams
+}) {
+  const q = getFirstParam(searchParams?.q)?.trim()
+  const carType = getFirstParam(searchParams?.car_type)?.trim()
+  const sort = getFirstParam(searchParams?.sort) || 'newest'
+
+  const query = new URLSearchParams({
+    limit: '100',
+    sort,
   })
 
-  const json = (await res.json()) as { data?: unknown; error?: string }
+  if (q) query.set('q', q)
+  if (carType) query.set('car_type', carType)
 
-  if (!res.ok) {
-    console.error(json.error || 'Failed to fetch cars')
-    return <CarsClient cars={[]} />
+  const [filteredRes, allRes] = await Promise.all([
+    fetch(`${getBackendUrl()}/api/cars?${query.toString()}`, {
+      cache: 'no-store',
+    }),
+    fetch(`${getBackendUrl()}/api/cars?limit=100`, {
+      cache: 'no-store',
+    }),
+  ])
+
+  const filteredJson = (await filteredRes.json()) as { data?: any[]; error?: string }
+  const allJson = (await allRes.json()) as { data?: any[]; error?: string }
+
+  if (!filteredRes.ok) {
+    console.error(filteredJson.error || 'Failed to fetch cars')
+    return (
+      <CarsClient
+        cars={[]}
+        initialFilters={{
+          q,
+          car_type: carType,
+          sort,
+        }}
+        allCarTypes={[]}
+      />
+    )
   }
 
-  const cars = (json.data as any[]) || []
-  return <CarsClient cars={cars} />
+  const allCars = Array.isArray(allJson.data) ? allJson.data : []
+  const allCarTypes = [
+    ...new Set(
+      allCars
+        .map((car) => car.car_type_th || car.car_type_en)
+        .filter(Boolean)
+    ),
+  ] as string[]
+
+  return (
+    <CarsClient
+      cars={(filteredJson.data as any[]) || []}
+      initialFilters={{
+        q,
+        car_type: carType,
+        sort,
+      }}
+      allCarTypes={allCarTypes}
+    />
+  )
 }

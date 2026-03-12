@@ -2,9 +2,12 @@ import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import PaymentTable from '@/components/admin/PaymentTable'
+import { PaymentStatus } from '@chiangrai/shared/types'
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
+  Search: () => <span>Search</span>,
+  ChevronDown: () => <span>ChevronDown</span>,
   CreditCard: () => <span>CreditCard</span>,
   Clock: () => <span>Clock</span>,
   CheckCircle: () => <span>CheckCircle</span>,
@@ -37,7 +40,7 @@ const mockPayments = [
     stripe_checkout_session_id: 'cs_123',
     amount: 5000,
     currency: 'THB',
-    status: 'SUCCEEDED',
+    status: PaymentStatus.SUCCEEDED,
     paid_at: '2024-01-15T10:00:00Z',
     created_at: '2024-01-15T09:00:00Z',
     updated_at: '2024-01-15T10:00:00Z',
@@ -55,7 +58,7 @@ const mockPayments = [
     stripe_checkout_session_id: 'cs_456',
     amount: 3000,
     currency: 'THB',
-    status: 'PENDING',
+    status: PaymentStatus.PENDING,
     paid_at: null,
     created_at: '2024-01-16T09:00:00Z',
     updated_at: '2024-01-16T09:00:00Z',

@@ -27,10 +27,11 @@
 // ============================================================
 
 /** React hooks สำหรับจัดการ state */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 /** Type definition สำหรับข้อมูลรถ */
 import { Car } from '@chiangrai/shared/types'
@@ -39,7 +40,7 @@ import { Car } from '@chiangrai/shared/types'
 import CarCard from '@/components/cards/CarCard'
 
 /** Lucide icons สำหรับ UI */
-import { Search } from 'lucide-react'
+import { Search, ArrowUpDown } from 'lucide-react'
 
 // ============================================================
 // Type Definitions
@@ -52,6 +53,12 @@ import { Search } from 'lucide-react'
  */
 interface CarsClientProps {
   cars: Car[]
+  initialFilters?: {
+    q?: string
+    car_type?: string
+    sort?: string
+  }
+  allCarTypes?: string[]
 }
 
 // ============================================================
@@ -78,15 +85,48 @@ interface CarsClientProps {
  * @example
  *   <CarsClient cars={carsArray} />
  */
-export default function CarsClient({ cars }: CarsClientProps) {
+export default function CarsClient({
+  cars,
+  initialFilters,
+  allCarTypes = [],
+}: CarsClientProps) {
   // ----------------------------------------------------------
   // Hooks
   // ----------------------------------------------------------
   /** Hook สำหรับ translation */
   const { t } = useTranslation()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   /** State สำหรับคำค้นหา */
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(initialFilters?.q || '')
+  const [selectedType, setSelectedType] = useState(initialFilters?.car_type || '')
+  const [sortFilter, setSortFilter] = useState(initialFilters?.sort || 'newest')
+
+  useEffect(() => {
+    setSearchTerm(initialFilters?.q || '')
+    setSelectedType(initialFilters?.car_type || '')
+    setSortFilter(initialFilters?.sort || 'newest')
+  }, [initialFilters?.q, initialFilters?.car_type, initialFilters?.sort])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const next = new URLSearchParams()
+
+      if (searchTerm.trim()) next.set('q', searchTerm.trim())
+      if (selectedType) next.set('car_type', selectedType)
+      if (sortFilter && sortFilter !== 'newest') next.set('sort', sortFilter)
+
+      const nextQuery = next.toString()
+      const currentQuery = searchParams.toString()
+      if (nextQuery !== currentQuery) {
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm, selectedType, sortFilter, pathname, router, searchParams])
 
   // ----------------------------------------------------------
   // Filter Cars
@@ -105,8 +145,29 @@ export default function CarsClient({ cars }: CarsClientProps) {
       car.car_type_th.toLowerCase().includes(searchTerm.toLowerCase()) ||
       car.car_type_en.toLowerCase().includes(searchTerm.toLowerCase())
 
-    return matchesSearch
+    const currentType = (car.car_type_th || car.car_type_en || '').toLowerCase()
+    const matchesType = !selectedType || currentType === selectedType.toLowerCase()
+
+    return matchesSearch && matchesType
   })
+
+  const sortedCars = [...filteredCars].sort((a, b) => {
+    if (sortFilter === 'price_asc') return a.price_per_day - b.price_per_day
+    if (sortFilter === 'price_desc') return b.price_per_day - a.price_per_day
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+
+  const typeOptions = [
+    ...new Set(
+      (allCarTypes.length > 0 ? allCarTypes : cars.map((car) => car.car_type_th || car.car_type_en)).filter(Boolean)
+    ),
+  ] as string[]
+
+  const sortOptions = [
+    { value: 'newest', label: t('common.newest') || 'ใหม่ล่าสุด' },
+    { value: 'price_asc', label: t('common.priceLow') || 'ราคาต่ำไปสูง' },
+    { value: 'price_desc', label: t('common.priceHigh') || 'ราคาสูงไปต่ำ' },
+  ]
 
   // ----------------------------------------------------------
   // Render Component
@@ -138,18 +199,45 @@ export default function CarsClient({ cars }: CarsClientProps) {
             Search Box
             ============================================================ */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
-            {/* Search Icon */}
-            <Search className="text-slate-400 flex-shrink-0" size={18} />
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+            <div className="flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
+              <Search className="text-slate-400 flex-shrink-0" size={18} />
+              <input
+                type="text"
+                placeholder={t('common.search')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 bg-transparent outline-none border-none text-sm sm:text-base text-slate-800 font-medium placeholder:text-slate-400"
+              />
+            </div>
 
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder={t('common.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent outline-none border-none text-sm sm:text-base text-slate-800 font-medium placeholder:text-slate-400"
-            />
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="w-full lg:w-56 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm sm:text-base text-slate-700 focus:border-indigo-500 outline-none"
+            >
+              <option value="">{t('common.allTypes') || 'ทุกประเภทรถ'}</option>
+              {typeOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+
+            <div className="relative w-full lg:w-56">
+              <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <select
+                value={sortFilter}
+                onChange={(e) => setSortFilter(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-3 text-sm sm:text-base text-slate-700 focus:border-indigo-500 outline-none"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -159,13 +247,17 @@ export default function CarsClient({ cars }: CarsClientProps) {
         <div className="flex items-center justify-between mb-6">
           {/* จำนวนผลลัพธ์ */}
           <p className="text-slate-600 font-medium">
-            {t('common.found')} <span className="text-indigo-600 font-semibold">{filteredCars.length}</span> {t('common.cars')}
+            {t('common.found')} <span className="text-indigo-600 font-semibold">{sortedCars.length}</span> {t('common.cars')}
           </p>
 
           {/* ปุ่ม Clear Search - แสดงเมื่อมีคำค้นหา */}
-          {searchTerm && (
+          {(searchTerm || selectedType || sortFilter !== 'newest') && (
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedType('')
+                setSortFilter('newest')
+              }}
               className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"
             >
               {t('common.clearSearch')} ✕
@@ -176,10 +268,10 @@ export default function CarsClient({ cars }: CarsClientProps) {
         {/* ============================================================
             Cars Grid หรือ Empty State
             ============================================================ */}
-        {filteredCars.length > 0 ? (
+        {sortedCars.length > 0 ? (
           // Cars Grid - 1 column mobile, 2 tablet, 3 desktop
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {filteredCars.map((car) => (
+            {sortedCars.map((car) => (
               <CarCard key={car.id} car={car} />
             ))}
           </div>
