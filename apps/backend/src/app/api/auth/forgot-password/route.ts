@@ -45,12 +45,14 @@ import { getJwtSecret, isMockMode } from '../../../../lib/auth'
 
 /** บริการส่งอีเมล */
 import { sendEmail } from '../../../../services/notifications/email'
+import { renderPasswordResetEmail } from '../../../../services/notifications/templates/passwordReset'
 
 /** ข้อมูล Mock */
 import { findMockUser, findMockAdmin } from '../../../../lib/mock-data'
 
 /** Rate limiting middleware */
 import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // POST Handler - ขอรีเซ็ตรหัสผ่าน
@@ -180,51 +182,33 @@ export async function POST(request: Request) {
     const userName = user?.name || admin?.name || 'User'
     
     try {
+      const reset = renderPasswordResetEmail({
+        userName,
+        resetLink,
+        expiresInMinutes: 60,
+      })
       const emailResult = await sendEmail({
         to: email,
-        subject: 'รีเซ็ตรหัสผ่าน - Got Journey Thailand',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #4F46E5;">รีเซ็ตรหัสผ่าน</h1>
-            <p>สวัสดีคุณ ${userName},</p>
-            <p>คุณได้ขอรีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ</p>
-            <p>กรุณาคลิกลิงก์ด้านล่างเพื่อรีเซ็ตรหัสผ่าน:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                รีเซ็ตรหัสผ่าน
-              </a>
-            </div>
-            <p style="color: #6B7280; font-size: 14px;">
-              หรือคัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br>
-              <a href="${resetLink}" style="color: #4F46E5; word-break: break-all;">${resetLink}</a>
-            </p>
-            <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
-              ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง<br>
-              ถ้าคุณไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้
-            </p>
-            <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
-              นี่เป็นอีเมลอัตโนมัติ กรุณาอย่าตอบกลับ
-            </p>
-          </div>
-        `,
+        subject: reset.subject,
+        html: reset.html,
       })
 
       // ตรวจสอบผลการส่งอีเมล
       if (!emailResult) {
-        console.error('[ERROR] Failed to send password reset email:', {
+        logger.error('Failed to send password reset email', {
           email,
           reason: 'Email service returned null (RESEND_API_KEY may not be set)',
         })
         // ยังคง return success เพื่อความปลอดภัย (ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่)
         // แต่ log error เพื่อให้ admin รู้
       } else {
-        console.log('[INFO] Password reset email sent successfully:', {
+        logger.info('Password reset email sent successfully', {
           email,
           emailId: (emailResult as any)?.id || 'unknown',
         })
       }
     } catch (emailError: any) {
-      console.error('[ERROR] Exception while sending password reset email:', {
+      logger.error('Exception while sending password reset email', {
         email,
         error: emailError?.message || String(emailError),
         stack: emailError?.stack,
@@ -243,7 +227,7 @@ export async function POST(request: Request) {
       message: 'If the email exists, a password reset link has been sent.',
     })
   } catch (error) {
-    console.error('Forgot password error:', error)
+    logger.error('Forgot password error', { error })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

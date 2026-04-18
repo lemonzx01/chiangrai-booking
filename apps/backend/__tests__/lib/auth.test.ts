@@ -45,11 +45,42 @@ describe('getJwtSecret', () => {
     expect(secret).toBeInstanceOf(Uint8Array)
   })
 
-  it('should throw when JWT_SECRET is missing', () => {
-    const original = process.env.JWT_SECRET
+  it('should fall back to mock secret when JWT_SECRET is missing in mock mode', () => {
+    // Phase 1.1 added a mock-mode fallback so dev can boot without env vars.
+    // The fallback only kicks in when Supabase is NOT configured.
+    const originalJwt = process.env.JWT_SECRET
+    const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     delete process.env.JWT_SECRET
+    process.env.NEXT_PUBLIC_SUPABASE_URL = ''
+
+    const secret = getJwtSecret()
+    expect(secret).toBeInstanceOf(Uint8Array)
+    expect(secret.length).toBeGreaterThanOrEqual(32)
+
+    process.env.JWT_SECRET = originalJwt
+    if (originalUrl !== undefined) process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl
+  })
+
+  it('should throw when JWT_SECRET is missing AND Supabase is configured', () => {
+    const originalJwt = process.env.JWT_SECRET
+    const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const originalAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const originalSrv = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    delete process.env.JWT_SECRET
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://real.supabase.co'
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'real-anon-key'
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'real-service-key'
+
     expect(() => getJwtSecret()).toThrow('JWT_SECRET environment variable is required')
-    process.env.JWT_SECRET = original
+
+    process.env.JWT_SECRET = originalJwt
+    if (originalUrl !== undefined) process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl
+    else delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (originalAnon !== undefined) process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnon
+    else delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (originalSrv !== undefined) process.env.SUPABASE_SERVICE_ROLE_KEY = originalSrv
+    else delete process.env.SUPABASE_SERVICE_ROLE_KEY
   })
 })
 

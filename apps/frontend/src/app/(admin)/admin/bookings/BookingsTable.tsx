@@ -1,12 +1,20 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, ChevronDown } from 'lucide-react'
+import { Search, ChevronDown, Undo2 } from 'lucide-react'
 import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 import { BookingStatus } from '@chiangrai/shared/types'
 import BookingStatusSelect from './StatusSelect'
+import RefundModal from './RefundModal'
 
 const ITEMS_PER_PAGE = 10
+
+type PaymentSummary = {
+  id?: string
+  status?: string
+  amount?: number
+  refund_amount?: number
+}
 
 interface BookingRow {
   id: string
@@ -20,6 +28,21 @@ interface BookingRow {
   status: BookingStatus
   hotel?: { name_th: string } | null
   car?: { name_th: string } | null
+  payment?: PaymentSummary | PaymentSummary[] | null
+}
+
+/**
+ * Returns how much is still refundable on a booking's payment.
+ * Supabase joins can yield either an object or array depending on
+ * the relation cardinality, so normalize before computing.
+ */
+function getRefundable(b: BookingRow): number {
+  const p = Array.isArray(b.payment) ? b.payment[0] : b.payment
+  if (!p) return 0
+  if (p.status !== 'SUCCEEDED') return 0
+  const paid = Number(p.amount || 0)
+  const refunded = Number(p.refund_amount || 0)
+  return Math.max(0, paid - refunded)
 }
 
 interface BookingsTableProps {
@@ -40,6 +63,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [filterOpen, setFilterOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [refundTarget, setRefundTarget] = useState<BookingRow | null>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
   // Close filter dropdown on click outside
@@ -204,6 +228,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">วันที่</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">ราคา</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">สถานะ</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -233,11 +258,30 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                       currentStatus={booking.status}
                     />
                   </td>
+                  <td className="px-6 py-4">
+                    {(() => {
+                      const refundable = getRefundable(booking)
+                      if (refundable <= 0) {
+                        return <span className="text-xs text-slate-400">-</span>
+                      }
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setRefundTarget(booking)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                          title={`คืนเงินได้สูงสุด ${refundable.toLocaleString()} บาท`}
+                        >
+                          <Undo2 size={12} />
+                          คืนเงิน
+                        </button>
+                      )
+                    })()}
+                  </td>
                 </tr>
               ))}
               {paginated.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                     {search || filterStatus !== 'ALL' ? 'ไม่พบผลลัพธ์' : 'ยังไม่มีการจองในระบบ'}
                   </td>
                 </tr>
@@ -246,6 +290,17 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
           </table>
         </div>
       </div>
+
+      {/* Refund modal (rendered once, driven by refundTarget state) */}
+      {refundTarget && (
+        <RefundModal
+          open
+          bookingCode={refundTarget.booking_code}
+          customerName={refundTarget.customer_name}
+          maxRefundable={getRefundable(refundTarget)}
+          onClose={() => setRefundTarget(null)}
+        />
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

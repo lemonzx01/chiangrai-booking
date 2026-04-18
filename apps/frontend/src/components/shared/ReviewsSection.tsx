@@ -6,6 +6,7 @@ import { Review } from '@chiangrai/shared/types'
 import { Star, MessageSquare } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { apiFetch } from '@/lib/api'
 
 interface ReviewsSectionProps {
   hotelId?: string
@@ -104,29 +105,28 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
     setSubmitSuccess('')
 
     try {
-      const response = await fetch('/api/reviews', {
+      const response = await apiFetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           hotel_id: hotelId,
           car_id: carId,
           ...formData,
           comment: formData.comment.trim() || null,
-        }),
+        },
       })
 
       const data = await response.json().catch(() => null)
       if (!response.ok) {
-        setSubmitError(data?.error || (isThai ? 'ส่งรีวิวไม่สำเร็จ' : 'Unable to submit review'))
+        const message =
+          data?.error?.message ||
+          data?.error ||
+          (isThai ? 'ส่งรีวิวไม่สำเร็จ' : 'Unable to submit review')
+        setSubmitError(message)
         return
       }
 
-      const newReview = data as Review
-      setReviews((current) => [newReview, ...current])
-      setTotal((current) => current + 1)
-      setAverageRating((current) =>
-        Math.round((((current * total) + newReview.rating) / (total + 1)) * 10) / 10
-      )
+      // Reviews require admin moderation, so do NOT add to the visible list.
+      // The backend responds with a message explaining the review is pending.
       setFormData({
         customer_name: '',
         customer_email: '',
@@ -134,7 +134,10 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
         comment: '',
       })
       setSubmitSuccess(
-        isThai ? 'ส่งรีวิวเรียบร้อยแล้ว ขอบคุณสำหรับความคิดเห็น' : 'Review submitted successfully'
+        data?.message ||
+          (isThai
+            ? 'ส่งรีวิวเรียบร้อยแล้ว รอการตรวจสอบก่อนเผยแพร่'
+            : 'Review submitted — pending moderation before it appears')
       )
     } catch (error) {
       console.error('Failed to submit review:', error)

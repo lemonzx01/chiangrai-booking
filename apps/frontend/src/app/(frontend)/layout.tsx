@@ -31,6 +31,9 @@ import Navbar from '@/components/shared/Navbar'
 /** Footer component - ส่วนท้ายของหน้า */
 import Footer from '@/components/shared/Footer'
 
+/** Cookie consent banner (PDPA) */
+import CookieConsent from '@/components/shared/CookieConsent'
+
 /** I18n Provider สำหรับ Client-side localization */
 import I18nProvider from '@/i18n/client'
 
@@ -70,6 +73,9 @@ export default function FrontendLayout({
 
         {/* Footer - ส่วนท้ายของหน้า */}
         <Footer />
+
+        {/* Cookie consent banner (PDPA-compliant) */}
+        <CookieConsent />
       </div>
     </I18nProvider>
   )

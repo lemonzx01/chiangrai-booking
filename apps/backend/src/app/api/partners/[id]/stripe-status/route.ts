@@ -19,6 +19,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/server'
 import { getStripe } from '../../../../../lib/stripe'
+import { logger } from '../../../../../lib/logger'
 
 export async function GET(
   request: Request,
@@ -54,7 +55,7 @@ export async function GET(
     })
 
   } catch (error: any) {
-    console.error('Stripe Connect status error:', error)
+    logger.error('Stripe Connect status error', { error })
     return NextResponse.json(
       { error: error.message || 'An unknown error occurred' },
       { status: 500 }

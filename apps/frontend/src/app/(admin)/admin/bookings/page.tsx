@@ -29,6 +29,9 @@ import { getBackendUrl } from '@/lib/api'
 /** Supabase client สำหรับ Admin */
 
 
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
+
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
 
@@ -78,6 +81,21 @@ interface BookingRow {
   hotel?: { name_th: string } | null
   /** ข้อมูลรถ (ถ้ามี) */
   car?: { name_th: string } | null
+  /** ข้อมูลการชำระเงิน (อาจเป็น array หรือ object) */
+  payment?:
+    | {
+        id?: string
+        status?: string
+        amount?: number
+        refund_amount?: number
+      }
+    | Array<{
+        id?: string
+        status?: string
+        amount?: number
+        refund_amount?: number
+      }>
+    | null
 }
 
 // ============================================================
@@ -145,6 +163,13 @@ export default async function AdminBookingsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">จัดการการจอง</h1>
               <p className="text-sm text-slate-500 mt-1">ตรวจสอบและอัปเดตสถานะการจองได้อย่างรวดเร็ว</p>
             </div>
+            <Link
+              href="/admin/bookings/new"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+            >
+              <Plus size={16} />
+              เพิ่มการจอง (Manual)
+            </Link>
           </div>
 
           {/* Bookings Table with Search/Filter/Pagination */}

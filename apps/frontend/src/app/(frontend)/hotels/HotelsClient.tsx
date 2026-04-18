@@ -45,7 +45,7 @@ import { Hotel } from '@chiangrai/shared/types'
 import HotelCard from '@/components/cards/HotelCard'
 
 /** Lucide icons สำหรับ UI */
-import { Search, MapPin, Banknote, ChevronDown, Check, LucideIcon, ArrowUpDown } from 'lucide-react'
+import { Search, MapPin, Banknote, ChevronDown, Check, LucideIcon, ArrowUpDown, Star } from 'lucide-react'
 
 // ============================================================
 // Type Definitions
@@ -62,6 +62,7 @@ interface HotelsClientProps {
     q?: string
     location?: string
     price?: string
+    star?: string
     sort?: string
   }
   allLocations?: string[]
@@ -263,14 +264,17 @@ export default function HotelsClient({
 
   /** State สำหรับสถานที่ */
   const [selectedLocation, setSelectedLocation] = useState(initialFilters?.location || '')
+  /** State สำหรับคะแนนดาวขั้นต่ำ */
+  const [starFilter, setStarFilter] = useState(initialFilters?.star || 'all')
   const [sortFilter, setSortFilter] = useState(initialFilters?.sort || 'newest')
 
   useEffect(() => {
     setSearchTerm(initialFilters?.q || '')
     setSelectedLocation(initialFilters?.location || '')
     setPriceFilter(initialFilters?.price || 'all')
+    setStarFilter(initialFilters?.star || 'all')
     setSortFilter(initialFilters?.sort || 'newest')
-  }, [initialFilters?.q, initialFilters?.location, initialFilters?.price, initialFilters?.sort])
+  }, [initialFilters?.q, initialFilters?.location, initialFilters?.price, initialFilters?.star, initialFilters?.sort])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -279,6 +283,7 @@ export default function HotelsClient({
       if (searchTerm.trim()) next.set('q', searchTerm.trim())
       if (selectedLocation) next.set('location', selectedLocation)
       if (priceFilter && priceFilter !== 'all') next.set('price', priceFilter)
+      if (starFilter && starFilter !== 'all') next.set('star', starFilter)
       if (sortFilter && sortFilter !== 'newest') next.set('sort', sortFilter)
 
       const nextQuery = next.toString()
@@ -289,7 +294,7 @@ export default function HotelsClient({
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchTerm, selectedLocation, priceFilter, sortFilter, pathname, router, searchParams])
+  }, [searchTerm, selectedLocation, priceFilter, starFilter, sortFilter, pathname, router, searchParams])
 
   // ----------------------------------------------------------
   // Computed Values
@@ -351,8 +356,12 @@ export default function HotelsClient({
     // ตรวจสอบสถานที่
     const matchesLocation = !selectedLocation || hotelLocation === selectedLocation
 
+    // ตรวจสอบคะแนนดาว
+    const minStar = starFilter === 'all' ? 0 : Number(starFilter) || 0
+    const matchesStar = (hotel.star_rating || 0) >= minStar
+
     // ต้องผ่านทุกเงื่อนไข
-    return matchesSearch && matchesPrice && matchesLocation
+    return matchesSearch && matchesPrice && matchesLocation && matchesStar
   })
 
   const sortedHotels = [...filteredHotels].sort((a, b) => {
@@ -377,6 +386,15 @@ export default function HotelsClient({
     { value: 'low', label: t('common.priceLow') },
     { value: 'mid', label: t('common.priceMid') },
     { value: 'high', label: t('common.priceHigh') },
+  ]
+
+  /** ตัวเลือกสำหรับ Star Rating Dropdown */
+  const starOptions: DropdownOption[] = [
+    { value: 'all', label: t('common.allStars') || 'ทุกระดับ' },
+    { value: '5', label: '5 ดาว' },
+    { value: '4', label: '4 ดาวขึ้นไป' },
+    { value: '3', label: '3 ดาวขึ้นไป' },
+    { value: '2', label: '2 ดาวขึ้นไป' },
   ]
 
   const sortOptions: DropdownOption[] = [
@@ -447,6 +465,15 @@ export default function HotelsClient({
               icon={Banknote}
             />
 
+            {/* Star Rating Dropdown */}
+            <CustomDropdown
+              options={starOptions}
+              value={starFilter}
+              onChange={setStarFilter}
+              placeholder={t('common.allStars') || 'ทุกระดับ'}
+              icon={Star}
+            />
+
             <CustomDropdown
               options={sortOptions}
               value={sortFilter}
@@ -467,12 +494,13 @@ export default function HotelsClient({
           </p>
 
           {/* ปุ่ม Clear Filters - แสดงเมื่อมี filter ถูกใช้ */}
-          {(searchTerm || selectedLocation || priceFilter !== 'all' || sortFilter !== 'newest') && (
+          {(searchTerm || selectedLocation || priceFilter !== 'all' || starFilter !== 'all' || sortFilter !== 'newest') && (
             <button
               onClick={() => {
                 setSearchTerm('')
                 setSelectedLocation('')
                 setPriceFilter('all')
+                setStarFilter('all')
                 setSortFilter('newest')
               }}
               className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"

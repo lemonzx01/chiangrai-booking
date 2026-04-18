@@ -27,7 +27,7 @@
 // ============================================================
 
 /** React hooks สำหรับจัดการ state */
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 /** Next.js Link component */
 import Link from 'next/link'
@@ -36,7 +36,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
-import { Compass, LayoutDashboard, Building2, Car, Calendar, LogOut, Menu, X, Users, CreditCard } from 'lucide-react'
+import { Compass, LayoutDashboard, Building2, Car, Calendar, LogOut, Menu, X, Users, CreditCard, Tag, MessageSquare, Bell } from 'lucide-react'
 
 // ============================================================
 // Constants - Navigation Menu
@@ -52,6 +52,9 @@ const navigation = [
   { name: 'รถเช่า', href: '/admin/cars', icon: Car },
   { name: 'การจอง', href: '/admin/bookings', icon: Calendar },
   { name: 'การชำระเงิน', href: '/admin/payments', icon: CreditCard },
+  { name: 'คูปอง', href: '/admin/coupons', icon: Tag },
+  { name: 'รีวิว', href: '/admin/reviews', icon: MessageSquare },
+  { name: 'การแจ้งเตือน', href: '/admin/notifications', icon: Bell },
   { name: 'พาร์ทเนอร์', href: '/admin/partners', icon: Users },
 ]
 
@@ -83,6 +86,38 @@ export default function AdminSidebar() {
   // ----------------------------------------------------------
   /** State สำหรับ mobile drawer */
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  /** Unread notification count — แสดง badge บน /admin/notifications */
+  const [unreadCount, setUnreadCount] = useState<number>(0)
+
+  // ----------------------------------------------------------
+  // Unread notification polling
+  // ----------------------------------------------------------
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/notifications?status=unread&limit=1', {
+        credentials: 'include',
+      })
+      if (!res.ok) return
+      const body = await res.json().catch(() => null)
+      const unread = body?.data?.summary?.unread
+      if (typeof unread === 'number') setUnreadCount(unread)
+    } catch {
+      // ignore network errors — badge just stays stale
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchUnreadCount()
+    // Refresh every 60 seconds — cheap enough, keeps badge fresh
+    const interval = setInterval(fetchUnreadCount, 60_000)
+    return () => clearInterval(interval)
+  }, [fetchUnreadCount])
+
+  // Also refresh when path changes (e.g. admin just visited inbox)
+  useEffect(() => {
+    fetchUnreadCount()
+  }, [pathname, fetchUnreadCount])
 
   // ----------------------------------------------------------
   // Event Handlers
@@ -138,6 +173,7 @@ export default function AdminSidebar() {
           {navigation.map((item) => {
             // ตรวจสอบว่า menu item นี้ active หรือไม่
             const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+            const showBadge = item.href === '/admin/notifications' && unreadCount > 0
 
             return (
               <li key={item.name}>
@@ -153,7 +189,16 @@ export default function AdminSidebar() {
                   {/* Menu Icon */}
                   <item.icon size={20} />
                   {/* Menu Name */}
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium flex-1">{item.name}</span>
+                  {/* Unread notification badge */}
+                  {showBadge && (
+                    <span
+                      className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-xs font-semibold rounded-full bg-red-500 text-white"
+                      aria-label={`${unreadCount} การแจ้งเตือนที่ยังไม่ได้อ่าน`}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             )

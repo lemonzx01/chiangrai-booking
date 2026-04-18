@@ -19,6 +19,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/server'
 import { createConnectAccount, createAccountLink } from '../../../../../lib/stripe'
+import { logger } from '../../../../../lib/logger'
 
 export async function POST(
   request: Request,
@@ -67,7 +68,7 @@ export async function POST(
     return NextResponse.json({ url: accountLink.url })
 
   } catch (error: any) {
-    console.error('Stripe Connect error:', error)
+    logger.error('Stripe Connect error', { error })
     return NextResponse.json(
       { error: error.message || 'An unknown error occurred' },
       { status: 500 }

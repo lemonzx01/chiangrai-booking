@@ -55,6 +55,12 @@ import { findMockAdmin } from '@/lib/mock-data'
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '@/lib/auth'
 
+/** Account lockout (brute-force protection) */
+import { checkLockout, recordAttempt, getClientIp } from '@/lib/lockout'
+
+/** Structured logger */
+import { logger } from '@/lib/logger'
+
 // ============================================================
 // POST Handler - เข้าสู่ระบบ Admin
 // ============================================================
@@ -92,6 +98,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
+    // Brute-force protection
+    const ip = getClientIp(request)
+    const lockoutStatus = await checkLockout(email)
+    if (lockoutStatus.locked) {
+      return NextResponse.json(
+        { error: lockoutStatus.reason, retryAfter: lockoutStatus.retryAfterSeconds },
+        { status: 429, headers: { 'Retry-After': String(lockoutStatus.retryAfterSeconds || 1800) } }
+      )
+    }
+    const fail = async () => {
+      await recordAttempt(email, ip, false, request.headers.get('user-agent'))
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    }
+    const ok = async () => {
+      await recordAttempt(email, ip, true, request.headers.get('user-agent'))
+    }
+
     // ============================================================
     // Mock Mode: ใช้ข้อมูลจำลอง
     // ============================================================
@@ -100,7 +123,7 @@ export async function POST(request: Request) {
       const mockAdmin = findMockAdmin(email)
 
       if (!mockAdmin) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+        return fail()
       }
 
       // ตรวจสอบรหัสผ่าน (mock mode: admin123)
@@ -108,8 +131,9 @@ export async function POST(request: Request) {
         await bcrypt.compare(password, mockAdmin.password_hash).catch(() => false)
 
       if (!isValidPassword) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+        return fail()
       }
+      await ok()
 
       // สร้าง JWT token
       const secret = getJwtSecret()
@@ -160,7 +184,7 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !admin) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return fail()
     }
 
     // ----------------------------------------------------------
@@ -169,8 +193,9 @@ export async function POST(request: Request) {
     const isValidPassword = await bcrypt.compare(password, admin.password_hash)
 
     if (!isValidPassword) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return fail()
     }
+    await ok()
 
     // ----------------------------------------------------------
     // อัพเดทเวลา login ล่าสุด
@@ -216,7 +241,7 @@ export async function POST(request: Request) {
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('admin login error', { error })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -85,6 +85,7 @@ export default async function HotelsPage({
   const q = getFirstParam(searchParams?.q)?.trim()
   const location = getFirstParam(searchParams?.location)?.trim()
   const price = getFirstParam(searchParams?.price)
+  const star = getFirstParam(searchParams?.star)
   const sort = getFirstParam(searchParams?.sort) || 'newest'
 
   const query = new URLSearchParams({
@@ -103,6 +104,11 @@ export default async function HotelsPage({
     query.set('max_price', '40000')
   } else if (price === 'high') {
     query.set('min_price', '40000')
+  }
+
+  const starNum = Number(star)
+  if (star && !Number.isNaN(starNum) && starNum > 0) {
+    query.set('min_star', String(starNum))
   }
 
   const [filteredRes, allRes] = await Promise.all([
@@ -126,6 +132,7 @@ export default async function HotelsPage({
           q,
           location,
           price,
+          star,
           sort,
         }}
         allLocations={[]}

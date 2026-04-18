@@ -55,6 +55,7 @@ import { addSecurityHeaders, validateInput, isValidUUID } from '../../../lib/sec
 import { convertCurrencyAmount } from '../../../lib/exchange-rate'
 import { BookingType, Currency } from '@chiangrai/shared/types'
 import { validateCouponForBooking } from '../../../lib/coupons'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // POST Handler - สร้าง Stripe Checkout Session
@@ -162,7 +163,7 @@ export async function POST(request: Request) {
 
     // ตรวจสอบว่าพบการจองหรือไม่
     if (bookingError || !booking) {
-      console.error('Booking query error:', bookingError)
+      logger.error('Booking query error', { error: bookingError })
       const response = NextResponse.json(
         { error: 'ไม่พบข้อมูลการจองนี้ในระบบ อาจถูกยกเลิกไปแล้ว กรุณาทำการจองใหม่' },
         { status: 404 }
@@ -218,7 +219,7 @@ export async function POST(request: Request) {
     // ตรวจสอบราคา
     // ----------------------------------------------------------
     if (!booking.total_price || booking.total_price <= 0) {
-      console.error('Invalid total_price:', booking.total_price, 'for booking:', booking.id)
+      logger.error('Invalid total_price', { totalPrice: booking.total_price, bookingId: booking.id })
       const response = NextResponse.json(
         { error: `ราคาการจองไม่ถูกต้อง (${booking.total_price || 0} บาท) กรุณาทำการจองใหม่` },
         { status: 400 }
@@ -276,10 +277,8 @@ export async function POST(request: Request) {
           bookingCurrency
         )
       } catch (error) {
-      console.error('Currency conversion error:', error)
-        console.warn(
-          `Currency conversion failed for ${bookingCurrency}, using original price`
-        )
+        logger.error('Currency conversion error', { error })
+        logger.warn('Currency conversion failed, using original price', { bookingCurrency })
         finalAmount = payableAmountThb
       }
     }
@@ -386,7 +385,7 @@ export async function POST(request: Request) {
     // สร้าง Stripe Checkout Session
     // ----------------------------------------------------------
     // Debug: แสดงข้อมูลที่จะส่งไป Stripe
-    console.log('[Checkout] Creating Stripe session:', JSON.stringify({
+    logger.info('[Checkout] Creating Stripe session', {
       payment_method_types: sessionConfig.payment_method_types,
       amount: sessionConfig.line_items?.[0]?.price_data?.unit_amount,
       currency: sessionConfig.line_items?.[0]?.price_data?.currency,
@@ -394,13 +393,13 @@ export async function POST(request: Request) {
       success_url: sessionConfig.success_url,
       cancel_url: sessionConfig.cancel_url,
       has_connect: !!sessionConfig.payment_intent_data,
-    }, null, 2))
+    })
 
     let session
     try {
       session = await stripe.checkout.sessions.create(sessionConfig)
     } catch (error: any) {
-      console.error('Stripe checkout session creation error:', error)
+      logger.error('Stripe checkout session creation error', { error })
       // ส่ง error ที่เข้าใจง่ายกลับไป
       let errorMsg = 'ไม่สามารถเชื่อมต่อระบบชำระเงินได้'
       if (error?.type === 'StripeInvalidRequestError') {
@@ -444,10 +443,10 @@ export async function POST(request: Request) {
       })
 
       if (paymentError) {
-        console.error('Payment record creation error:', paymentError)
+        logger.error('Payment record creation error', { error: paymentError })
       }
     } catch (error) {
-      console.error('Database error when creating payment record:', error)
+      logger.error('Database error when creating payment record', { error })
     }
 
     // ----------------------------------------------------------
@@ -459,7 +458,7 @@ export async function POST(request: Request) {
     })
     return addSecurityHeaders(response)
   } catch (error) {
-    console.error('Checkout error:', error)
+    logger.error('Checkout error', { error })
     const response = NextResponse.json(
       { error: 'เกิดข้อผิดพลาดในการสร้างการชำระเงิน กรุณาลองใหม่อีกครั้ง หากปัญหายังคงอยู่ กรุณาติดต่อเรา' },
       { status: 500 }

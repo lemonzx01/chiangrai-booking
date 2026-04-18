@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../../lib/supabase/server';
 import { createConnectAccount, createAccountLink } from '../../../../../lib/stripe';
+import { logger } from '../../../../../lib/logger';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const partnerId = params.id;
@@ -45,7 +46,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ url: accountLink.url });
 
   } catch (error: any) {
-    console.error('Stripe Connect error:', error);
+    logger.error('Stripe Connect error', { error });
     return NextResponse.json({ error: error.message || 'Failed to create Stripe Connect link' }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/server'
 import { isMockMode } from '../../../lib/auth'
 import { checkRoomAvailability, checkCarAvailability } from '../../../lib/availability'
+import { logger } from '../../../lib/logger'
 
 export async function GET(request: Request) {
   try {
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ available: true })
   } catch (error) {
-    console.error('Availability check error:', error)
+    logger.error('Availability check error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

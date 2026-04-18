@@ -1,6 +1,54 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
   "installCommand": "cd ../.. && npm install",
-  "framework": "nextjs"
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev -- -p $PORT",
+  "regions": ["sin1"],
+  "functions": {
+    "src/app/api/webhook/stripe/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/checkout/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/bookings/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/payments/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/auth/register/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/auth/forgot-password/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/auth/resend-verification/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/upload/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+      ]
+    },
+    {
+      "source": "/api/webhook/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    }
+  ],
+  "crons": []
 }

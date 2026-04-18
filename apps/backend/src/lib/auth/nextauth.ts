@@ -18,6 +18,7 @@ import { createAdminClient } from '../supabase/server'
 import bcrypt from 'bcryptjs'
 import { isMockMode } from '../auth'
 import { findMockUser, findMockAdmin } from '../mock-data'
+import { logger } from '../logger'
 
 import { createToken } from '../auth'
 
@@ -25,7 +26,7 @@ const googleClientId = process.env.GOOGLE_CLIENT_ID || ''
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || ''
 
 if (!googleClientId || !googleClientSecret) {
-  console.warn('[WARN] Google OAuth credentials are missing. Google login will not work.')
+  logger.warn('Google OAuth credentials are missing. Google login will not work.')
 }
 
 const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -181,7 +182,7 @@ const authOptions = {
                 .single()
 
               if (updateError) {
-                console.error('Failed to update google_id:', updateError)
+                logger.error('Failed to update google_id', { error: updateError })
               }
               existingUser = updatedUser || userByEmail
             }
@@ -203,7 +204,7 @@ const authOptions = {
               .single()
 
             if (error) {
-              console.error('Error creating user:', error)
+              logger.error('Error creating user', { error })
               token.email = profile.email
               token.name = profile.name
               token.role = 'user'
@@ -276,7 +277,7 @@ const authOptions = {
       throw new Error('NEXTAUTH_SECRET or JWT_SECRET environment variable is required')
     }
     if (secret.length < 32) {
-      console.warn('[WARN] Secret is too short (minimum 32 characters recommended)')
+      logger.warn('Secret is too short (minimum 32 characters recommended)')
     }
     return secret
   })(),
@@ -292,7 +293,7 @@ try {
     throw new Error('NextAuth handlers incomplete')
   }
 } catch (error: any) {
-  console.error('Failed to create NextAuth handlers:', error?.message)
+  logger.error('Failed to create NextAuth handlers', { error: error?.message })
   throw error
 }
 

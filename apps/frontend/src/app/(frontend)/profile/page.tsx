@@ -11,6 +11,7 @@ import CancelBookingModal from '@/components/ui/CancelBookingModal'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import type { Booking } from '@chiangrai/shared/types'
 import useLocalize from '@/hooks/useLocalize'
+import { apiFetch } from '@/lib/api'
 
 interface ProfileData {
   id: string
@@ -130,19 +131,21 @@ export default function ProfilePage() {
     setProfileMessage(null)
 
     try {
-      const res = await fetch('/api/user/profile', {
+      const res = await apiFetch('/api/user/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           name: editName.trim(),
           phone: editPhone.trim() || null,
-        }),
+        },
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        setProfileMessage({ type: 'error', text: data.error || 'เกิดข้อผิดพลาด' })
+        setProfileMessage({
+          type: 'error',
+          text: (data as any)?.error?.message || (data as any)?.error || 'เกิดข้อผิดพลาด',
+        })
         return
       }
 
@@ -180,19 +183,21 @@ export default function ProfilePage() {
     setSavingPassword(true)
 
     try {
-      const res = await fetch('/api/user/profile', {
+      const res = await apiFetch('/api/user/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           current_password: currentPassword,
           new_password: newPassword,
-        }),
+        },
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        setPasswordMessage({ type: 'error', text: data.error || 'เกิดข้อผิดพลาด' })
+        setPasswordMessage({
+          type: 'error',
+          text: (data as any)?.error?.message || (data as any)?.error || 'เกิดข้อผิดพลาด',
+        })
         return
       }
 

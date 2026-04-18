@@ -8,6 +8,14 @@
  *   - จำกัดจำนวน requests ต่อ IP address
  *   - รองรับ payment endpoints ที่ต้องการความปลอดภัยสูง
  *
+ * Storage strategies:
+ *   - In-memory Map (default, dev only — does NOT survive across
+ *     serverless function instances)
+ *   - Vercel KV (production: set KV_REST_API_URL + KV_REST_API_TOKEN
+ *     and Vercel KV will be used automatically)
+ *
+ * Use rateLimitAsync(req, endpoint) for production code paths.
+ * The legacy sync rateLimitMiddleware() is kept for backward compat.
  * ============================================================
  */
 
@@ -202,5 +210,107 @@ export function rateLimitMiddleware(
   }
 
   // Return null ถ้าผ่าน rate limit (ไม่ต้อง block)
+  return null
+}
+
+// ============================================================
+// KV-backed (production) implementation
+// ============================================================
+
+/**
+ * Detect whether Vercel KV is configured.
+ * KV_REST_API_URL + KV_REST_API_TOKEN come from `vercel kv create`.
+ */
+function isKvConfigured(): boolean {
+  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
+}
+
+interface KvCheckResult {
+  count: number
+  ttlSeconds: number
+}
+
+/**
+ * Atomically increment a key in Vercel KV using INCR + EXPIRE NX.
+ * Falls back gracefully on errors (returns count=0 to fail-open).
+ */
+async function kvIncrement(key: string, windowSeconds: number): Promise<KvCheckResult> {
+  const url = process.env.KV_REST_API_URL!
+  const token = process.env.KV_REST_API_TOKEN!
+
+  try {
+    // Pipeline: INCR + EXPIRE (NX = only if no TTL set yet)
+    const res = await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        ['INCR', key],
+        ['EXPIRE', key, String(windowSeconds), 'NX'],
+        ['TTL', key],
+      ]),
+      // Fail fast — rate limiting must not block requests for long
+      signal: AbortSignal.timeout(2000),
+    })
+
+    if (!res.ok) {
+      return { count: 0, ttlSeconds: windowSeconds }
+    }
+
+    const data: any = await res.json()
+    // pipeline response: array of { result } objects
+    const count = Number(data?.[0]?.result ?? 0)
+    const ttl = Number(data?.[2]?.result ?? windowSeconds)
+    return { count, ttlSeconds: ttl > 0 ? ttl : windowSeconds }
+  } catch {
+    // Fail open — better to allow than to break the app
+    return { count: 0, ttlSeconds: windowSeconds }
+  }
+}
+
+/**
+ * Production-grade rate limit check.
+ *
+ * Uses Vercel KV when configured, otherwise falls back to the
+ * in-memory implementation. Returns the same NextResponse(429) shape
+ * as rateLimitMiddleware() so it can be a drop-in replacement.
+ */
+export async function rateLimitAsync(
+  request: Request,
+  endpoint: string
+): Promise<Response | null> {
+  if (!isKvConfigured()) {
+    // Fall back to in-memory
+    return rateLimitMiddleware(request, endpoint)
+  }
+
+  const config =
+    RATE_LIMIT_CONFIG[endpoint as keyof typeof RATE_LIMIT_CONFIG] ||
+    RATE_LIMIT_CONFIG.default
+
+  const ip = getClientIP(request)
+  const windowSeconds = Math.ceil(config.windowMs / 1000)
+  const key = `rl:${endpoint}:${ip}`
+
+  const { count, ttlSeconds } = await kvIncrement(key, windowSeconds)
+
+  if (count > config.maxRequests) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RateLimit-Limit': String(config.maxRequests),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': new Date(Date.now() + ttlSeconds * 1000).toISOString(),
+          'Retry-After': String(ttlSeconds),
+        },
+      }
+    )
+  }
+
   return null
 }

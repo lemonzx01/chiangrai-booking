@@ -18,6 +18,8 @@ import { NextResponse } from 'next/server'
 import { verifyAdminToken, verifyUserToken } from '../../../../../lib/auth'
 import { calculateRefundPercentage, calculateRefundAmount, processStripeRefund } from '../../../../../lib/refund'
 import { sendCancellationNotification } from '../../../../../services/notifications/cancellation'
+import { createAdminNotification } from '../../../../../services/notifications/admin-inbox'
+import { logger } from '../../../../../lib/logger'
 
 interface Params {
   params: Promise<{ code: string }>
@@ -85,7 +87,7 @@ export async function POST(request: Request, { params }: Params) {
         const result = await processStripeRefund(payment.stripe_payment_intent_id, amountInSatang)
         stripeRefundId = result.refundId
       } catch (stripeError: any) {
-        console.error('Stripe refund error:', stripeError)
+        logger.error('Stripe refund error', { error: stripeError })
         return NextResponse.json(
           { error: 'ไม่สามารถคืนเงินผ่าน Stripe ได้ กรุณาลองอีกครั้ง' },
           { status: 500 }
@@ -112,7 +114,7 @@ export async function POST(request: Request, { params }: Params) {
       .single()
 
     if (updateError) {
-      console.error('Update booking error:', updateError)
+      logger.error('Update booking error', { error: updateError })
       return NextResponse.json({ error: 'ไม่สามารถยกเลิกการจองได้' }, { status: 500 })
     }
 
@@ -139,7 +141,26 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // ส่ง email แจ้งยกเลิก (non-blocking)
-    sendCancellationNotification(updatedBooking, refundAmount, refundPercentage).catch(console.error)
+    sendCancellationNotification(updatedBooking, refundAmount, refundPercentage).catch((err) =>
+      logger.error('sendCancellationNotification failed', { error: err })
+    )
+
+    // Admin inbox notification
+    createAdminNotification({
+      type: 'booking.cancelled',
+      title: `การจอง ${updatedBooking.booking_code} ถูกยกเลิก`,
+      body: refundAmount > 0
+        ? `คืนเงิน ${refundAmount.toLocaleString()} ${updatedBooking.currency || 'THB'} (${refundPercentage}%)`
+        : 'ไม่มีการคืนเงิน',
+      link: '/admin/bookings',
+      data: {
+        booking_id: updatedBooking.id,
+        booking_code: updatedBooking.booking_code,
+        refund_amount: refundAmount,
+        refund_percentage: refundPercentage,
+      },
+      severity: refundAmount > 0 ? 'warning' : 'error',
+    })
 
     return NextResponse.json({
       message: 'ยกเลิกการจองสำเร็จ',
@@ -153,7 +174,7 @@ export async function POST(request: Request, { params }: Params) {
       },
     })
   } catch (error) {
-    console.error('Cancel booking error:', error)
+    logger.error('Cancel booking error', { error })
     return NextResponse.json({ error: 'เกิดข้อผิดพลาด' }, { status: 500 })
   }
 }

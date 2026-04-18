@@ -48,6 +48,13 @@ export const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET
 
   if (!secret) {
+    // Mock mode fallback: allow dev to boot without JWT_SECRET set.
+    // Production should always set JWT_SECRET explicitly (enforced by /api/health check).
+    if (isMockMode()) {
+      return new TextEncoder().encode(
+        'mock-mode-dev-secret-not-for-production-use-only-0123456789abcdef'
+      )
+    }
     throw new Error('JWT_SECRET environment variable is required')
   }
 
@@ -247,6 +254,38 @@ export function isMockMode() {
   return !supabaseUrl ||
          supabaseUrl === 'https://placeholder.supabase.co' ||
          supabaseUrl === ''
+}
+
+/**
+ * ตรวจสอบว่า Stripe อยู่ในโหมด Mock หรือไม่
+ *
+ * @description true ถ้าไม่มี STRIPE_SECRET_KEY หรือเป็น placeholder
+ *              เมื่อ mock mode: checkout/refund/webhook จะใช้ fake data
+ */
+export function isStripeMockMode() {
+  const key = process.env.STRIPE_SECRET_KEY
+  return !key || key === '' || key.startsWith('sk_test_mock') || key === 'placeholder'
+}
+
+/**
+ * ตรวจสอบว่า Email service อยู่ในโหมด Mock หรือไม่
+ *
+ * @description true ถ้าไม่มีทั้ง RESEND_API_KEY และ BREVO_API_KEY
+ *              เมื่อ mock mode: email จะถูก log แทนที่จะส่งจริง
+ */
+export function isEmailMockMode() {
+  return !process.env.RESEND_API_KEY && !process.env.BREVO_API_KEY
+}
+
+/**
+ * ดึงสถานะ mock mode ของทุก service (สำหรับ /api/health)
+ */
+export function getMockModeStatus() {
+  return {
+    supabase: isMockMode(),
+    stripe: isStripeMockMode(),
+    email: isEmailMockMode(),
+  }
 }
 
 // ============================================================

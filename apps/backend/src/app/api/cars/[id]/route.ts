@@ -34,6 +34,7 @@ import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../lib/auth'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // Type Definitions
@@ -158,7 +159,7 @@ export async function PUT(request: Request, { params }: Params) {
 
     return NextResponse.json(data)
   } catch (error: any) {
-    console.error('Update car error:', error)
+    logger.error('Update car error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

@@ -31,6 +31,8 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { sendBookingConfirmationEmail } from '../../../../services/notifications/email'
 import { sendPartnerBookingNotification, sendAdminBookingNotification } from '../../../../services/notifications/partner'
+import { logger } from '../../../../lib/logger'
+import { isStripeMockMode } from '../../../../lib/auth'
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -43,35 +45,52 @@ export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
   if (!webhookSecret || !signature) {
-    // Test mode: อนุญาตเฉพาะ development เท่านั้น
-    if (process.env.NODE_ENV === 'production') {
-      console.error('Webhook rejected: missing secret or signature in production')
+    // Allowed without signature only in development OR mock mode
+    if (process.env.NODE_ENV === 'production' && !isStripeMockMode()) {
+      logger.error('webhook rejected: missing secret or signature in production')
       return NextResponse.json({ error: 'Webhook secret and signature required in production' }, { status: 400 })
     }
 
     try {
       event = JSON.parse(body) as Stripe.Event
-      console.warn('[DEV] Webhook event parsed without signature verification:', event.type)
+      logger.warn('webhook parsed without signature verification', { eventType: event.type })
     } catch (parseError) {
-      console.error('Failed to parse webhook body:', parseError)
+      logger.error('webhook body parse failed', { error: parseError })
       return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 })
     }
   } else {
     // Production mode: Verify signature strictly
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('Webhook rejected: STRIPE_SECRET_KEY not configured')
-      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
-    }
-
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
     } catch (verifyError) {
-      console.error('Webhook signature verification failed:', verifyError)
+      logger.error('webhook signature verification failed', { error: verifyError })
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 })
     }
   }
 
   const supabase = await createAdminClient()
+
+  // ----- Idempotency: insert event_id, return 200 if already processed -----
+  if (event.id) {
+    const { error: idemErr } = await supabase
+      .from('processed_webhooks')
+      .insert({
+        event_id: event.id,
+        event_type: event.type,
+        source: 'stripe',
+      })
+
+    if (idemErr) {
+      // Postgres unique violation = duplicate event = already processed.
+      if (idemErr.code === '23505') {
+        logger.info('webhook duplicate event ignored', { eventId: event.id, type: event.type })
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+      // Any other error: log but DO NOT block — better to risk a duplicate
+      // than miss a payment confirmation.
+      logger.error('webhook idempotency insert failed', { eventId: event.id, error: idemErr })
+    }
+  }
 
   try {
     switch (event.type) {
@@ -87,7 +106,7 @@ export async function POST(request: Request) {
             .eq('stripe_account_id', account.id)
 
           if (error) {
-            console.error('Failed to update partner onboarding status:', error)
+            logger.error('partner onboarding update failed', { accountId: account.id, error })
           }
         }
         break
@@ -107,7 +126,7 @@ export async function POST(request: Request) {
           .eq('stripe_checkout_session_id', session.id)
 
         if (paymentError) {
-          console.error('Failed to update payment status:', paymentError)
+          logger.error('payment status update failed', { sessionId: session.id, error: paymentError })
           return NextResponse.json({ error: 'Failed to update payment status' }, { status: 500 })
         }
 
@@ -121,7 +140,7 @@ export async function POST(request: Request) {
             .single()
 
           if (bookingError) {
-            console.error('Failed to update booking status:', bookingError)
+            logger.error('booking status update failed', { bookingId: session.metadata.booking_id, error: bookingError })
             return NextResponse.json({ error: 'Failed to update booking status' }, { status: 500 })
           }
 
@@ -141,15 +160,15 @@ export async function POST(request: Request) {
               totalPrice: booking.total_price,
               status: booking.status || 'PAID',
             }
-            sendBookingConfirmationEmail(emailData).catch(console.error)
+            sendBookingConfirmationEmail(emailData).catch((e) => logger.error('notification dispatch failed', { error: e }))
 
             const ownerId = booking.hotel?.owner_id || booking.car?.owner_id
 
             if (ownerId) {
-              sendPartnerBookingNotification(ownerId, booking).catch(console.error)
+              sendPartnerBookingNotification(ownerId, booking).catch((e) => logger.error('notification dispatch failed', { error: e }))
             }
 
-            sendAdminBookingNotification(booking).catch(console.error)
+            sendAdminBookingNotification(booking).catch((e) => logger.error('notification dispatch failed', { error: e }))
           }
         }
         break
@@ -164,7 +183,7 @@ export async function POST(request: Request) {
           .eq('stripe_checkout_session_id', session.id)
 
         if (error) {
-          console.error('Failed to update expired payment status:', error)
+          logger.error('Failed to update expired payment status', { sessionId: session.id, error })
         }
         break
       }
@@ -178,7 +197,10 @@ export async function POST(request: Request) {
           .eq('stripe_payment_intent_id', paymentIntent.id)
 
         if (error) {
-          console.error('Failed to update failed payment status:', error)
+          logger.error('Failed to update failed payment status', {
+            paymentIntentId: paymentIntent.id,
+            error,
+          })
         }
         break
       }
@@ -188,7 +210,6 @@ export async function POST(request: Request) {
         const paymentIntentId = charge.payment_intent as string
 
         if (paymentIntentId) {
-          // อัพเดทสถานะ payment เป็น REFUNDED
           const { error } = await supabase
             .from('payments')
             .update({
@@ -198,8 +219,42 @@ export async function POST(request: Request) {
             .eq('stripe_payment_intent_id', paymentIntentId)
 
           if (error) {
-            console.error('Failed to update refunded payment status:', error)
+            logger.error('refunded payment update failed', { paymentIntentId, error })
           }
+        }
+        break
+      }
+
+      case 'charge.dispute.created': {
+        // Mark related payment as DISPUTED so admin can investigate.
+        const dispute = event.data.object as Stripe.Dispute
+        const paymentIntentId =
+          (typeof dispute.payment_intent === 'string'
+            ? dispute.payment_intent
+            : dispute.payment_intent?.id) || ''
+
+        if (paymentIntentId) {
+          const { error } = await supabase
+            .from('payments')
+            .update({
+              status: 'DISPUTED',
+              dispute_reason: dispute.reason,
+              disputed_at: new Date().toISOString(),
+            })
+            .eq('stripe_payment_intent_id', paymentIntentId)
+
+          if (error) {
+            logger.error('dispute payment update failed', { paymentIntentId, error })
+          }
+
+          // Surface to admin notification center
+          await supabase.from('admin_notifications').insert({
+            type: 'DISPUTE',
+            title: 'Payment dispute opened',
+            message: `Stripe dispute opened (reason: ${dispute.reason}) on payment ${paymentIntentId}`,
+            link: `/admin/payments?dispute=${dispute.id}`,
+            is_read: false,
+          })
         }
         break
       }
@@ -207,7 +262,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook processing error:', error)
+    logger.error('webhook processing error', { eventId: event.id, type: event.type, error })
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
 }

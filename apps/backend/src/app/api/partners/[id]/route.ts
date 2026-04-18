@@ -37,6 +37,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../
 
 /** Types */
 import { PartnerType } from '@chiangrai/shared/types'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลพาร์ทเนอร์
@@ -149,7 +150,7 @@ export async function PUT(
     // ส่งกลับข้อมูลพาร์ทเนอร์ที่อัปเดตแล้ว
     return NextResponse.json(data)
   } catch (error: any) {
-    console.error('Update partner error:', error)
+    logger.error('Update partner error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
@@ -201,7 +202,7 @@ export async function DELETE(
     // ส่งกลับสถานะสำเร็จ
     return NextResponse.json({ message: 'Partner deleted successfully' })
   } catch (error: any) {
-    console.error('Delete partner error:', error)
+    logger.error('Delete partner error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

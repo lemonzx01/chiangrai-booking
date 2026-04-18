@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { logger } from '../../../../lib/logger'
 
 /**
  * POST - รับ token แล้วสร้าง cookie
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Set cookie error:', error)
+    logger.error('Set cookie error', { error })
     return NextResponse.json(
       { success: false, error: 'Failed to set cookie' },
       { status: 500 }

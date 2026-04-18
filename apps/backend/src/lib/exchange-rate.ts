@@ -13,6 +13,7 @@
 
 import { Currency } from '@chiangrai/shared/types'
 import { createAdminClient } from './supabase/server'
+import { logger } from './logger'
 
 // ============================================================
 // Exchange Rate Cache
@@ -80,7 +81,7 @@ export async function fetchExchangeRates(
 
     // ถ้าไม่มีข้อมูลใน database ให้ใช้ค่า default
     if (Object.keys(rates).length === 0) {
-      console.warn(`No exchange rates found in database for ${baseCurrency}, using defaults`)
+      logger.warn('No exchange rates found in database, using defaults', { baseCurrency })
       return getDefaultExchangeRates(baseCurrency)
     }
 
@@ -93,7 +94,7 @@ export async function fetchExchangeRates(
 
     return rates
   } catch (error) {
-    console.error('Exchange rate database error:', error)
+    logger.error('Exchange rate database error', { error })
 
     // Fallback: ใช้ค่า cache ถ้ามี
     if (rateCache && rateCache.baseCurrency === baseCurrency) {
@@ -165,7 +166,7 @@ export async function convertCurrencyAmount(
   // แปลงราคา
   const rate = rates[toCurrency]
   if (!rate) {
-    console.warn(`Exchange rate not found for ${toCurrency}, using 1:1`)
+    logger.warn('Exchange rate not found, using 1:1', { toCurrency })
     return amount
   }
 
@@ -222,7 +223,7 @@ export async function updateExchangeRate(
       rateCache = null
     }
   } catch (error) {
-    console.error('Failed to update exchange rate:', error)
+    logger.error('Failed to update exchange rate', { error })
     throw error
   }
 }

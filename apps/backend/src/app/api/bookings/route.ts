@@ -38,6 +38,7 @@ import { NextResponse } from 'next/server'
 
 /** บริการส่งอีเมลแจ้งเตือนพาร์ทเนอร์ */
 import { sendPartnerBookingNotification, sendAdminBookingNotification } from '../../../services/notifications/partner'
+import { createAdminNotification } from '../../../services/notifications/admin-inbox'
 
 /** ฟังก์ชัน Utility สำหรับการจอง */
 import { generateBookingCode, calculateNights, calculateTotalPrice } from '../../../lib/utils'
@@ -51,6 +52,7 @@ import { checkRoomAvailability, checkCarAvailability } from '../../../lib/availa
 /** Authentication helpers */
 import { verifyAdminToken, verifyPartnerToken } from '../../../lib/auth'
 import { BookingStatusEnum, CurrencyEnum } from '@chiangrai/shared/types/supabase'
+import { logger } from '../../../lib/logger'
 
 const SUPPORTED_BOOKING_CURRENCIES: CurrencyEnum[] = ['THB', 'USD', 'EUR']
 
@@ -111,7 +113,7 @@ export async function GET(request: Request) {
     // ----------------------------------------------------------
     let query = supabase
       .from('bookings')
-      .select('*, hotel:hotels(*), car:cars(*), room_type:room_types(*)', {
+      .select('*, hotel:hotels(*), car:cars(*), room_type:room_types(*), payment:payments(*)', {
         count: 'exact',
       }) // JOIN ข้อมูลที่เกี่ยวข้อง
       .order('created_at', { ascending: false }) // เรียงจากใหม่ไปเก่า
@@ -132,8 +134,12 @@ export async function GET(request: Request) {
         )
       }
 
-      const carIds = (cars || []).map((car) => car.id).filter(Boolean)
-      const hotelIds = (hotels || []).map((hotel) => hotel.id).filter(Boolean)
+      const carIds = ((cars as Array<{ id: string }> | null) || [])
+        .map((car) => car.id)
+        .filter(Boolean)
+      const hotelIds = ((hotels as Array<{ id: string }> | null) || [])
+        .map((hotel) => hotel.id)
+        .filter(Boolean)
 
       if (carIds.length === 0 && hotelIds.length === 0) {
         return NextResponse.json({
@@ -354,7 +360,7 @@ export async function POST(request: Request) {
     if (body.total_price && Math.abs(body.total_price - total_price) > 0.01) {
       // Log เฉพาะใน development mode
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Price mismatch detected. Using server-calculated price.')
+        logger.warn('Price mismatch detected. Using server-calculated price.')
       }
     }
 
@@ -376,6 +382,9 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // ตรวจสอบห้องว่าง / รถว่าง (Availability Check)
     // ----------------------------------------------------------
+    // Optional pre-flight availability check (best-effort, race-prone).
+    // The atomic RPC below is the source of truth — this only gives
+    // an early 409 to avoid hitting the lock for obvious failures.
     if (verifiedRoomTypeId) {
       const availability = await checkRoomAvailability(
         supabase,
@@ -407,7 +416,7 @@ export async function POST(request: Request) {
     }
 
     // ----------------------------------------------------------
-    // บันทึกการจองลง Database
+    // บันทึกการจองลง Database (atomic via RPC)
     // ----------------------------------------------------------
     const requestedCurrency = validatedData.currency || 'THB'
     const bookingCurrency: CurrencyEnum = SUPPORTED_BOOKING_CURRENCIES.includes(
@@ -416,34 +425,75 @@ export async function POST(request: Request) {
       ? (requestedCurrency as CurrencyEnum)
       : 'THB'
 
+    // Decide which atomic RPC to call: car-only bookings use the car
+    // variant; everything else (hotel/combo) uses the room variant.
+    const isCarOnly =
+      !!validatedData.car_id && !validatedData.hotel_id && !verifiedRoomTypeId
+    const rpcName = isCarOnly ? 'create_car_booking_atomic' : 'create_booking_atomic'
+
+    const rpcParams: Record<string, unknown> = {
+      p_booking_code: booking_code,
+      p_booking_type: validatedData.booking_type,
+      p_check_in_date: validatedData.check_in_date,
+      p_check_out_date: validatedData.check_out_date,
+      p_number_of_guests: validatedData.number_of_guests,
+      p_customer_name: validatedData.customer_name,
+      p_customer_email: validatedData.customer_email,
+      p_customer_phone: validatedData.customer_phone,
+      p_special_requests: validatedData.special_requests || null,
+      p_total_price: total_price,
+      p_currency: bookingCurrency,
+    }
+    if (isCarOnly) {
+      rpcParams.p_car_id = validatedData.car_id
+    } else {
+      rpcParams.p_hotel_id = validatedData.hotel_id || null
+      rpcParams.p_room_type_id = verifiedRoomTypeId
+    }
+
+    const { data: rpcBooking, error: rpcError } = await (supabase as any).rpc(
+      rpcName,
+      rpcParams
+    )
+
+    if (rpcError) {
+      const msg = String(rpcError.message || '')
+      if (msg.includes('DATES_BLOCKED')) {
+        return NextResponse.json(
+          {
+            error: 'ช่วงวันที่เลือกไม่เปิดรับการจอง (ผู้ให้บริการได้บล็อกไว้) กรุณาเลือกวันอื่น',
+            code: 'DATES_BLOCKED',
+          },
+          { status: 409 }
+        )
+      }
+      if (msg.includes('ROOM_FULL') || msg.includes('CAR_FULL')) {
+        return NextResponse.json(
+          {
+            error: isCarOnly
+              ? 'รถไม่ว่างในช่วงวันที่เลือก กรุณาเลือกวันอื่น'
+              : 'ห้องพักเต็มในช่วงวันที่เลือก กรุณาเลือกวันอื่น',
+          },
+          { status: 409 }
+        )
+      }
+      logger.error('Atomic booking RPC failed', { rpcName, message: rpcError.message })
+      return NextResponse.json({ error: 'ไม่สามารถสร้างการจองได้' }, { status: 500 })
+    }
+
+    // RPC returns just the bookings row. Refetch with relations so the
+    // response shape matches the previous behaviour.
+    const insertedId = (rpcBooking as any)?.id
     const { data: booking, error } = await supabase
       .from('bookings')
-      .insert({
-        booking_type: validatedData.booking_type,
-        hotel_id: validatedData.hotel_id || null,
-        car_id: validatedData.car_id || null,
-        room_type_id: verifiedRoomTypeId,
-        check_in_date: validatedData.check_in_date,
-        check_out_date: validatedData.check_out_date,
-        number_of_guests: validatedData.number_of_guests,
-        customer_name: validatedData.customer_name,
-        customer_email: validatedData.customer_email,
-        customer_phone: validatedData.customer_phone,
-        special_requests: validatedData.special_requests || null,
-        booking_code,
-        total_price, // ใช้ราคาที่คำนวณใน server-side
-        currency: bookingCurrency,
-        status: 'PENDING', // สถานะเริ่มต้น: รอดำเนินการ
-      })
-      .select(
-        '*, hotel:hotels(*), car:cars(*), room_type:room_types(*)'
-      )
+      .select('*, hotel:hotels(*), car:cars(*), room_type:room_types(*)')
+      .eq('id', insertedId)
       .single()
 
-    // ตรวจสอบ Error
-    if (error) {
-      console.error('Supabase insert error:', error.message, error.details, error.hint)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error || !booking) {
+      logger.error('Refetch booking after RPC failed', { error })
+      // Fall back to the bare RPC result so the client still gets data.
+      return NextResponse.json(rpcBooking, { status: 201 })
     }
 
     // ----------------------------------------------------------
@@ -453,18 +503,39 @@ export async function POST(request: Request) {
     const ownerId = booking.hotel?.owner_id || booking.hotel?.partner_id || booking.car?.owner_id || booking.car?.partner_id
     
     if (ownerId) {
-      sendPartnerBookingNotification(ownerId, booking).catch(console.error)
+      sendPartnerBookingNotification(ownerId, booking).catch((err) =>
+        logger.error('sendPartnerBookingNotification failed', { error: err })
+      )
     }
-    
+
     // ส่งอีเมลแจ้งเตือน Admin
-    sendAdminBookingNotification(booking).catch(console.error)
+    sendAdminBookingNotification(booking).catch((err) =>
+      logger.error('sendAdminBookingNotification failed', { error: err })
+    )
+
+    // In-app admin inbox notification
+    const itemNameForInbox =
+      booking.hotel?.name_th || booking.hotel?.name_en || booking.car?.name_th || booking.car?.name_en || 'รายการ'
+    createAdminNotification({
+      type: 'booking.created',
+      title: `มีการจองใหม่: ${booking.booking_code}`,
+      body: `${booking.customer_name} จอง${itemNameForInbox}`,
+      link: `/admin/bookings`,
+      data: {
+        booking_id: booking.id,
+        booking_code: booking.booking_code,
+        booking_type: booking.booking_type,
+        total_price: booking.total_price,
+      },
+      severity: 'info',
+    })
 
     // ส่งกลับข้อมูลการจองที่สร้างใหม่
     return NextResponse.json(booking, { status: 201 })
   } catch (error: unknown) {
     // Log error เฉพาะใน development mode
     if (process.env.NODE_ENV === 'development') {
-      console.error('Booking error:', error)
+      logger.error('Booking error', { error })
     }
     // ไม่ leak error details ใน production
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

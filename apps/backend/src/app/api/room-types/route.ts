@@ -36,6 +36,7 @@ import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib/auth'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงรายการประเภทห้อง
@@ -184,7 +185,7 @@ export async function POST(request: Request) {
     // ส่งกลับข้อมูลประเภทห้องที่สร้างใหม่
     return NextResponse.json(data, { status: 201 })
   } catch (error: any) {
-    console.error('Create room type error:', error)
+    logger.error('Create room type error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

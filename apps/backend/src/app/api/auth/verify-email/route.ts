@@ -4,6 +4,7 @@ import { createAdminClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 import { getJwtSecret, isMockMode } from '../../../../lib/auth'
+import { logger } from '../../../../lib/logger'
 
 export async function POST(request: Request) {
   try {
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
       .eq('id', userId)
 
     if (error) {
-      console.error('Error verifying email:', error)
+      logger.error('Error verifying email', { error })
       return NextResponse.json(
         { error: 'ไม่สามารถยืนยันอีเมลได้' },
         { status: 500 }
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       message: 'ยืนยันอีเมลสำเร็จ',
     })
   } catch (error) {
-    console.error('Verify email error:', error)
+    logger.error('Verify email error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

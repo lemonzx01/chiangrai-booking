@@ -46,6 +46,7 @@ import { jwtVerify } from 'jose'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '../../../../lib/auth'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // POST Handler - รีเซ็ตรหัสผ่าน
@@ -156,7 +157,7 @@ export async function POST(request: Request) {
         .eq('id', userId)
 
       if (error) {
-        console.error('Error updating admin password:', error)
+        logger.error('Error updating admin password', { error })
         return NextResponse.json(
           { error: 'Failed to reset password' },
           { status: 500 }
@@ -170,7 +171,7 @@ export async function POST(request: Request) {
         .eq('id', userId)
 
       if (error) {
-        console.error('Error updating user password:', error)
+        logger.error('Error updating user password', { error })
         return NextResponse.json(
           { error: 'Failed to reset password' },
           { status: 500 }
@@ -185,7 +186,7 @@ export async function POST(request: Request) {
       message: 'Password has been reset successfully.',
     })
   } catch (error) {
-    console.error('Reset password error:', error)
+    logger.error('Reset password error', { error })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

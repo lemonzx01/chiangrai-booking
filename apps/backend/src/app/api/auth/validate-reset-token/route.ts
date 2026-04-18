@@ -37,6 +37,7 @@ import { jwtVerify } from 'jose'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '../../../../lib/auth'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // GET Handler - ตรวจสอบ reset token
@@ -121,7 +122,7 @@ export async function GET(request: Request) {
       )
     }
   } catch (error) {
-    console.error('Validate reset token error:', error)
+    logger.error('Validate reset token error', { error })
     return NextResponse.json(
       { error: 'Internal server error', valid: false },
       { status: 500 }

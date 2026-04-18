@@ -38,6 +38,7 @@ import { verifyAdminToken, unauthorizedResponse } from '../../../../lib/auth'
 /** Security utilities */
 import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
 import { addSecurityHeaders } from '../../../../lib/security'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // Route Configuration
@@ -118,7 +119,7 @@ export async function GET(request: Request) {
 
     // ตรวจสอบ Error
     if (error) {
-      console.error('Error fetching payment stats:', error)
+      logger.error('Error fetching payment stats', { error })
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -164,7 +165,7 @@ export async function GET(request: Request) {
     })
     return addSecurityHeaders(response)
   } catch (error) {
-    console.error('Payment stats API error:', error)
+    logger.error('Payment stats API error', { error })
     const response = NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

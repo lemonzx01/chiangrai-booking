@@ -37,6 +37,7 @@ import { createAdminClient } from '../../../lib/supabase/server'
 
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // Helper Functions
@@ -167,7 +168,7 @@ export async function POST(request: Request) {
 
     // ตรวจสอบ Error
     if (error) {
-      console.error('Upload error:', error)
+      logger.error('Upload error (supabase)', { error })
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -183,7 +184,7 @@ export async function POST(request: Request) {
       path: filePath,
     })
   } catch (error: any) {
-    console.error('Upload error:', error)
+    logger.error('Upload error (outer)', { error })
     return NextResponse.json(
       { error: error.message || 'Failed to upload image' },
       { status: 500 }

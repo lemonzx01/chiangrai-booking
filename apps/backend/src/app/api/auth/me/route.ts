@@ -31,6 +31,7 @@ import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบ token ของ User */
 import { verifyUserToken } from '../../../../lib/auth'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลผู้ใช้ปัจจุบัน
@@ -77,7 +78,7 @@ export async function GET() {
       user: auth.user,
     })
   } catch (error) {
-    console.error('Auth check error:', error)
+    logger.error('Auth check error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

@@ -11,6 +11,9 @@
  * ============================================================
  */
 
+import { NextResponse } from 'next/server'
+import { logger } from './logger'
+
 // ============================================================
 // Error Types
 // ============================================================
@@ -93,7 +96,7 @@ export function handleError(
   defaultMessage: string = ERROR_MESSAGES.UNKNOWN_ERROR
 ): string {
   // Log error สำหรับ debugging
-  console.error('Error occurred:', error)
+  logger.error('Error occurred', { error })
 
   // ถ้าเป็น PaymentError
   if (error instanceof PaymentError) {
@@ -198,4 +201,133 @@ export function createErrorResponse(
     error: message,
     statusCode,
   }
+}
+
+// ============================================================
+// Standardized API Response Helpers (Phase 3.2)
+// ============================================================
+
+/**
+ * โครงสร้างมาตรฐานของ error response
+ *
+ * รูปแบบ: { error: { message, code?, requestId?, details? } }
+ *
+ * - message: ข้อความที่ user-facing (อ่านได้)
+ * - code: machine-readable error code (เช่น 'INVALID_INPUT', 'NOT_FOUND')
+ * - requestId: x-request-id ของ request นี้ (สำหรับการ trace logs)
+ * - details: ข้อมูลเสริม (เช่น zod field errors)
+ */
+export interface ApiErrorBody {
+  error: {
+    message: string
+    code?: string
+    requestId?: string
+    details?: unknown
+  }
+}
+
+/**
+ * สร้าง standardized error response
+ *
+ * @example
+ * if (!body.email) {
+ *   return apiError('Email required', 400, 'INVALID_INPUT')
+ * }
+ *
+ * @example
+ * try { ... } catch (e) {
+ *   return apiError(e, 500)  // unknown error → handled via handleError()
+ * }
+ */
+export function apiError(
+  messageOrError: string | unknown,
+  status: number = 500,
+  code?: string,
+  details?: unknown
+): NextResponse<ApiErrorBody> {
+  const message =
+    typeof messageOrError === 'string'
+      ? messageOrError
+      : handleError(messageOrError)
+
+  const body: ApiErrorBody = {
+    error: {
+      message,
+      ...(code ? { code } : {}),
+      ...(details !== undefined ? { details } : {}),
+    },
+  }
+
+  return NextResponse.json(body, { status })
+}
+
+/**
+ * สร้าง standardized success response
+ *
+ * @example
+ * return apiSuccess({ booking })
+ *
+ * @example
+ * return apiSuccess({ id: created.id }, 201)
+ */
+export function apiSuccess<T>(data: T, status: number = 200): NextResponse<T> {
+  return NextResponse.json(data, { status })
+}
+
+/**
+ * Convenience: 400 Bad Request with INVALID_INPUT code.
+ */
+export function apiBadRequest(message: string, details?: unknown) {
+  return apiError(message, 400, 'INVALID_INPUT', details)
+}
+
+/**
+ * Convenience: 401 Unauthorized.
+ */
+export function apiUnauthorized(message: string = 'Unauthorized') {
+  return apiError(message, 401, 'UNAUTHORIZED')
+}
+
+/**
+ * Convenience: 403 Forbidden.
+ */
+export function apiForbidden(message: string = 'Forbidden') {
+  return apiError(message, 403, 'FORBIDDEN')
+}
+
+/**
+ * Convenience: 404 Not Found.
+ */
+export function apiNotFound(message: string = 'Not found') {
+  return apiError(message, 404, 'NOT_FOUND')
+}
+
+/**
+ * Convenience: 409 Conflict.
+ */
+export function apiConflict(message: string, details?: unknown) {
+  return apiError(message, 409, 'CONFLICT', details)
+}
+
+/**
+ * Convenience: 429 Too Many Requests.
+ */
+export function apiTooManyRequests(
+  message: string = 'Too many requests',
+  retryAfterSeconds?: number
+) {
+  const res = apiError(message, 429, 'RATE_LIMITED')
+  if (retryAfterSeconds) {
+    res.headers.set('Retry-After', String(retryAfterSeconds))
+  }
+  return res
+}
+
+/**
+ * Convenience: 500 Internal Server Error.
+ * Logs the underlying error for debugging.
+ */
+export function apiServerError(error: unknown, message?: string) {
+  logger.error('API server error', { error })
+  return apiError(message || ERROR_MESSAGES.UNKNOWN_ERROR, 500, 'SERVER_ERROR')
 }

@@ -43,6 +43,9 @@ import { DashboardStats } from '@chiangrai/shared/types'
 /** Mock data สำหรับ fallback */
 import { isMockMode } from '../../../../lib/auth'
 
+/** Logger */
+import { logger } from '../../../../lib/logger'
+
 // ============================================================
 // Route Configuration
 // ============================================================
@@ -125,7 +128,7 @@ export async function GET(request: Request) {
       .select('*', { count: 'exact', head: true })
 
     if (hotelsError) {
-      console.error('Error counting hotels:', hotelsError)
+      logger.error('Error counting hotels', { error: hotelsError })
     }
 
     // ----------------------------------------------------------
@@ -136,7 +139,7 @@ export async function GET(request: Request) {
       .select('*', { count: 'exact', head: true })
 
     if (carsError) {
-      console.error('Error counting cars:', carsError)
+      logger.error('Error counting cars', { error: carsError })
     }
 
     // ----------------------------------------------------------
@@ -147,10 +150,10 @@ export async function GET(request: Request) {
       .select('status')
 
     if (bookingsError) {
-      console.error('Error fetching bookings:', bookingsError)
+      logger.error('Error fetching bookings', { error: bookingsError })
     }
 
-    const bookingsList = bookings || []
+    const bookingsList = (bookings as Array<{ status: string }> | null) || []
     const totalBookings = bookingsList.length
     const pendingBookings = bookingsList.filter((b) => b.status === 'PENDING').length
     const confirmedBookings = bookingsList.filter(
@@ -165,10 +168,10 @@ export async function GET(request: Request) {
       .select('amount, status')
 
     if (paymentsError) {
-      console.error('Error fetching payments:', paymentsError)
+      logger.error('Error fetching payments', { error: paymentsError })
     }
 
-    const paymentsList = payments || []
+    const paymentsList = (payments as Array<{ amount: number | string; status: string }> | null) || []
     const totalRevenue = paymentsList
       .filter((p) => p.status === 'SUCCEEDED')
       .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0)
@@ -188,7 +191,7 @@ export async function GET(request: Request) {
     const response = NextResponse.json({ data: stats })
     return addSecurityHeaders(response)
   } catch (error) {
-    console.error('Dashboard stats API error:', error)
+    logger.error('Dashboard stats API error', { error })
     const response = NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

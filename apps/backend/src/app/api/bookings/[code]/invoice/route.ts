@@ -36,6 +36,9 @@ import { NextResponse } from 'next/server'
 /** Library สำหรับสร้าง PDF */
 import { jsPDF } from 'jspdf'
 
+/** Thai font registration for jsPDF */
+import { registerThaiFont, fontForWeight } from '../../../../../lib/pdf-fonts'
+
 /** ฟังก์ชันตรวจสอบ Mock Mode */
 import { isMockMode } from '../../../../../lib/auth'
 
@@ -47,6 +50,7 @@ import { CONTACT_INFO } from '../../../../../lib/constants'
 
 /** Type สำหรับข้อมูลการจอง */
 import type { Booking } from '@chiangrai/shared/types'
+import { logger } from '../../../../../lib/logger'
 
 // ============================================================
 // Type Definitions
@@ -140,6 +144,26 @@ export async function GET(request: Request, { params }: Params) {
       format: 'a4', // ขนาด A4
     })
 
+    // Register Thai font if the TTF is present in public/fonts/.
+    // See apps/backend/public/fonts/README.md for setup.
+    const thai = await registerThaiFont(pdf)
+    const setWeight = (w: 'normal' | 'bold') => {
+      const [family, style] = fontForWeight(thai, w)
+      pdf.setFont(family, style)
+    }
+
+    // Prefer Thai strings when the font is available, English otherwise.
+    const hotel = booking.hotel as
+      | { name_th?: string; name_en: string; room_type_th?: string; room_type_en: string; price_per_night: number }
+      | undefined
+    const car = booking.car as
+      | { name_th?: string; name_en: string; car_type_th?: string; car_type_en: string; price_per_day: number }
+      | undefined
+    const hotelName = thai.enabled && hotel?.name_th ? hotel.name_th : hotel?.name_en
+    const hotelRoom = thai.enabled && hotel?.room_type_th ? hotel.room_type_th : hotel?.room_type_en
+    const carName = thai.enabled && car?.name_th ? car.name_th : car?.name_en
+    const carType = thai.enabled && car?.car_type_th ? car.car_type_th : car?.car_type_en
+
     /** ความกว้างหน้า */
     const pageWidth = pdf.internal.pageSize.getWidth()
 
@@ -150,13 +174,18 @@ export async function GET(request: Request, { params }: Params) {
     // Header Section
     // ----------------------------------------------------------
     pdf.setFontSize(24)
-    pdf.setFont('helvetica', 'bold')
+    setWeight('bold')
     pdf.text('Got Journey Thailand', pageWidth / 2, y, { align: 'center' })
     y += 10
 
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'normal')
-    pdf.text('Invoice / Receipt', pageWidth / 2, y, { align: 'center' })
+    setWeight('normal')
+    pdf.text(
+      thai.enabled ? 'ใบเสร็จรับเงิน / Invoice' : 'Invoice / Receipt',
+      pageWidth / 2,
+      y,
+      { align: 'center' }
+    )
     y += 15
 
     // ----------------------------------------------------------
@@ -168,15 +197,15 @@ export async function GET(request: Request, { params }: Params) {
 
     // รหัสการจอง
     pdf.setFontSize(12)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Booking Code:', 20, y + 10)
-    pdf.setFont('helvetica', 'normal')
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'รหัสการจอง:' : 'Booking Code:', 20, y + 10)
+    setWeight('normal')
     pdf.text(booking.booking_code, 60, y + 10)
 
     // วันที่สร้างการจอง
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Date:', 20, y + 18)
-    pdf.setFont('helvetica', 'normal')
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'วันที่:' : 'Date:', 20, y + 18)
+    setWeight('normal')
     pdf.text(new Date(booking.created_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -185,7 +214,7 @@ export async function GET(request: Request, { params }: Params) {
 
     // สถานะการจอง (ด้านขวา)
     const statusText = booking.status
-    pdf.setFont('helvetica', 'bold')
+    setWeight('bold')
     pdf.text(`Status: ${statusText}`, pageWidth - 20, y + 14, { align: 'right' })
 
     y += 35
@@ -194,29 +223,41 @@ export async function GET(request: Request, { params }: Params) {
     // Customer Information Section
     // ----------------------------------------------------------
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Customer Information', 15, y)
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'ข้อมูลลูกค้า' : 'Customer Information', 15, y)
     y += 8
 
     pdf.setFontSize(11)
-    pdf.setFont('helvetica', 'normal')
-    pdf.text(`Name: ${booking.customer_name}`, 15, y)
+    setWeight('normal')
+    pdf.text(
+      `${thai.enabled ? 'ชื่อ' : 'Name'}: ${booking.customer_name}`,
+      15,
+      y
+    )
     y += 6
-    pdf.text(`Email: ${booking.customer_email}`, 15, y)
+    pdf.text(
+      `${thai.enabled ? 'อีเมล' : 'Email'}: ${booking.customer_email}`,
+      15,
+      y
+    )
     y += 6
-    pdf.text(`Phone: ${booking.customer_phone}`, 15, y)
+    pdf.text(
+      `${thai.enabled ? 'เบอร์โทร' : 'Phone'}: ${booking.customer_phone}`,
+      15,
+      y
+    )
     y += 12
 
     // ----------------------------------------------------------
     // Booking Details Section
     // ----------------------------------------------------------
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Booking Details', 15, y)
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'รายละเอียดการจอง' : 'Booking Details', 15, y)
     y += 8
 
     pdf.setFontSize(11)
-    pdf.setFont('helvetica', 'normal')
+    setWeight('normal')
 
     // จัดรูปแบบวันที่
     const checkInDate = new Date(booking.check_in_date).toLocaleDateString('en-US', {
@@ -230,19 +271,23 @@ export async function GET(request: Request, { params }: Params) {
       day: 'numeric',
     })
 
-    pdf.text(`Check-in: ${checkInDate}`, 15, y)
+    pdf.text(`${thai.enabled ? 'เช็คอิน' : 'Check-in'}: ${checkInDate}`, 15, y)
     y += 6
-    pdf.text(`Check-out: ${checkOutDate}`, 15, y)
+    pdf.text(`${thai.enabled ? 'เช็คเอาท์' : 'Check-out'}: ${checkOutDate}`, 15, y)
     y += 6
-    pdf.text(`Guests: ${booking.number_of_guests}`, 15, y)
+    pdf.text(
+      `${thai.enabled ? 'ผู้เข้าพัก' : 'Guests'}: ${booking.number_of_guests}`,
+      15,
+      y
+    )
     y += 12
 
     // ----------------------------------------------------------
     // Services Table Section
     // ----------------------------------------------------------
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Services', 15, y)
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'บริการ' : 'Services', 15, y)
     y += 8
 
     // Table Header (หัวตาราง)
@@ -250,58 +295,68 @@ export async function GET(request: Request, { params }: Params) {
     pdf.setTextColor(255, 255, 255) // สีขาว
     pdf.rect(15, y, pageWidth - 30, 8, 'F')
     pdf.setFontSize(10)
-    pdf.text('Description', 20, y + 5.5)
-    pdf.text('Amount', pageWidth - 20, y + 5.5, { align: 'right' })
+    pdf.text(thai.enabled ? 'รายการ' : 'Description', 20, y + 5.5)
+    pdf.text(thai.enabled ? 'จำนวนเงิน' : 'Amount', pageWidth - 20, y + 5.5, { align: 'right' })
     y += 8
 
     pdf.setTextColor(0, 0, 0) // กลับเป็นสีดำ
-    pdf.setFont('helvetica', 'normal')
+    setWeight('normal')
 
     // ----------------------------------------------------------
     // Hotel Row (แถวโรงแรม)
     // ----------------------------------------------------------
-    if (booking.hotel) {
+    if (hotel) {
       pdf.setFillColor(249, 250, 251)
       pdf.rect(15, y, pageWidth - 30, 12, 'F')
-      pdf.text(`Hotel: ${booking.hotel.name_en}`, 20, y + 5)
+      pdf.text(`${thai.enabled ? 'โรงแรม' : 'Hotel'}: ${hotelName}`, 20, y + 5)
 
       // ประเภทห้อง (ตัวเล็กสีเทา)
       pdf.setFontSize(9)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`${booking.hotel.room_type_en}`, 20, y + 9)
+      pdf.text(`${hotelRoom}`, 20, y + 9)
       pdf.setTextColor(0, 0, 0)
       pdf.setFontSize(10)
 
       // คำนวณราคา
-      const hotelPrice = booking.hotel.price_per_night
+      const hotelPrice = hotel.price_per_night
       const nights = Math.ceil(
         (new Date(booking.check_out_date).getTime() - new Date(booking.check_in_date).getTime()) / (1000 * 60 * 60 * 24)
       )
-      pdf.text(`${hotelPrice.toLocaleString()} THB x ${nights} nights`, pageWidth - 20, y + 7, { align: 'right' })
+      pdf.text(
+        `${hotelPrice.toLocaleString()} THB x ${nights} ${thai.enabled ? 'คืน' : 'nights'}`,
+        pageWidth - 20,
+        y + 7,
+        { align: 'right' }
+      )
       y += 12
     }
 
     // ----------------------------------------------------------
     // Car Row (แถวรถเช่า)
     // ----------------------------------------------------------
-    if (booking.car) {
+    if (car) {
       pdf.setFillColor(255, 255, 255)
       pdf.rect(15, y, pageWidth - 30, 12, 'F')
-      pdf.text(`Car: ${booking.car.name_en}`, 20, y + 5)
+      pdf.text(`${thai.enabled ? 'รถ' : 'Car'}: ${carName}`, 20, y + 5)
 
       // ประเภทรถ (ตัวเล็กสีเทา)
       pdf.setFontSize(9)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`${booking.car.car_type_en}`, 20, y + 9)
+      pdf.text(`${carType}`, 20, y + 9)
       pdf.setTextColor(0, 0, 0)
       pdf.setFontSize(10)
 
       // คำนวณราคา
-      const carPrice = booking.car.price_per_day
+      const carPrice = car.price_per_day
       const days = Math.ceil(
         (new Date(booking.check_out_date).getTime() - new Date(booking.check_in_date).getTime()) / (1000 * 60 * 60 * 24)
       )
-      pdf.text(`${carPrice.toLocaleString()} THB x ${days} days`, pageWidth - 20, y + 7, { align: 'right' })
+      pdf.text(
+        `${carPrice.toLocaleString()} THB x ${days} ${thai.enabled ? 'วัน' : 'days'}`,
+        pageWidth - 20,
+        y + 7,
+        { align: 'right' }
+      )
       y += 12
     }
 
@@ -314,8 +369,8 @@ export async function GET(request: Request, { params }: Params) {
     y += 8
 
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('Total:', 15, y)
+    setWeight('bold')
+    pdf.text(thai.enabled ? 'รวม:' : 'Total:', 15, y)
     pdf.setTextColor(79, 70, 229) // สี indigo-600
     pdf.text(`${booking.total_price.toLocaleString()} THB`, pageWidth - 20, y, { align: 'right' })
     pdf.setTextColor(0, 0, 0)
@@ -326,11 +381,11 @@ export async function GET(request: Request, { params }: Params) {
     if (booking.special_requests) {
       y += 15
       pdf.setFontSize(12)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Special Requests:', 15, y)
+      setWeight('bold')
+      pdf.text(thai.enabled ? 'คำขอพิเศษ:' : 'Special Requests:', 15, y)
       y += 6
       pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
+      setWeight('normal')
 
       // ตัดข้อความให้พอดีกับความกว้าง
       const splitText = pdf.splitTextToSize(booking.special_requests, pageWidth - 40)
@@ -347,11 +402,17 @@ export async function GET(request: Request, { params }: Params) {
 
     pdf.setFontSize(9)
     pdf.setTextColor(100, 100, 100)
+    setWeight('normal')
     pdf.text('Got Journey Thailand', pageWidth / 2, y, { align: 'center' })
     y += 4
     pdf.text(CONTACT_INFO.email + ' | ' + CONTACT_INFO.phone, pageWidth / 2, y, { align: 'center' })
     y += 4
-    pdf.text('Thank you for choosing us!', pageWidth / 2, y, { align: 'center' })
+    pdf.text(
+      thai.enabled ? 'ขอบคุณที่ใช้บริการ' : 'Thank you for choosing us!',
+      pageWidth / 2,
+      y,
+      { align: 'center' }
+    )
 
     // ----------------------------------------------------------
     // ส่งออก PDF
@@ -366,7 +427,7 @@ export async function GET(request: Request, { params }: Params) {
       },
     })
   } catch (error) {
-    console.error('Generate invoice error:', error)
+    logger.error('Generate invoice error', { error })
     return NextResponse.json(
       { error: 'Failed to generate invoice' },
       { status: 500 }

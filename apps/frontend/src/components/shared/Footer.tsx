@@ -136,13 +136,24 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ลิขสิทธิ์ */}
+        {/* ลิขสิทธิ์ + ลิงก์กฎหมาย */}
         <div className="pt-8 sm:pt-12 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
           <div className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase tracking-[0.3em] sm:tracking-[0.4em]">
-            {lang === 'th' 
-              ? '© 2024 Got Journey Thailand สงวนลิขสิทธิ์' 
+            {lang === 'th'
+              ? '© 2024 Got Journey Thailand สงวนลิขสิทธิ์'
               : '© 2024 Got Journey Thailand. All Rights Reserved.'}
           </div>
+          <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] sm:text-xs font-semibold text-white/40 uppercase tracking-widest">
+            <Link href="/terms" className="hover:text-white transition-colors">
+              {lang === 'th' ? 'ข้อกำหนด' : 'Terms'}
+            </Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              {lang === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}
+            </Link>
+            <Link href="/contact" className="hover:text-white transition-colors">
+              {lang === 'th' ? 'ติดต่อ' : 'Contact'}
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>

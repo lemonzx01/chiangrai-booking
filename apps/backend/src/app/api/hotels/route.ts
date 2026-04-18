@@ -36,13 +36,14 @@ import { createClient, createAdminClient } from '../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ */
-import { 
-  verifyAdminToken, 
-  verifyPartnerToken, 
+import {
+  verifyAdminToken,
+  verifyPartnerToken,
   getUserRole,
-  unauthorizedResponse, 
-  isMockMode 
+  unauthorizedResponse,
+  isMockMode
 } from '../../../lib/auth'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงรายการโรงแรม
@@ -266,7 +267,7 @@ export async function POST(request: Request) {
     // ส่งกลับข้อมูลโรงแรมที่สร้างใหม่
     return NextResponse.json(data, { status: 201 })
   } catch (error: any) {
-    console.error('Create hotel error:', error)
+    logger.error('Create hotel error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

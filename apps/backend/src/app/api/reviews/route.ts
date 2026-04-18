@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/server'
+import { createAdminNotification } from '../../../services/notifications/admin-inbox'
 
 export async function GET(request: Request) {
   try {
@@ -58,10 +59,13 @@ export async function GET(request: Request) {
     }
 
     const { data: ratings } = await aggregateQuery
+    const ratingRows = (ratings as Array<{ rating: number | string | null }> | null) || []
     const averageRating =
-      ratings && ratings.length > 0
+      ratingRows.length > 0
         ? Math.round(
-            (ratings.reduce((sum, row) => sum + Number(row.rating || 0), 0) / ratings.length) * 10
+            (ratingRows.reduce((sum: number, row) => sum + Number(row.rating || 0), 0) /
+              ratingRows.length) *
+              10
           ) / 10
         : 0
 
@@ -121,6 +125,7 @@ export async function POST(request: Request) {
         customer_email: customerEmail,
         rating,
         comment,
+        is_approved: false, // Moderation required — admin must approve
       })
       .select()
       .single()
@@ -129,7 +134,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // Notify admin inbox (non-blocking)
+    createAdminNotification({
+      type: 'review.submitted',
+      title: `รีวิวใหม่รอตรวจสอบ (${rating}/5)`,
+      body: comment ? comment.slice(0, 140) : `${customerName} ส่งรีวิวใหม่`,
+      link: '/admin/reviews',
+      data: {
+        review_id: data?.id,
+        hotel_id: hotelId,
+        car_id: carId,
+        rating,
+      },
+      severity: 'info',
+    })
+
+    // Include a clear message so the frontend can show "pending moderation"
+    return NextResponse.json(
+      {
+        ...data,
+        message: 'รีวิวของคุณถูกส่งเข้ารอการตรวจสอบแล้ว',
+      },
+      { status: 201 }
+    )
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

@@ -54,6 +54,7 @@ import { SignJWT } from 'jose'
 
 /** บริการส่งอีเมล */
 import { sendEmail } from '../../../../services/notifications/email'
+import { renderEmailVerificationEmail } from '../../../../services/notifications/templates/emailVerification'
 
 /** ฟังก์ชันจัดการข้อมูล Mock */
 import { findMockUser, addMockUser } from '../../../../lib/mock-data'
@@ -63,6 +64,7 @@ import { validatePassword, sanitizeInput } from '../../../../lib/utils'
 
 /** Type สำหรับข้อมูล User */
 import type { User } from '@chiangrai/shared/types'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // POST Handler - สมัครสมาชิก
@@ -232,7 +234,7 @@ export async function POST(request: Request) {
 
     // ตรวจสอบ Error
     if (error) {
-      console.error('Register error:', error)
+      logger.error('Register error (supabase insert)', { error })
       return NextResponse.json(
         { error: 'ไม่สามารถสมัครสมาชิกได้' },
         { status: 500 }
@@ -256,33 +258,22 @@ export async function POST(request: Request) {
 
       // Log verification link for development (when no email service)
       if (!process.env.RESEND_API_KEY) {
-        console.log('\n========================================')
-        console.log('[DEV] Email verification link:')
-        console.log(verifyLink)
-        console.log('========================================\n')
+        logger.info('[DEV] Email verification link', { verifyLink })
       }
 
+      const verify = renderEmailVerificationEmail({
+        userName: sanitizedName,
+        verifyLink,
+      })
       sendEmail({
         to: sanitizedEmail,
-        subject: 'ยืนยันอีเมล - Got Journey Thailand',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #4F46E5;">ยืนยันอีเมลของคุณ</h1>
-            <p>สวัสดีคุณ ${sanitizedName},</p>
-            <p>ขอบคุณที่สมัครสมาชิก กรุณาคลิกลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verifyLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                ยืนยันอีเมล
-              </a>
-            </div>
-            <p style="color: #6B7280; font-size: 14px;">ลิงก์นี้จะหมดอายุใน 24 ชั่วโมง</p>
-          </div>
-        `,
+        subject: verify.subject,
+        html: verify.html,
       }).catch((err) => {
-        console.error('[EMAIL] Failed to send verification email:', err)
+        logger.error('[EMAIL] Failed to send verification email', { error: err })
       })
     } catch (emailErr) {
-      console.error('[EMAIL] Error creating verification token:', emailErr)
+      logger.error('[EMAIL] Error creating verification token', { error: emailErr })
     }
 
     return NextResponse.json({
@@ -294,7 +285,7 @@ export async function POST(request: Request) {
       },
     }, { status: 201 })
   } catch (error) {
-    console.error('Register error:', error)
+    logger.error('Register error (outer)', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

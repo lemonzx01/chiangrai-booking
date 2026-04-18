@@ -36,13 +36,14 @@ import { createClient, createAdminClient } from '../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันตรวจสอบสิทธิ์ */
-import { 
-  verifyAdminToken, 
-  verifyPartnerToken, 
+import {
+  verifyAdminToken,
+  verifyPartnerToken,
   getUserRole,
-  unauthorizedResponse, 
-  isMockMode 
+  unauthorizedResponse,
+  isMockMode
 } from '../../../lib/auth'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงรายการรถเช่า
@@ -257,7 +258,7 @@ export async function POST(request: Request) {
     // ส่งกลับข้อมูลรถเช่าที่สร้างใหม่
     return NextResponse.json(data, { status: 201 })
   } catch (error: any) {
-    console.error('Create car error:', error)
+    logger.error('Create car error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

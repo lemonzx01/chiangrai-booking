@@ -30,6 +30,7 @@ import { NextResponse } from 'next/server'
 
 /** ฟังก์ชันจัดการ cookies */
 import { cookies } from 'next/headers'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // POST Handler - ออกจากระบบ
@@ -60,7 +61,7 @@ export async function POST() {
 
     return NextResponse.json({ message: 'ออกจากระบบสำเร็จ' })
   } catch (error) {
-    console.error('Logout error:', error)
+    logger.error('Logout error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

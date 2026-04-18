@@ -5,7 +5,9 @@ import { NextResponse } from 'next/server'
 import { SignJWT } from 'jose'
 import { getJwtSecret, isMockMode, verifyUserToken } from '../../../../lib/auth'
 import { sendEmail } from '../../../../services/notifications/email'
+import { renderEmailVerificationEmail } from '../../../../services/notifications/templates/emailVerification'
 import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
+import { logger } from '../../../../lib/logger'
 
 export async function POST(request: Request) {
   try {
@@ -79,43 +81,26 @@ export async function POST(request: Request) {
 
     // Log verification link for development (when no email service)
     if (!process.env.RESEND_API_KEY) {
-      console.log('\n========================================')
-      console.log('[DEV] Email verification link:')
-      console.log(verifyLink)
-      console.log('========================================\n')
+      logger.info('[DEV] Email verification link', { verifyLink })
     }
 
+    const verify = renderEmailVerificationEmail({
+      userName: user.name,
+      verifyLink,
+    })
     sendEmail({
       to: user.email,
-      subject: 'ยืนยันอีเมล - Got Journey Thailand',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #4F46E5;">ยืนยันอีเมลของคุณ</h1>
-          <p>สวัสดีคุณ ${user.name},</p>
-          <p>กรุณาคลิกลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyLink}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-              ยืนยันอีเมล
-            </a>
-          </div>
-          <p style="color: #6B7280; font-size: 14px;">
-            หรือคัดลอกลิงก์นี้:<br>
-            <a href="${verifyLink}" style="color: #4F46E5; word-break: break-all;">${verifyLink}</a>
-          </p>
-          <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
-            ลิงก์นี้จะหมดอายุใน 24 ชั่วโมง
-          </p>
-        </div>
-      `,
+      subject: verify.subject,
+      html: verify.html,
     }).catch((err) => {
-      console.error('[EMAIL] Failed to send verification email:', err)
+      logger.error('[EMAIL] Failed to send verification email', { error: err })
     })
 
     return NextResponse.json({
       message: 'ส่งอีเมลยืนยันแล้ว กรุณาตรวจสอบอีเมลของคุณ',
     })
   } catch (error) {
-    console.error('Resend verification error:', error)
+    logger.error('Resend verification error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

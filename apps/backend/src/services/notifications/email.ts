@@ -26,12 +26,17 @@
 // ============================================================
 
 import { APP_NAME } from '../../lib/constants'
+import { isEmailMockMode } from '../../lib/auth'
+import { logger } from '../../lib/logger'
+import { renderBookingConfirmationEmail } from './templates/bookingConfirmation'
+import { renderBookingStatusUpdateEmail } from './templates/bookingStatusUpdate'
 
 // ============================================================
 // Config
 // ============================================================
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+const RESEND_API_URL = 'https://api.resend.com/emails'
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME
 const EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || 'noreply@gotjourneythailand.com'
 
@@ -40,21 +45,77 @@ const EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || 'noreply@gotjourney
 // ============================================================
 
 /**
- * ส่งอีเมลผ่าน Brevo API
+ * ส่งอีเมล — รองรับทั้ง Resend, Brevo และ Mock mode
  *
- * @param options - ข้อมูลอีเมล (to, subject, html)
- * @returns ผลการส่งอีเมล หรือ null ถ้าไม่ได้ตั้งค่า
+ * @description Strategy:
+ *   1. Mock mode (no key set) → log and return fake messageId
+ *   2. RESEND_API_KEY set → use Resend
+ *   3. BREVO_API_KEY set → use Brevo
  */
 export async function sendEmail(options: {
   to: string
   subject: string
   html: string
 }) {
-  const apiKey = process.env.BREVO_API_KEY
+  // ----- Mock mode -----
+  if (isEmailMockMode()) {
+    const messageId = `mock-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+    logger.info('mock email sent', {
+      to: options.to,
+      subject: options.subject,
+      messageId,
+    })
+    return { data: { messageId } }
+  }
 
+  // ----- Resend (preferred if both set) -----
+  const resendKey = process.env.RESEND_API_KEY
+  if (resendKey) {
+    try {
+      const response = await fetch(RESEND_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `${EMAIL_FROM_NAME} <${EMAIL_FROM_ADDRESS}>`,
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        logger.error('resend send failed', {
+          to: options.to,
+          subject: options.subject,
+          status: response.status,
+          error: data,
+        })
+        return null
+      }
+      logger.info('resend email sent', {
+        to: options.to,
+        subject: options.subject,
+        messageId: data.id || 'unknown',
+      })
+      return { data: { messageId: data.id, ...data } }
+    } catch (error: any) {
+      logger.error('resend exception', {
+        to: options.to,
+        subject: options.subject,
+        error: error?.message || String(error),
+      })
+      return null
+    }
+  }
+
+  // ----- Brevo fallback -----
+  const apiKey = process.env.BREVO_API_KEY
   if (!apiKey) {
-    console.warn('[EMAIL] Brevo not configured - BREVO_API_KEY is not set. Email will not be sent.')
-    console.warn('[EMAIL] To enable email service, set BREVO_API_KEY in .env.local')
+    // Should be unreachable thanks to isEmailMockMode() above, but be safe.
+    logger.warn('email not configured', { to: options.to, subject: options.subject })
     return null
   }
 
@@ -77,7 +138,7 @@ export async function sendEmail(options: {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[EMAIL] Failed to send email:', {
+      logger.error('brevo send failed', {
         to: options.to,
         subject: options.subject,
         status: response.status,
@@ -86,15 +147,15 @@ export async function sendEmail(options: {
       return null
     }
 
-    console.log('[EMAIL] Email sent successfully:', {
+    logger.info('brevo email sent', {
       to: options.to,
       subject: options.subject,
       messageId: data.messageId || 'unknown',
     })
 
-    return { data }
+    return { data: { messageId: data.messageId, ...data } }
   } catch (error: any) {
-    console.error('[EMAIL] Exception while sending email:', {
+    logger.error('brevo exception', {
       to: options.to,
       subject: options.subject,
       error: error?.message || String(error),
@@ -143,30 +204,16 @@ interface BookingEmailData {
  * @returns ผลการส่งอีเมล หรือ null
  */
 export async function sendBookingConfirmationEmail(data: BookingEmailData) {
-  return sendEmail({
-    to: data.customerEmail,
-    subject: `Booking Confirmation - ${data.bookingCode}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #4F46E5;">Booking Confirmed!</h1>
-        <p>Dear ${data.customerName},</p>
-        <p>Thank you for your booking with ${APP_NAME}.</p>
-
-        <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="margin-top: 0;">Booking Details</h2>
-          <p><strong>Booking Code:</strong> ${data.bookingCode}</p>
-          <p><strong>Item:</strong> ${data.itemName}</p>
-          <p><strong>Check-in:</strong> ${data.checkIn}</p>
-          <p><strong>Check-out:</strong> ${data.checkOut}</p>
-          <p><strong>Total:</strong> ฿${data.totalPrice.toLocaleString()}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-        </div>
-
-        <p>If you have any questions, please contact us.</p>
-        <p>Best regards,<br>${APP_NAME} Team</p>
-      </div>
-    `,
+  const { subject, html } = renderBookingConfirmationEmail({
+    customerName: data.customerName,
+    bookingCode: data.bookingCode,
+    itemName: data.itemName,
+    checkIn: data.checkIn,
+    checkOut: data.checkOut,
+    totalPrice: data.totalPrice,
+    status: data.status,
   })
+  return sendEmail({ to: data.customerEmail, subject, html })
 }
 
 // ============================================================
@@ -186,16 +233,6 @@ export async function sendBookingStatusUpdateEmail(
   bookingCode: string,
   status: string
 ) {
-  return sendEmail({
-    to: email,
-    subject: `Booking Update - ${bookingCode}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #4F46E5;">Booking Status Update</h1>
-        <p>Your booking <strong>${bookingCode}</strong> has been updated.</p>
-        <p>New status: <strong>${status}</strong></p>
-        <p>Best regards,<br>${APP_NAME} Team</p>
-      </div>
-    `,
-  })
+  const { subject, html } = renderBookingStatusUpdateEmail(bookingCode, status)
+  return sendEmail({ to: email, subject, html })
 }

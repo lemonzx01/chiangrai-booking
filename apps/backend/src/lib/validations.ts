@@ -202,9 +202,28 @@ export const adminLoginSchema = z.object({
   /** อีเมล - ต้องเป็นรูปแบบอีเมลที่ถูกต้อง */
   email: z.string().email('อีเมลไม่ถูกต้อง'),
 
-  /** รหัสผ่าน - ต้องมีอย่างน้อย 6 ตัวอักษร */
-  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+  /** รหัสผ่าน - ต้องมีอย่างน้อย 8 ตัวอักษร (login form ตรวจขั้นต่ำ) */
+  password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
 })
+
+/**
+ * Schema สำหรับสร้าง/เปลี่ยนรหัสผ่านที่แข็งแรง
+ *
+ * @description Enforces:
+ *   - 8+ characters
+ *   - At least one uppercase letter
+ *   - At least one lowercase letter
+ *   - At least one digit
+ * Use this for /register, /reset-password, and admin password changes.
+ * (Login forms only verify length — strength is checked at creation time.)
+ */
+export const strongPasswordSchema = z
+  .string()
+  .min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร')
+  .max(128, 'รหัสผ่านยาวเกินไป')
+  .regex(/[A-Z]/, 'รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว')
+  .regex(/[a-z]/, 'รหัสผ่านต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว')
+  .regex(/[0-9]/, 'รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว')
 
 // ============================================================
 // Contact Form Schema (ฟอร์มติดต่อ)
@@ -283,3 +302,142 @@ export type ContactFormInput = z.infer<typeof contactFormSchema>
  * Type สำหรับข้อมูล input ของการชำระเงิน
  */
 export type CheckoutInput = z.infer<typeof checkoutSchema>
+
+// ============================================================
+// Coupon Schemas (Admin CRUD)
+// ============================================================
+
+/**
+ * Schema สำหรับสร้างคูปอง (POST /api/admin/coupons)
+ */
+export const couponCreateSchema = z
+  .object({
+    code: z
+      .string()
+      .min(3, 'โค้ดคูปองต้องมีอย่างน้อย 3 ตัวอักษร')
+      .max(32, 'โค้ดคูปองต้องไม่เกิน 32 ตัวอักษร')
+      .regex(/^[A-Z0-9_-]+$/i, 'โค้ดคูปองใช้ได้เฉพาะตัวอักษร A-Z, 0-9, _, -'),
+    description: z.string().max(255).optional().nullable(),
+    discount_type: z.enum(['PERCENT', 'FIXED']),
+    discount_value: z
+      .number({ message: 'discount_value ต้องเป็นตัวเลข' })
+      .positive('discount_value ต้องมากกว่า 0'),
+    min_spend: z.number().nonnegative().default(0),
+    max_discount: z.number().positive().optional().nullable(),
+    applies_to: z.enum(['ALL', 'HOTEL', 'CAR']).default('ALL'),
+    starts_at: z.string().datetime().optional().nullable(),
+    expires_at: z.string().datetime().optional().nullable(),
+    is_active: z.boolean().default(true),
+  })
+  .superRefine((v, ctx) => {
+    if (v.discount_type === 'PERCENT' && v.discount_value > 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['discount_value'],
+        message: 'เปอร์เซ็นต์ต้องไม่เกิน 100',
+      })
+    }
+    if (v.starts_at && v.expires_at && new Date(v.starts_at) >= new Date(v.expires_at)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['expires_at'],
+        message: 'วันหมดอายุต้องหลังวันเริ่มใช้งาน',
+      })
+    }
+  })
+
+/**
+ * Schema สำหรับแก้ไขคูปอง (PATCH /api/admin/coupons/[id])
+ * ทุก field optional เพื่อให้ update บางส่วนได้
+ */
+export const couponUpdateSchema = z
+  .object({
+    code: z
+      .string()
+      .min(3)
+      .max(32)
+      .regex(/^[A-Z0-9_-]+$/i)
+      .optional(),
+    description: z.string().max(255).optional().nullable(),
+    discount_type: z.enum(['PERCENT', 'FIXED']).optional(),
+    discount_value: z.number().positive().optional(),
+    min_spend: z.number().nonnegative().optional(),
+    max_discount: z.number().positive().optional().nullable(),
+    applies_to: z.enum(['ALL', 'HOTEL', 'CAR']).optional(),
+    starts_at: z.string().datetime().optional().nullable(),
+    expires_at: z.string().datetime().optional().nullable(),
+    is_active: z.boolean().optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (
+      v.discount_type === 'PERCENT' &&
+      v.discount_value !== undefined &&
+      v.discount_value > 100
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['discount_value'],
+        message: 'เปอร์เซ็นต์ต้องไม่เกิน 100',
+      })
+    }
+    if (v.starts_at && v.expires_at && new Date(v.starts_at) >= new Date(v.expires_at)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['expires_at'],
+        message: 'วันหมดอายุต้องหลังวันเริ่มใช้งาน',
+      })
+    }
+  })
+
+export type CouponCreateInput = z.infer<typeof couponCreateSchema>
+export type CouponUpdateInput = z.infer<typeof couponUpdateSchema>
+
+// ============================================================
+// Availability Block Schema (partner blockout calendar)
+// ============================================================
+
+/**
+ * Schema สำหรับสร้าง availability block (POST /api/partner/availability)
+ *
+ * กติกา:
+ *   - ต้องระบุ hotel_id หรือ car_id อย่างใดอย่างหนึ่งเท่านั้น
+ *   - room_type_id เลือกได้เมื่อ hotel_id ระบุ (null = บล็อกทุกห้อง)
+ *   - end_date ต้องหลัง start_date
+ */
+export const availabilityBlockSchema = z
+  .object({
+    hotel_id: z.string().uuid().optional().nullable(),
+    room_type_id: z.string().uuid().optional().nullable(),
+    car_id: z.string().uuid().optional().nullable(),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'รูปแบบวันที่ต้องเป็น YYYY-MM-DD'),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'รูปแบบวันที่ต้องเป็น YYYY-MM-DD'),
+    reason: z.string().min(1, 'กรุณาระบุเหตุผล').max(100),
+    notes: z.string().max(500).optional().nullable(),
+  })
+  .superRefine((v, ctx) => {
+    const hasHotel = !!v.hotel_id
+    const hasCar = !!v.car_id
+    if (hasHotel === hasCar) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['hotel_id'],
+        message: 'ระบุ hotel_id หรือ car_id อย่างใดอย่างหนึ่ง',
+      })
+    }
+    if (v.room_type_id && !v.hotel_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['room_type_id'],
+        message: 'room_type_id ต้องคู่กับ hotel_id',
+      })
+    }
+    if (v.end_date <= v.start_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['end_date'],
+        message: 'end_date ต้องอยู่หลัง start_date',
+      })
+    }
+  })
+
+export type AvailabilityBlockInput = z.infer<typeof availabilityBlockSchema>

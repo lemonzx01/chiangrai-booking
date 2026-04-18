@@ -57,6 +57,12 @@ import { getJwtSecret, isMockMode } from '@/lib/auth'
 /** ข้อมูล Mock สำหรับการทดสอบ */
 import { findMockUser, findMockAdmin } from '@/lib/mock-data'
 
+/** Account lockout (brute-force protection) */
+import { checkLockout, recordAttempt, getClientIp } from '@/lib/lockout'
+
+/** Structured logger */
+import { logger } from '@/lib/logger'
+
 // ============================================================
 // POST Handler - เข้าสู่ระบบ
 // ============================================================
@@ -95,6 +101,32 @@ export async function POST(request: Request) {
       )
     }
 
+    // ----------------------------------------------------------
+    // Brute-force protection: check lockout BEFORE any DB lookup
+    // ----------------------------------------------------------
+    const ip = getClientIp(request)
+    const lockoutStatus = await checkLockout(email)
+    if (lockoutStatus.locked) {
+      return NextResponse.json(
+        { error: lockoutStatus.reason, retryAfter: lockoutStatus.retryAfterSeconds },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(lockoutStatus.retryAfterSeconds || 1800),
+          },
+        }
+      )
+    }
+
+    // Helper to record + return failure
+    const fail = async (reason = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง') => {
+      await recordAttempt(email, ip, false, request.headers.get('user-agent'))
+      return NextResponse.json({ error: reason }, { status: 401 })
+    }
+    const ok = async () => {
+      await recordAttempt(email, ip, true, request.headers.get('user-agent'))
+    }
+
     // เตรียม cookie store และ JWT secret
     const cookieStore = await cookies()
     const secret = getJwtSecret()
@@ -114,11 +146,9 @@ export async function POST(request: Request) {
           await bcrypt.compare(password, mockAdmin.password_hash).catch(() => false)
 
         if (!isValidPassword) {
-          return NextResponse.json(
-            { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-            { status: 401 }
-          )
+          return fail()
         }
+        await ok()
 
         // สร้าง JWT token สำหรับ Admin
         const token = await new SignJWT({
@@ -157,10 +187,7 @@ export async function POST(request: Request) {
       const mockUser = findMockUser(email)
 
       if (!mockUser) {
-        return NextResponse.json(
-          { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-          { status: 401 }
-        )
+        return fail()
       }
 
       // ตรวจสอบรหัสผ่าน User
@@ -172,29 +199,19 @@ export async function POST(request: Request) {
       } else {
         // สำหรับ user ที่สมัครใหม่ เทียบกับ hashed password
         if (!mockUser.password_hash) {
-          console.error('User has no password_hash:', { email: mockUser.email })
-          return NextResponse.json(
-            { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-            { status: 401 }
-          )
+          logger.warn('login: user has no password_hash', { email })
+          return fail()
         }
         isValidPassword = await bcrypt.compare(password, mockUser.password_hash).catch((err) => {
-          console.error('bcrypt.compare error:', err)
+          logger.error('bcrypt.compare error', { error: err })
           return false
         })
       }
 
       if (!isValidPassword) {
-        console.error('Login failed:', {
-          email,
-          hasPasswordHash: !!mockUser.password_hash,
-          passwordLength: password.length
-        })
-        return NextResponse.json(
-          { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-          { status: 401 }
-        )
+        return fail()
       }
+      await ok()
 
       const mockUserRole =
         mockUser.role === 'partner' || mockUser.role === 'admin' ? mockUser.role : 'user'
@@ -251,20 +268,18 @@ export async function POST(request: Request) {
       const isValidPassword = await bcrypt.compare(password, admin.password_hash)
 
       if (!isValidPassword) {
-        return NextResponse.json(
-          { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-          { status: 401 }
-        )
+        return fail()
       }
+      await ok()
 
       // อัพเดทเวลา login ล่าสุด (non-blocking)
       supabase
         .from('admins')
         .update({ last_login: new Date().toISOString() })
         .eq('id', admin.id)
-        .then(({ error: updateError }) => {
+        .then(({ error: updateError }: { error: any }) => {
           if (updateError) {
-            console.error('Failed to update last_login:', updateError)
+            logger.error('admin last_login update failed', { error: updateError })
           }
         })
 
@@ -310,30 +325,22 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !user) {
-      return NextResponse.json(
-        { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-        { status: 401 }
-      )
+      return fail()
     }
 
     const userRole = user.role === 'partner' || user.role === 'admin' ? user.role : 'user'
 
     if (!user.password_hash) {
-      return NextResponse.json(
-        { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-        { status: 401 }
-      )
+      return fail()
     }
 
     // ยืนยันรหัสผ่าน User
     const isValidPassword = await bcrypt.compare(password, user.password_hash)
 
     if (!isValidPassword) {
-      return NextResponse.json(
-        { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-        { status: 401 }
-      )
+      return fail()
     }
+    await ok()
 
     // สร้าง JWT token สำหรับ User/Partner
     const token = await new SignJWT({
@@ -368,7 +375,7 @@ export async function POST(request: Request) {
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('login error', { error })
     const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด'
     return NextResponse.json(
       { error: errorMessage },

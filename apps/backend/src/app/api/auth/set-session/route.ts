@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createToken } from '../../../../lib/auth'
 import { auth } from '../../../../lib/auth/nextauth'
+import { logger } from '../../../../lib/logger'
 
 /**
  * GET - ดึง NextAuth session แล้วส่ง token ไปให้ frontend
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     // ดึง session จาก NextAuth
     const session = await auth()
     
-    console.log('[DEBUG] set-session: session =', session)
+    logger.debug('set-session: session received', { session })
 
     if (!session?.user) {
       // ถ้าไม่มี session redirect ไปหน้า login
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       role: user.role || 'user',
     }, '7d') // หมดอายุใน 7 วัน
 
-    console.log('[DEBUG] set-session: token created for', user.email)
+    logger.debug('set-session: token created', { email: user.email })
 
     // Redirect ไป frontend พร้อม token ใน URL
     // Frontend จะสร้าง cookie เอง
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
     redirectUrl.searchParams.set('token', token)
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
-    console.error('Set session error:', error)
+    logger.error('Set session error (GET)', { error })
     return NextResponse.redirect(new URL('/login?error=session_error', 'http://localhost:3000'))
   }
 }
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Set session error:', error)
+    logger.error('Set session error (POST)', { error })
     return NextResponse.json(
       { success: false, error: 'Failed to create session' },
       { status: 500 }

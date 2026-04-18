@@ -41,6 +41,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib
 
 /** Types */
 import { PartnerType } from '@chiangrai/shared/types'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงรายการพาร์ทเนอร์
@@ -229,7 +230,7 @@ export async function POST(request: Request) {
     // ส่งกลับข้อมูลพาร์ทเนอร์ที่สร้างใหม่
     return NextResponse.json(data, { status: 201 })
   } catch (error: any) {
-    console.error('Create partner error:', error)
+    logger.error('Create partner error', { error })
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }

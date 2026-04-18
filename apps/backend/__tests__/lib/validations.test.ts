@@ -251,7 +251,8 @@ describe('adminLoginSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('should reject short password', () => {
+  it('should reject short password (<8 chars)', () => {
+    // Phase 2.4 raised the min length from 6 to 8 for admin accounts
     const result = adminLoginSchema.safeParse({
       email: 'admin@example.com',
       password: '12345',
@@ -259,10 +260,18 @@ describe('adminLoginSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('should accept password of exactly 6 chars', () => {
+  it('should reject 7-char password (below new min)', () => {
     const result = adminLoginSchema.safeParse({
       email: 'admin@example.com',
-      password: '123456',
+      password: '1234567',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should accept password of exactly 8 chars', () => {
+    const result = adminLoginSchema.safeParse({
+      email: 'admin@example.com',
+      password: '12345678',
     })
     expect(result.success).toBe(true)
   })

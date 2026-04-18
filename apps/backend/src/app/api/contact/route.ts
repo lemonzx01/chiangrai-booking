@@ -31,6 +31,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /** ค่าคงที่ของแอพ */
 import { APP_NAME } from '../../../lib/constants'
+import { logger } from '../../../lib/logger'
 
 // ============================================================
 // POST Handler - ส่งข้อความติดต่อ
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
       message: 'ส่งข้อความสำเร็จ เราจะติดต่อกลับโดยเร็วที่สุด',
     })
   } catch (error) {
-    console.error('Contact form error:', error)
+    logger.error('Contact form error', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
       { status: 500 }

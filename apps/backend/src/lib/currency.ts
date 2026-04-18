@@ -13,6 +13,7 @@
 
 import { Currency } from '@chiangrai/shared/types'
 import { convertCurrencyAmount } from './exchange-rate'
+import { logger } from './logger'
 
 // ============================================================
 // Exchange Rates (อัตราแลกเปลี่ยน)
@@ -231,7 +232,7 @@ export async function updateExchangeRates(): Promise<void> {
   // TODO: เรียก API เพื่อดึงอัตราแลกเปลี่ยนล่าสุด
   // เช่น: const rates = await fetch('https://api.exchangerate-api.com/v4/latest/THB')
   // แล้วอัปเดต EXCHANGE_RATES และ REVERSE_RATES
-  console.log('Exchange rates update not implemented yet')
+  logger.info('Exchange rates update not implemented yet')
 }
 
 

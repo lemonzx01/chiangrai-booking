@@ -28,6 +28,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { createMockSupabaseClient } from './mock-client'
 import type { Database } from '@chiangrai/shared/types/supabase'
+import { logger } from '../logger'
 
 // ============================================================
 // Configuration Check (ตรวจสอบการตั้งค่า)
@@ -80,7 +81,7 @@ const isSupabaseConfigured = () => {
 export function createClient() {
   // ถ้าไม่ได้ตั้งค่า Supabase ให้ใช้ Mock client
   if (!isSupabaseConfigured()) {
-    console.log('⚠️ Supabase not configured - using mock browser client')
+    logger.info('Supabase not configured - using mock browser client')
     return createMockSupabaseClient() as ReturnType<typeof createBrowserClient>
   }
 

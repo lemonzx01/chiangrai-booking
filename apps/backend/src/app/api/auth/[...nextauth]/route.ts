@@ -13,6 +13,7 @@
 export const dynamic = 'force-dynamic'
 
 import { handlers } from '../../../../lib/auth/nextauth'
+import { logger } from '../../../../lib/logger'
 
 if (!handlers) {
   throw new Error('NextAuth handlers not initialized')
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
 
   // Handle Google OAuth signin when credentials are missing
   if (isSigninGoogle && (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)) {
-    console.error('Google OAuth signin attempted but credentials are missing')
+    logger.error('Google OAuth signin attempted but credentials are missing')
     return new Response(
       JSON.stringify({
         error: 'Google OAuth is not configured',
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
   try {
     return await handlers.GET(request)
   } catch (error: any) {
-    console.error('NextAuth GET handler error:', error?.message)
+    logger.error('NextAuth GET handler error', { message: error?.message })
     return new Response(
       JSON.stringify({
         error: 'Authentication error',
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
   try {
     return await handlers.POST(request)
   } catch (error: any) {
-    console.error('NextAuth POST handler error:', error?.message)
+    logger.error('NextAuth POST handler error', { message: error?.message })
     return new Response(
       JSON.stringify({
         error: 'Authentication error',

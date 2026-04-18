@@ -40,7 +40,7 @@ import { Car } from '@chiangrai/shared/types'
 import CarCard from '@/components/cards/CarCard'
 
 /** Lucide icons สำหรับ UI */
-import { Search, ArrowUpDown } from 'lucide-react'
+import { Search, ArrowUpDown, Banknote, Users } from 'lucide-react'
 
 // ============================================================
 // Type Definitions
@@ -56,6 +56,8 @@ interface CarsClientProps {
   initialFilters?: {
     q?: string
     car_type?: string
+    price?: string
+    passengers?: string
     sort?: string
   }
   allCarTypes?: string[]
@@ -102,13 +104,23 @@ export default function CarsClient({
   /** State สำหรับคำค้นหา */
   const [searchTerm, setSearchTerm] = useState(initialFilters?.q || '')
   const [selectedType, setSelectedType] = useState(initialFilters?.car_type || '')
+  const [priceFilter, setPriceFilter] = useState(initialFilters?.price || 'all')
+  const [passengerFilter, setPassengerFilter] = useState(initialFilters?.passengers || 'all')
   const [sortFilter, setSortFilter] = useState(initialFilters?.sort || 'newest')
 
   useEffect(() => {
     setSearchTerm(initialFilters?.q || '')
     setSelectedType(initialFilters?.car_type || '')
+    setPriceFilter(initialFilters?.price || 'all')
+    setPassengerFilter(initialFilters?.passengers || 'all')
     setSortFilter(initialFilters?.sort || 'newest')
-  }, [initialFilters?.q, initialFilters?.car_type, initialFilters?.sort])
+  }, [
+    initialFilters?.q,
+    initialFilters?.car_type,
+    initialFilters?.price,
+    initialFilters?.passengers,
+    initialFilters?.sort,
+  ])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,6 +128,8 @@ export default function CarsClient({
 
       if (searchTerm.trim()) next.set('q', searchTerm.trim())
       if (selectedType) next.set('car_type', selectedType)
+      if (priceFilter && priceFilter !== 'all') next.set('price', priceFilter)
+      if (passengerFilter && passengerFilter !== 'all') next.set('passengers', passengerFilter)
       if (sortFilter && sortFilter !== 'newest') next.set('sort', sortFilter)
 
       const nextQuery = next.toString()
@@ -126,7 +140,16 @@ export default function CarsClient({
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchTerm, selectedType, sortFilter, pathname, router, searchParams])
+  }, [
+    searchTerm,
+    selectedType,
+    priceFilter,
+    passengerFilter,
+    sortFilter,
+    pathname,
+    router,
+    searchParams,
+  ])
 
   // ----------------------------------------------------------
   // Filter Cars
@@ -138,6 +161,21 @@ export default function CarsClient({
    * - ชื่อรถ (ไทย/อังกฤษ)
    * - ประเภทรถ (ไทย/อังกฤษ)
    */
+  const getCarPriceRange = (filter: string): [number, number] => {
+    switch (filter) {
+      case 'low':
+        return [0, 2000]
+      case 'mid':
+        return [2000, 5000]
+      case 'high':
+        return [5000, 100000]
+      default:
+        return [0, 100000]
+    }
+  }
+
+  const [minPrice, maxPrice] = getCarPriceRange(priceFilter)
+
   const filteredCars = cars.filter((car) => {
     const matchesSearch =
       car.name_th.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -148,7 +186,13 @@ export default function CarsClient({
     const currentType = (car.car_type_th || car.car_type_en || '').toLowerCase()
     const matchesType = !selectedType || currentType === selectedType.toLowerCase()
 
-    return matchesSearch && matchesType
+    const price = Number(car.price_per_day) || 0
+    const matchesPrice = price >= minPrice && price <= maxPrice
+
+    const minPassengers = passengerFilter === 'all' ? 0 : Number(passengerFilter) || 0
+    const matchesPassengers = (car.max_passengers || 0) >= minPassengers
+
+    return matchesSearch && matchesType && matchesPrice && matchesPassengers
   })
 
   const sortedCars = [...filteredCars].sort((a, b) => {
@@ -167,6 +211,21 @@ export default function CarsClient({
     { value: 'newest', label: t('common.newest') || 'ใหม่ล่าสุด' },
     { value: 'price_asc', label: t('common.priceLow') || 'ราคาต่ำไปสูง' },
     { value: 'price_desc', label: t('common.priceHigh') || 'ราคาสูงไปต่ำ' },
+  ]
+
+  const priceOptions = [
+    { value: 'all', label: t('common.allPrices') || 'ทุกราคา' },
+    { value: 'low', label: 'ต่ำกว่า 2,000 / วัน' },
+    { value: 'mid', label: '2,000 - 5,000 / วัน' },
+    { value: 'high', label: 'สูงกว่า 5,000 / วัน' },
+  ]
+
+  const passengerOptions = [
+    { value: 'all', label: 'ทุกจำนวนที่นั่ง' },
+    { value: '2', label: '2+ ที่นั่ง' },
+    { value: '4', label: '4+ ที่นั่ง' },
+    { value: '6', label: '6+ ที่นั่ง' },
+    { value: '8', label: '8+ ที่นั่ง' },
   ]
 
   // ----------------------------------------------------------
@@ -225,6 +284,36 @@ export default function CarsClient({
             </select>
 
             <div className="relative w-full lg:w-56">
+              <Banknote size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <select
+                value={priceFilter}
+                onChange={(e) => setPriceFilter(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-3 text-sm sm:text-base text-slate-700 focus:border-indigo-500 outline-none"
+              >
+                {priceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative w-full lg:w-56">
+              <Users size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <select
+                value={passengerFilter}
+                onChange={(e) => setPassengerFilter(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-3 text-sm sm:text-base text-slate-700 focus:border-indigo-500 outline-none"
+              >
+                {passengerOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative w-full lg:w-56">
               <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <select
                 value={sortFilter}
@@ -251,11 +340,17 @@ export default function CarsClient({
           </p>
 
           {/* ปุ่ม Clear Search - แสดงเมื่อมีคำค้นหา */}
-          {(searchTerm || selectedType || sortFilter !== 'newest') && (
+          {(searchTerm ||
+            selectedType ||
+            priceFilter !== 'all' ||
+            passengerFilter !== 'all' ||
+            sortFilter !== 'newest') && (
             <button
               onClick={() => {
                 setSearchTerm('')
                 setSelectedType('')
+                setPriceFilter('all')
+                setPassengerFilter('all')
                 setSortFilter('newest')
               }}
               className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"

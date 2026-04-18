@@ -84,6 +84,8 @@ export default async function CarsPage({
 }) {
   const q = getFirstParam(searchParams?.q)?.trim()
   const carType = getFirstParam(searchParams?.car_type)?.trim()
+  const price = getFirstParam(searchParams?.price)
+  const passengers = getFirstParam(searchParams?.passengers)
   const sort = getFirstParam(searchParams?.sort) || 'newest'
 
   const query = new URLSearchParams({
@@ -93,6 +95,21 @@ export default async function CarsPage({
 
   if (q) query.set('q', q)
   if (carType) query.set('car_type', carType)
+
+  if (price === 'low') {
+    query.set('min_price', '0')
+    query.set('max_price', '2000')
+  } else if (price === 'mid') {
+    query.set('min_price', '2000')
+    query.set('max_price', '5000')
+  } else if (price === 'high') {
+    query.set('min_price', '5000')
+  }
+
+  const passNum = Number(passengers)
+  if (passengers && !Number.isNaN(passNum) && passNum > 0) {
+    query.set('min_passengers', String(passNum))
+  }
 
   const [filteredRes, allRes] = await Promise.all([
     fetch(`${getBackendUrl()}/api/cars?${query.toString()}`, {
@@ -114,6 +131,8 @@ export default async function CarsPage({
         initialFilters={{
           q,
           car_type: carType,
+          price,
+          passengers,
           sort,
         }}
         allCarTypes={[]}

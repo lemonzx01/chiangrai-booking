@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 
 import { verifyUserToken, createToken, isMockMode } from '../../../../lib/auth'
 import { createAdminClient } from '../../../../lib/supabase/server'
+import { logger } from '../../../../lib/logger'
 
 export async function GET() {
   try {
@@ -40,10 +41,10 @@ export async function GET() {
 
     if (error || !user) {
       if (error?.code === 'PGRST116' || !user) {
-        console.error('User not found in DB. JWT user ID:', authUser.id, 'email:', authUser.email)
+        logger.error('User not found in DB', { userId: authUser.id, email: authUser.email })
         return NextResponse.json({ error: 'ไม่พบผู้ใช้ในระบบ' }, { status: 404 })
       }
-      console.error('Profile query error:', error)
+      logger.error('Profile query error', { error })
       return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' }, { status: 500 })
     }
 
@@ -60,7 +61,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error('Profile GET error:', error)
+    logger.error('Profile GET error', { error })
     return NextResponse.json({ error: 'เกิดข้อผิดพลาด' }, { status: 500 })
   }
 }
@@ -126,7 +127,7 @@ export async function PATCH(request: Request) {
       .single()
 
     if (fetchError) {
-      console.error('Profile fetch error:', fetchError)
+      logger.error('Profile fetch error', { error: fetchError })
       return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' }, { status: 500 })
     }
 
@@ -172,7 +173,7 @@ export async function PATCH(request: Request) {
       .single()
 
     if (updateError) {
-      console.error('Profile update error:', updateError)
+      logger.error('Profile update error', { error: updateError })
       return NextResponse.json({ error: 'อัปเดตข้อมูลไม่สำเร็จ' }, { status: 500 })
     }
 
@@ -216,7 +217,7 @@ export async function PATCH(request: Request) {
       message: 'อัปเดตข้อมูลเรียบร้อย',
     })
   } catch (error) {
-    console.error('Profile PATCH error:', error)
+    logger.error('Profile PATCH error', { error })
     return NextResponse.json({ error: 'เกิดข้อผิดพลาด' }, { status: 500 })
   }
 }

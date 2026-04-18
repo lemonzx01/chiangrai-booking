@@ -39,6 +39,7 @@ import { verifyUserToken, isMockMode } from '../../../../lib/auth'
 
 /** ข้อมูล Mock สำหรับการทดสอบ */
 import { getMockBookingsByEmail } from '../../../../lib/mock-data'
+import { logger } from '../../../../lib/logger'
 
 // ============================================================
 // GET Handler - ดึงการจองของผู้ใช้
@@ -113,7 +114,7 @@ export async function GET() {
 
     // ตรวจสอบ Error
     if (error) {
-      console.error('Get bookings error:', error)
+      logger.error('Get bookings error', { error })
       return NextResponse.json(
         { error: 'ไม่สามารถดึงข้อมูลการจองได้' },
         { status: 500 }
@@ -128,7 +129,7 @@ export async function GET() {
       total: count,
     })
   } catch (error) {
-    console.error('Get bookings error:', error)
+    logger.error('Get bookings error (outer)', { error })
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาด' },
       { status: 500 }

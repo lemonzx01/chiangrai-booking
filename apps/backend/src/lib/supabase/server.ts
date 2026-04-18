@@ -28,6 +28,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@chiangrai/shared/types/supabase'
+import { createMockSupabaseClient } from './mock-client'
 
 // ============================================================
 // Configuration Check (ตรวจสอบการตั้งค่า)
@@ -79,7 +80,8 @@ const isSupabaseConfigured = () => {
  */
 export async function createClient() {
   if (!isSupabaseConfigured()) {
-    throw new Error('Supabase is not configured. Please set environment variables.')
+    // Mock mode: return in-memory mock client so every route works without real Supabase
+    return createMockSupabaseClient() as any
   }
 
   // ดึง cookie store
@@ -167,7 +169,8 @@ export async function createClient() {
  */
 export async function createAdminClient() {
   if (!isSupabaseConfigured()) {
-    throw new Error('Supabase is not configured. Please set environment variables.')
+    // Mock mode: return in-memory mock client (admin operations also use the same store)
+    return createMockSupabaseClient() as any
   }
 
   // ดึง cookie store
