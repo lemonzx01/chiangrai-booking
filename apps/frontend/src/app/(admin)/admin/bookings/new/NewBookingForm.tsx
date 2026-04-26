@@ -209,7 +209,7 @@ export default function NewBookingForm({ resources }: { resources: ResourcesPayl
                   setHotelId(e.target.value)
                   setRoomTypeId('')
                 }}
-                required={bookingType !== 'CAR'}
+                required
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">-- เลือกโรงแรม --</option>
@@ -249,7 +249,7 @@ export default function NewBookingForm({ resources }: { resources: ResourcesPayl
             <select
               value={carId}
               onChange={(e) => setCarId(e.target.value)}
-              required={bookingType !== 'HOTEL'}
+              required
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">-- เลือกรถ --</option>
