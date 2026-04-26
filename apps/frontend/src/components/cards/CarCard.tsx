@@ -60,6 +60,9 @@ import useLocalize from '@/hooks/useLocalize'
 /** Hook สำหรับการแปลภาษา */
 import { useTranslation } from 'react-i18next'
 
+/** Blur placeholder data-URL */
+import { SHIMMER_DATA_URL } from '@/lib/blurPlaceholder'
+
 // ============================================================
 // Interface Definitions
 // ============================================================
@@ -145,6 +148,8 @@ export default function CarCard({ car }: CarCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover img-zoom"
+            placeholder="blur"
+            blurDataURL={SHIMMER_DATA_URL}
           />
 
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />

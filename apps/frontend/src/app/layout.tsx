@@ -45,6 +45,25 @@ const font = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-jakarta',
+  // `display: 'swap'` shows the system font immediately and swaps to
+  // Plus Jakarta when it loads — eliminates the FOIT (flash of
+  // invisible text) that hurts LCP.
+  display: 'swap',
+  // Preload only the regular weight in <link rel="preload">; the rest
+  // ship via CSS but don't block first paint.
+  preload: true,
+  fallback: [
+    'system-ui',
+    '-apple-system',
+    'Segoe UI',
+    'Roboto',
+    'Helvetica Neue',
+    'sans-serif',
+  ],
+  // `adjustFontFallback` accepts a boolean for Plus Jakarta Sans
+  // (Google fonts API). `true` lets next/font auto-balance the
+  // fallback metrics so the swap doesn't shift layout.
+  adjustFontFallback: true,
 })
 
 // ============================================================
