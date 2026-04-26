@@ -40,6 +40,9 @@ import { ToastProvider } from '@/components/shared/Toast'
 /** Skip-to-content link — first focusable element for keyboard users. */
 import SkipLink from '@/components/shared/SkipLink'
 
+/** Floating LINE / chat button — reveals on scroll, shows everywhere */
+import FloatingContact from '@/components/shared/FloatingContact'
+
 /** I18n Provider สำหรับ Client-side localization */
 import I18nProvider from '@/i18n/client'
 
@@ -86,6 +89,10 @@ export default function FrontendLayout({
 
           {/* Cookie consent banner (PDPA-compliant) */}
           <CookieConsent />
+
+          {/* Floating LINE button — auto-hides on detail pages where
+              StickyBookBar already occupies the bottom-right */}
+          <FloatingContact hideOnMobileWhenStickyBarVisible />
         </div>
       </ToastProvider>
     </I18nProvider>

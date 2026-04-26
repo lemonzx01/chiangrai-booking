@@ -54,6 +54,9 @@ import useLocalize from '@/hooks/useLocalize'
 /** UI Components */
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import CustomSelect from '@/components/ui/CustomSelect'
+import RecentlyViewed from '@/components/shared/RecentlyViewed'
+import TrustSignals from '@/components/shared/TrustSignals'
+import Reveal from '@/components/shared/Reveal'
 
 // ============================================================
 // Type Definitions
@@ -453,6 +456,36 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </div>
         </section>
       )}
+
+      {/* ============================================================
+          Trust Signals — reassurance row above the fold of the
+          last screenful, before the user scrolls into the footer.
+          ============================================================ */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <Reveal>
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">
+                ทำไมต้องจองกับเรา
+              </h2>
+              <p className="text-sm text-slate-500 italic">Why book with us</p>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <TrustSignals variant="grid" />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============================================================
+          Recently Viewed — populated from localStorage. Renders
+          nothing on first visit, so this is invisible noise then.
+          ============================================================ */}
+      <section className="bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <RecentlyViewed />
+        </div>
+      </section>
     </div>
   )
 }

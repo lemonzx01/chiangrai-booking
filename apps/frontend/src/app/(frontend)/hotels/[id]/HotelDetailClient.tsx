@@ -28,17 +28,16 @@
 // ============================================================
 
 /** React hooks สำหรับจัดการ state */
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 /** i18next hook สำหรับ localization */
 import { useTranslation } from 'react-i18next'
 
 /** Next.js components */
 import Link from 'next/link'
-import Image from 'next/image'
 
 /** Lucide icons สำหรับ UI */
-import { Star, MapPin, Users, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
+import { Star, MapPin, Users, Check, ArrowLeft } from 'lucide-react'
 
 /** Type definition สำหรับข้อมูลโรงแรม */
 import { Hotel, RoomType, Currency } from '@chiangrai/shared/types'
@@ -53,6 +52,14 @@ import useLocalize from '@/hooks/useLocalize'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import ReviewsSection from '@/components/shared/ReviewsSection'
+import ImageGallery from '@/components/shared/ImageGallery'
+import StickyBookBar from '@/components/shared/StickyBookBar'
+import TrustSignals from '@/components/shared/TrustSignals'
+import RecentlyViewed from '@/components/shared/RecentlyViewed'
+import Reveal from '@/components/shared/Reveal'
+
+/** Track viewing in localStorage */
+import useRecentlyViewed from '@/hooks/useRecentlyViewed'
 
 // ============================================================
 // Type Definitions
@@ -101,8 +108,11 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
   /** Hook สำหรับดึงข้อมูลตามภาษาปัจจุบัน */
   const { getField, getArrayField } = useLocalize()
 
-  /** State สำหรับ index ของรูปที่แสดงอยู่ */
-  const [currentImage, setCurrentImage] = useState(0)
+  /** Track this hotel in localStorage history (powers Recently Viewed). */
+  const { track } = useRecentlyViewed()
+  useEffect(() => {
+    if (hotel?.id) track('hotel', hotel.id)
+  }, [hotel?.id, track])
 
   /** รูปภาพ (fallback เป็น array ว่างถ้าไม่มี) */
   const images = hotel.images || []
@@ -146,29 +156,11 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
     fetchRoomTypes()
   }, [hotel.id])
 
-  // ----------------------------------------------------------
-  // Image Gallery Navigation Functions
-  // ----------------------------------------------------------
-  /**
-   * ไปรูปถัดไป
-   *
-   * @description
-   *   เลื่อน index ไปรูปถัดไป
-   *   ถ้าอยู่รูปสุดท้ายจะวนกลับไปรูปแรก
-   */
-  const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % images.length)
-  }
-
-  /**
-   * ไปรูปก่อนหน้า
-   *
-   * @description
-   *   เลื่อน index ไปรูปก่อนหน้า
-   *   ถ้าอยู่รูปแรกจะวนกลับไปรูปสุดท้าย
-   */
-  const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
+  /** Scroll to the booking section when StickyBookBar's CTA is tapped. */
+  const scrollToBook = () => {
+    const el = document.getElementById('book-section')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    else window.location.href = `/booking?type=HOTEL&id=${hotel.id}`
   }
 
   // ----------------------------------------------------------
@@ -193,56 +185,14 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           {/* ============================================================
-              คอลัมน์ซ้าย - Image Gallery
+              คอลัมน์ซ้าย - Image Gallery (Lightbox-enabled)
               ============================================================ */}
-          <div className="space-y-4">
-            {/* รูปหลัก */}
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
-              <Image
-                src={images[currentImage] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'}
-                alt={name}
-                fill
-                className="object-cover"
-              />
-
-              {/* ปุ่มเลื่อนรูป - แสดงเมื่อมีมากกว่า 1 รูป */}
-              {images.length > 1 && (
-                <>
-                  {/* ปุ่มรูปก่อนหน้า */}
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
-                  >
-                    <ChevronLeft size={24} />
-                  </button>
-
-                  {/* ปุ่มรูปถัดไป */}
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
-                  >
-                    <ChevronRight size={24} />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Thumbnail Gallery - แสดงเมื่อมีมากกว่า 1 รูป */}
-            {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentImage(idx)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all ${
-                      idx === currentImage ? 'ring-2 ring-indigo-600' : 'opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <Image src={img} alt="" fill className="object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div>
+            <ImageGallery
+              images={images.length > 0 ? images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945']}
+              alt={name}
+              heroAspect="aspect-[4/3]"
+            />
           </div>
 
           {/* ============================================================
@@ -308,7 +258,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 ประเภทห้อง
                 ============================================================ */}
             {!loadingRoomTypes && roomTypes.length > 0 && (
-              <div className="mb-6 sm:mb-8">
+              <div id="book-section" className="mb-6 sm:mb-8">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">
                   ประเภทห้อง
                 </h3>
@@ -353,7 +303,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 ราคาและปุ่มจอง (แสดงเมื่อไม่มีประเภทห้อง)
                 ============================================================ */}
             {(!loadingRoomTypes && roomTypes.length === 0) && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
+              <div id="book-section" className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 bg-slate-50 rounded-2xl p-4 sm:p-6">
                 {/* ราคาต่อคืน */}
                 <div>
                   <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
@@ -369,11 +319,31 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 </Link>
               </div>
             )}
+
+            {/* Trust signals reassurance under the booking CTA */}
+            <div className="mt-5">
+              <TrustSignals variant="compact" />
+            </div>
           </div>
         </div>
 
+        {/* Reviews */}
         <ReviewsSection hotelId={hotel.id} />
+
+        {/* Recently viewed — exclude this hotel so it doesn't show itself */}
+        <Reveal>
+          <RecentlyViewed excludeId={hotel.id} />
+        </Reveal>
       </div>
+
+      {/* Sticky bottom CTA: mobile always-on, desktop reveals on scroll */}
+      <StickyBookBar
+        price={hotel.price_per_night}
+        unit="/ คืน"
+        onBookClick={scrollToBook}
+        ctaLabel={t('common.bookNow') || 'จองเลย'}
+        hint={`${name} · ${getField(hotel, 'location')}`}
+      />
     </div>
   )
 }
