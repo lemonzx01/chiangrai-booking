@@ -20,6 +20,7 @@ import { calculateRefundPercentage, calculateRefundAmount, processStripeRefund }
 import { sendCancellationNotification } from '../../../../../services/notifications/cancellation'
 import { createAdminNotification } from '../../../../../services/notifications/admin-inbox'
 import { logger } from '../../../../../lib/logger'
+import { logAdminAction } from '../../../../../lib/audit'
 
 interface Params {
   params: Promise<{ code: string }>
@@ -161,6 +162,26 @@ export async function POST(request: Request, { params }: Params) {
       },
       severity: refundAmount > 0 ? 'warning' : 'error',
     })
+
+    // Audit only when an admin pulled the trigger — customer
+    // self-cancellations are tracked via cancelled_by='customer'
+    // on the booking row itself; we don't log every customer
+    // action to the admin audit table.
+    if (isAdmin && adminAuth.user) {
+      logAdminAction({
+        actor: adminAuth.user,
+        request,
+        action: 'booking.cancel',
+        resource_type: 'booking',
+        resource_id: code,
+        metadata: {
+          reason,
+          refund_amount: refundAmount,
+          refund_percentage: refundPercentage,
+          stripe_refund_id: stripeRefundId,
+        },
+      })
+    }
 
     return NextResponse.json({
       message: 'ยกเลิกการจองสำเร็จ',

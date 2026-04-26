@@ -35,6 +35,7 @@ import { NextResponse } from 'next/server'
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../lib/auth'
 import { logger } from '../../../../lib/logger'
+import { logAdminAction } from '../../../../lib/audit'
 
 // ============================================================
 // Type Definitions
@@ -184,27 +185,34 @@ export async function PUT(request: Request, { params }: Params) {
  */
 export async function DELETE(request: Request, { params }: Params) {
   try {
-    // ----------------------------------------------------------
-    // ตรวจสอบสิทธิ์ Admin
-    // ----------------------------------------------------------
     const auth = await verifyAdminToken()
     if (!auth.success) {
       return unauthorizedResponse('Admin access required')
     }
 
-    // ดึง ID
     const { id } = await params
     const supabase = await createAdminClient()
 
-    // ----------------------------------------------------------
-    // ลบรถเช่า
-    // ----------------------------------------------------------
-    const { error } = await supabase.from('cars').delete().eq('id', id)
+    // Snapshot before delete for the audit row.
+    const { data: snapshot } = await supabase
+      .from('cars')
+      .select('id, name_th, name_en, owner_id, is_active')
+      .eq('id', id)
+      .single()
 
-    // ตรวจสอบ Error
+    const { error } = await supabase.from('cars').delete().eq('id', id)
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    logAdminAction({
+      actor: auth.user,
+      request,
+      action: 'car.delete',
+      resource_type: 'car',
+      resource_id: id,
+      metadata: snapshot || null,
+    })
 
     return NextResponse.json({ success: true })
   } catch {

@@ -42,6 +42,7 @@ import { findMockBookingByCode } from '../../../../lib/mock-data'
 
 /** Status transition rules */
 import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
+import { logAdminAction } from '../../../../lib/audit'
 
 // ============================================================
 // Type Definitions
@@ -247,9 +248,15 @@ export async function PATCH(request: Request, { params }: Params) {
       }
     }
 
-    // ----------------------------------------------------------
-    // อัพเดทการจอง
-    // ----------------------------------------------------------
+    // Snapshot the before-state so the audit row records what
+    // changed, not just the new value. Helpful for "wait, what
+    // was the old status?" questions.
+    const { data: before } = await supabase
+      .from('bookings')
+      .select('status, total_price, refund_amount, refund_status')
+      .eq('booking_code', code)
+      .single()
+
     const { data, error } = await supabase
       .from('bookings')
       .update(body)
@@ -257,10 +264,21 @@ export async function PATCH(request: Request, { params }: Params) {
       .select()
       .single()
 
-    // ตรวจสอบ Error
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    logAdminAction({
+      actor: auth.user,
+      request,
+      action: body.status ? 'booking.status_change' : 'booking.update',
+      resource_type: 'booking',
+      resource_id: code,
+      metadata: {
+        before: before || null,
+        changes: body,
+      },
+    })
 
     return NextResponse.json(data)
   } catch {

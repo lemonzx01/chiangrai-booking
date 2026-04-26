@@ -36,6 +36,7 @@ import { NextResponse } from 'next/server'
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../lib/auth'
 import { MOCK_HOTELS } from '../../../../lib/constants'
 import { logger } from '../../../../lib/logger'
+import { logAdminAction } from '../../../../lib/audit'
 
 // ============================================================
 // Type Definitions
@@ -275,27 +276,36 @@ export async function PUT(request: Request, { params }: Params) {
  */
 export async function DELETE(request: Request, { params }: Params) {
   try {
-    // ----------------------------------------------------------
-    // ตรวจสอบสิทธิ์ Admin
-    // ----------------------------------------------------------
     const auth = await verifyAdminToken()
     if (!auth.success) {
       return unauthorizedResponse('Admin access required')
     }
 
-    // ดึง ID
     const { id } = await params
     const supabase = await createAdminClient()
 
-    // ----------------------------------------------------------
-    // ลบโรงแรม
-    // ----------------------------------------------------------
-    const { error } = await supabase.from('hotels').delete().eq('id', id)
+    // Capture identifying fields BEFORE delete so the audit row
+    // can show "what was lost" — useful when an admin denies
+    // the action later or when restoring from backup.
+    const { data: snapshot } = await supabase
+      .from('hotels')
+      .select('id, name_th, name_en, owner_id, is_active')
+      .eq('id', id)
+      .single()
 
-    // ตรวจสอบ Error
+    const { error } = await supabase.from('hotels').delete().eq('id', id)
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    logAdminAction({
+      actor: auth.user,
+      request,
+      action: 'hotel.delete',
+      resource_type: 'hotel',
+      resource_id: id,
+      metadata: snapshot || null,
+    })
 
     return NextResponse.json({ success: true })
   } catch {

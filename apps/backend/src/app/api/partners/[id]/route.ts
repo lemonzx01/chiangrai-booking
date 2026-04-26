@@ -38,6 +38,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../
 /** Types */
 import { PartnerType } from '@chiangrai/shared/types'
 import { logger } from '../../../../lib/logger'
+import { logAdminAction } from '../../../../lib/audit'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลพาร์ทเนอร์
@@ -181,25 +182,42 @@ export async function DELETE(
 
     const { id } = params
 
-    // ----------------------------------------------------------
-    // Mock Mode: สำหรับการทดสอบ
-    // ----------------------------------------------------------
     if (isMockMode()) {
+      logAdminAction({
+        actor: auth.user,
+        request,
+        action: 'partner.delete',
+        resource_type: 'partner',
+        resource_id: id,
+        metadata: { mock: true },
+      })
       return NextResponse.json({ message: 'Partner deleted successfully' })
     }
 
-    // ----------------------------------------------------------
-    // Production Mode: ลบใน Supabase
-    // ----------------------------------------------------------
     const supabase = await createAdminClient()
-    const { error } = await supabase.from('partners').delete().eq('id', id)
 
-    // ตรวจสอบ Error
+    // Snapshot before delete — partners control money flow,
+    // so a "wait who deleted X" question is more likely here.
+    const { data: snapshot } = await supabase
+      .from('partners')
+      .select('id, email, name, stripe_account_id, onboarding_status')
+      .eq('id', id)
+      .single()
+
+    const { error } = await supabase.from('partners').delete().eq('id', id)
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // ส่งกลับสถานะสำเร็จ
+    logAdminAction({
+      actor: auth.user,
+      request,
+      action: 'partner.delete',
+      resource_type: 'partner',
+      resource_id: id,
+      metadata: snapshot || null,
+    })
+
     return NextResponse.json({ message: 'Partner deleted successfully' })
   } catch (error: any) {
     logger.error('Delete partner error', { error })

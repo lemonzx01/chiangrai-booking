@@ -36,8 +36,13 @@ export interface AdminActor {
 }
 
 export interface AuditEntry {
-  /** The admin performing the action. Pulled from requireAdmin auth.user. */
-  actor: AdminActor | null
+  /**
+   * The admin performing the action. Pulled from requireAdmin
+   * auth.user (full shape) or verifyAdminToken result.user
+   * (looser shape since the token verifier types user as
+   * optional). Either is fine — we extract id/email defensively.
+   */
+  actor: AdminActor | null | undefined
   /** Original Request — used to extract IP, UA, request-id. */
   request?: Request
   /** Action verb. Convention: '<resource>.<verb>' (e.g. 'booking.refund'). */
@@ -47,16 +52,17 @@ export interface AuditEntry {
   /** Identifier of the thing — booking_code, uuid, anything stringable. */
   resource_id?: string | null
   /** Free-form context (refund amount, reason, before/after, etc.). */
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown> | null
 }
 
 /**
  * Best-effort audit write. Never throws.
  */
 export async function logAdminAction(entry: AuditEntry): Promise<void> {
+  const actor = entry.actor || null
   const row = {
-    actor_id: entry.actor?.id || null,
-    actor_email: entry.actor?.email || null,
+    actor_id: actor?.id || null,
+    actor_email: actor?.email || null,
     action: entry.action,
     resource_type: entry.resource_type || null,
     resource_id: entry.resource_id || null,
