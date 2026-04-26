@@ -45,9 +45,11 @@ export function renderBookingCancellationEmail(data: BookingCancellationTemplate
 
   const html = wrapEmail({
     heading: 'การจองของคุณถูกยกเลิก',
-    headingColor: '#DC2626',
+    eyebrow: 'ยกเลิก / Cancelled',
+    accentColor: '#DC2626',
+    preheader: `ยกเลิกการจอง ${data.bookingCode} เรียบร้อย`,
     body: `
-      <p>สวัสดีคุณ ${escapeHtml(data.customerName)},</p>
+      <p style="margin:16px 0 8px 0;">สวัสดีคุณ <strong>${escapeHtml(data.customerName)}</strong>,</p>
       <p>การจองของคุณได้ถูกยกเลิกเรียบร้อยแล้ว</p>
       ${detailsCard}
       ${refundCard}
