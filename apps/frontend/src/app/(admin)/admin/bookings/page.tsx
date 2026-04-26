@@ -35,6 +35,9 @@ import { Plus } from 'lucide-react'
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
 
+/** CSV export button */
+import ExportCsvButton from '@/components/admin/ExportCsvButton'
+
 /** Type definitions */
 import { BookingStatus } from '@chiangrai/shared/types'
 
@@ -163,13 +166,16 @@ export default async function AdminBookingsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">จัดการการจอง</h1>
               <p className="text-sm text-slate-500 mt-1">ตรวจสอบและอัปเดตสถานะการจองได้อย่างรวดเร็ว</p>
             </div>
-            <Link
-              href="/admin/bookings/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              <Plus size={16} />
-              เพิ่มการจอง (Manual)
-            </Link>
+            <div className="flex items-center gap-2">
+              <ExportCsvButton endpoint="/api/admin/bookings/export" />
+              <Link
+                href="/admin/bookings/new"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+              >
+                <Plus size={16} />
+                เพิ่มการจอง (Manual)
+              </Link>
+            </div>
           </div>
 
           {/* Bookings Table with Search/Filter/Pagination */}

@@ -41,6 +41,9 @@ import { Payment, PaymentStatus, Currency } from '@chiangrai/shared/types'
 /** Lucide icons */
 import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react'
 
+/** CSV export button */
+import ExportCsvButton from '@/components/admin/ExportCsvButton'
+
 // ============================================================
 // Metadata
 // ============================================================
@@ -320,8 +323,11 @@ export default async function AdminPaymentsPage() {
 
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
-        {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">การชำระเงิน</h1>
+        {/* Title + CSV export */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">การชำระเงิน</h1>
+          <ExportCsvButton endpoint="/api/admin/payments/export" />
+        </div>
 
         {/* ============================================================
             Stats Grid - แสดงสถิติเป็น Cards
