@@ -50,6 +50,7 @@ import { generateBookingCode } from '../../../../lib/utils'
 import { createAdminNotification } from '../../../../services/notifications/admin-inbox'
 import { sendPartnerBookingNotification } from '../../../../services/notifications/partner'
 import { logger } from '../../../../lib/logger'
+import { logAdminAction } from '../../../../lib/audit'
 import type { CurrencyEnum } from '@chiangrai/shared/types/supabase'
 
 const SUPPORTED_CURRENCIES: CurrencyEnum[] = ['THB', 'USD', 'EUR']
@@ -335,6 +336,26 @@ export async function POST(request: Request) {
       forced: forceBook,
     },
     severity: 'info',
+  })
+
+  logAdminAction({
+    actor: auth.user,
+    request,
+    action: 'booking.manual_create',
+    resource_type: 'booking',
+    resource_id: bookingCode,
+    metadata: {
+      booking_id: bookingId,
+      booking_type: validated.booking_type,
+      hotel_id: validated.hotel_id || null,
+      car_id: validated.car_id || null,
+      total_price: totalPriceRaw,
+      currency,
+      payment_method: paymentMethod,
+      payment_reference: paymentReference || null,
+      paid,
+      forced: forceBook,
+    },
   })
 
   return NextResponse.json(

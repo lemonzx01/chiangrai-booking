@@ -25,6 +25,7 @@ import { verifyCsrfToken } from '../../../../../../lib/csrf'
 import { processStripeRefund } from '../../../../../../lib/refund'
 import { createAdminNotification } from '../../../../../../services/notifications/admin-inbox'
 import { logger } from '../../../../../../lib/logger'
+import { logAdminAction } from '../../../../../../lib/audit'
 
 interface Params {
   params: Promise<{ code: string }>
@@ -157,6 +158,25 @@ export async function POST(request: Request, { params }: Params) {
       cancel_booking: cancelBooking,
     },
     severity: 'warning',
+  })
+
+  // Immutable audit trail — separate from the inbox notification
+  // because compliance / billing reconciliation needs a structured
+  // record we can query later by actor or by booking.
+  logAdminAction({
+    actor: auth.user,
+    request,
+    action: 'booking.refund',
+    resource_type: 'booking',
+    resource_id: code,
+    metadata: {
+      amount: rawAmount,
+      total_refunded: newRefundTotal,
+      fully_refunded: fullRefunded,
+      stripe_refund_id: stripeRefundId,
+      cancel_booking: cancelBooking,
+      reason,
+    },
   })
 
   return NextResponse.json({
