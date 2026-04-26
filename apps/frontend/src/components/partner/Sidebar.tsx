@@ -36,7 +36,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
-import { Compass, LayoutDashboard, Car, Calendar, CalendarX, LogOut, Menu, X, CreditCard } from 'lucide-react'
+import { Compass, LayoutDashboard, Car, Calendar, CalendarX, LogOut, Menu, X, CreditCard, BarChart3 } from 'lucide-react'
 
 // ============================================================
 // Constants - Navigation Menu
@@ -48,6 +48,7 @@ import { Compass, LayoutDashboard, Car, Calendar, CalendarX, LogOut, Menu, X, Cr
  */
 const navigation = [
   { name: 'Dashboard', href: '/partner/dashboard', icon: LayoutDashboard },
+  { name: 'สถิติ / Analytics', href: '/partner/analytics', icon: BarChart3 },
   { name: 'รถเช่า', href: '/partner/cars', icon: Car },
   { name: 'การจอง', href: '/partner/bookings', icon: Calendar },
   { name: 'ปฏิทินว่าง/ไม่ว่าง', href: '/partner/availability', icon: CalendarX },
