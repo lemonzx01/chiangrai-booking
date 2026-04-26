@@ -42,3 +42,9 @@ next-env.d.ts
 
 # cursor ide
 .cursor/
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/blob-report/
