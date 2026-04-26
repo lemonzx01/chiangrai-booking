@@ -69,6 +69,9 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 
+/** Profile auto-fill hook */
+import useCurrentUser from '@/hooks/useCurrentUser'
+
 // ============================================================
 // Booking Content Component
 // ============================================================
@@ -145,6 +148,22 @@ function BookingContent() {
     customer_phone: '',
     special_requests: '',
   })
+
+  // ----------------------------------------------------------
+  // Profile auto-fill — if the user is logged in, prefill their
+  // saved name/email/phone. We only fill fields the user hasn't
+  // already typed into, so a manual override never gets stomped.
+  // ----------------------------------------------------------
+  const { user: currentUser } = useCurrentUser()
+  useEffect(() => {
+    if (!currentUser) return
+    setFormData((prev) => ({
+      ...prev,
+      customer_name: prev.customer_name || currentUser.name || '',
+      customer_email: prev.customer_email || currentUser.email || '',
+      customer_phone: prev.customer_phone || currentUser.phone || '',
+    }))
+  }, [currentUser])
 
   // ----------------------------------------------------------
   // Effects
