@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Default PWA icon. Replace with real brand artwork when available.
+  - Square viewBox so PWA "Add to Home Screen" gets a clean square
+  - 80% logo inside a centered safe area so maskable rounding
+    on Android adaptive icons doesn't crop the glyph
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <text
+    x="256" y="320"
+    font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    font-size="280"
+    font-weight="900"
+    text-anchor="middle"
+    fill="#fff"
+    letter-spacing="-12"
+  >G</text>
+</svg>

@@ -130,6 +130,9 @@ export const metadata: Metadata = {
       en: '/',
     },
   },
+  // OG / Twitter images are auto-wired by app/opengraph-image.tsx
+  // (Next.js convention) — that takes priority over anything we
+  // hard-code here, so we omit `images` and just supply the text.
   openGraph: {
     type: 'website',
     locale: 'th_TH',
@@ -138,20 +141,11 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} | Premium Travel Booking Platform`,
     description: SITE_DESCRIPTION_EN,
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} | Premium Travel Booking Platform`,
     description: SITE_DESCRIPTION_EN,
-    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -164,11 +158,9 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
+  // Favicons / apple-touch-icon are auto-wired by app/icon.tsx
+  // and app/apple-icon.tsx (Next.js convention). Manifest is
+  // emitted by app/manifest.ts.
   manifest: '/manifest.webmanifest',
 }
 
@@ -211,7 +203,7 @@ const jsonLd = {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/logo.png`,
+      logo: `${SITE_URL}/icon.svg`,
       sameAs: [] as string[],
       contactPoint: {
         '@type': 'ContactPoint',

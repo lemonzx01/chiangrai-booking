@@ -1,38 +1,56 @@
 # Public assets
 
-This folder is served at the site root (`/`) by Next.js. The layout, manifest, and SEO metadata reference the following files — **all of them need to exist before the production deploy**, or browsers/crawlers will see 404s.
+Files here are served at the site root (`/`) by Next.js.
 
-## Required assets
+## What ships by default
 
-| Path | Referenced from | Purpose | Required size |
-|---|---|---|---|
-| `favicon.ico` | `src/app/favicon.ico` (duplicate) | Browser tab icon — keep this file identical to the one in `src/app/` | 48×48 or multi-size ICO |
-| `apple-touch-icon.png` | `layout.tsx` → `icons.apple` | iOS home-screen icon | 180×180 |
-| `icon-192.png` | `manifest.ts` | Android launcher icon | 192×192 |
-| `icon-512.png` | `manifest.ts` | Android launcher icon (high-DPI) | 512×512 |
-| `icon-maskable-512.png` | `manifest.ts` | Android adaptive icon — keep the logo inside the safe zone (80% center circle) | 512×512 |
-| `logo.png` | `layout.tsx` → JSON-LD `logo` | Company logo shown in Google rich results | 600×60 or similar, square preferred |
-| `og-image.png` | `layout.tsx` → OpenGraph + Twitter card fallback | Social share preview — this is what appears when someone pastes the URL in LINE/Facebook/X | 1200×630 exactly |
-
-## Optional but recommended
-
-| Path | Purpose |
+| File | Purpose |
 |---|---|
-| `android-chrome-192x192.png` | Alias of `icon-192.png` for legacy Chrome |
-| `android-chrome-512x512.png` | Alias of `icon-512.png` for legacy Chrome |
-| `robots.txt` | **Do NOT add** — we generate this dynamically via `src/app/robots.ts` |
-| `sitemap.xml` | **Do NOT add** — we generate this dynamically via `src/app/sitemap.ts` |
+| `icon.svg` | PWA install icon (referenced by `app/manifest.ts`). SVG scales to any size, browsers pick what they need. |
 
-## How the assets flow
+## What's auto-generated
 
-1. Design tool exports square PNGs (Figma, Canva, etc.).
-2. Drop them here with the names above.
-3. Next.js picks them up on the next build — no code change required.
-4. Verify on staging:
-   - `curl -I https://<deploy>/apple-touch-icon.png` → 200
-   - Paste the URL in LINE chat → preview card shows `og-image.png`
-   - Run `npx lighthouse https://<deploy>` → PWA section passes icon checks
+These don't need files in this folder — `app/*.tsx` files generate them on demand:
 
-## Mock/dev behaviour
+| Auto-generated route | Source file |
+|---|---|
+| `/icon` (favicon) | `app/icon.tsx` |
+| `/apple-icon` (180×180 home-screen) | `app/apple-icon.tsx` |
+| `/opengraph-image` (1200×630 social card) | `app/opengraph-image.tsx` |
+| `/manifest.webmanifest` | `app/manifest.ts` |
+| `/robots.txt` | `app/robots.ts` |
+| `/sitemap.xml` | `app/sitemap.ts` |
 
-During local dev (`npm run dev`) with no files present, browsers show 404s in DevTools but the app still renders. This is fine — fix it before deploying to production.
+The auto-generated assets render a placeholder gradient with a "G" glyph. They're enough to ship; **replace them when you have real brand artwork**.
+
+## Replacing the defaults
+
+When you have real artwork, two ways to swap it in:
+
+### Option A — drop static files here (recommended)
+
+Add files directly in this folder. They take priority over `app/*.tsx` generators with the same conventional name:
+
+| File to add | Replaces |
+|---|---|
+| `icon.svg` | The default PWA icon (this one already exists — overwrite to swap) |
+| `favicon.ico` | The auto-generated favicon |
+| `apple-touch-icon.png` (180×180) | The auto-generated apple icon |
+| `og-image.png` (1200×630) | The auto-generated OG image |
+
+Once a file exists here, Next.js stops invoking the `app/*.tsx` generator for that name.
+
+### Option B — edit the `app/*.tsx` generator
+
+Useful if you want a dynamic OG image (e.g. a hotel detail page that shows the hotel's hero photo). See `app/opengraph-image.tsx` for the template — Next.js's `ImageResponse` API uses JSX + Tailwind-like inline styles to render PNGs.
+
+## Verify on staging
+
+```
+curl -I https://<deploy>/icon              # 200, image/png
+curl -I https://<deploy>/apple-icon        # 200, image/png
+curl -I https://<deploy>/opengraph-image   # 200, image/png
+curl -I https://<deploy>/manifest.webmanifest
+```
+
+Paste the deployed URL into LINE / Facebook chat — the preview card should show the OG image.
