@@ -35,6 +35,9 @@ import { useState } from 'react'
 /** Lucide icons สำหรับ UI */
 import { Trash2, Loader2 } from 'lucide-react'
 
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
+
 // ============================================================
 // Component Props
 // ============================================================
@@ -62,16 +65,9 @@ interface DeleteCarButtonProps {
  * @returns {JSX.Element} Delete button UI
  */
 export default function DeleteCarButton({ id }: DeleteCarButtonProps) {
-  // ----------------------------------------------------------
-  // Hooks
-  // ----------------------------------------------------------
-  /** Hook สำหรับ navigation และ refresh */
   const router = useRouter()
-
-  // ----------------------------------------------------------
-  // State
-  // ----------------------------------------------------------
-  /** State สำหรับสถานะการลบ */
+  const toast = useToast()
+  const confirm = useConfirm()
   const [loading, setLoading] = useState(false)
 
   // ----------------------------------------------------------
@@ -86,29 +82,26 @@ export default function DeleteCarButton({ id }: DeleteCarButtonProps) {
    * 3. Refresh หน้าเมื่อสำเร็จ หรือแสดง error
    */
   const handleDelete = async () => {
-    // ----------------------------------------------------------
-    // ยืนยันการลบ
-    // ----------------------------------------------------------
-    if (!confirm('คุณต้องการลบรถนี้หรือไม่?')) return
+    const ok = await confirm({
+      title: 'ลบรถนี้?',
+      body: 'การลบจะซ่อนรถจากหน้าสาธารณะ — ตรวจสอบว่าไม่มีการจองที่ยังไม่จบ',
+      confirmLabel: 'ลบรถ',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setLoading(true)
     try {
-      // ----------------------------------------------------------
-      // เรียก API เพื่อลบ
-      // ----------------------------------------------------------
       const res = await fetch(`/api/cars/${id}`, { method: 'DELETE' })
-
       if (res.ok) {
-        // ลบสำเร็จ -> refresh หน้า
+        toast.success('ลบรถสำเร็จ')
         router.refresh()
       } else {
-        // ลบไม่สำเร็จ -> แสดง error
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'ไม่สามารถลบรถได้ กรุณาลองใหม่อีกครั้ง')
+        toast.error(data.error || 'ไม่สามารถลบรถได้ กรุณาลองใหม่อีกครั้ง')
       }
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+    } catch {
+      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
     } finally {
       setLoading(false)
     }

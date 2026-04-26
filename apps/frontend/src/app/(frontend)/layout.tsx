@@ -37,6 +37,9 @@ import CookieConsent from '@/components/shared/CookieConsent'
 /** Toast / notification system — replaces window.alert() across the site. */
 import { ToastProvider } from '@/components/shared/Toast'
 
+/** Branded confirm dialog — replaces window.confirm() */
+import { ConfirmDialogProvider } from '@/components/shared/ConfirmDialog'
+
 /** Skip-to-content link — first focusable element for keyboard users. */
 import SkipLink from '@/components/shared/SkipLink'
 
@@ -71,8 +74,9 @@ export default function FrontendLayout({
     // I18nProvider ครอบทั้งหมดเพื่อให้ใช้ translation ได้
     <I18nProvider>
       <ToastProvider>
-        {/* WCAG 2.4.1 — first focusable element jumps past the navbar */}
-        <SkipLink />
+        <ConfirmDialogProvider>
+          {/* WCAG 2.4.1 — first focusable element jumps past the navbar */}
+          <SkipLink />
 
         {/* Container หลัก - min-h-screen ให้ความสูงเต็มจอ */}
         <div className="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white bg-[#fafbfc]">
@@ -93,7 +97,8 @@ export default function FrontendLayout({
           {/* Floating LINE button — auto-hides on detail pages where
               StickyBookBar already occupies the bottom-right */}
           <FloatingContact hideOnMobileWhenStickyBarVisible />
-        </div>
+          </div>
+        </ConfirmDialogProvider>
       </ToastProvider>
     </I18nProvider>
   )

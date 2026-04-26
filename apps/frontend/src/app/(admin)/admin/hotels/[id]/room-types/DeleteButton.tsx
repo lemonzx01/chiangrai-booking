@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 interface DeleteRoomTypeButtonProps {
   id: string
@@ -10,29 +12,30 @@ interface DeleteRoomTypeButtonProps {
 
 export default function DeleteRoomTypeButton({ id }: DeleteRoomTypeButtonProps) {
   const router = useRouter()
+  const toast = useToast()
+  const confirm = useConfirm()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประเภทห้องนี้?')) {
-      return
-    }
+    const ok = await confirm({
+      title: 'ลบประเภทห้องนี้?',
+      body: 'การลบนี้ไม่สามารถย้อนกลับได้ และอาจส่งผลกับการจองที่เชื่อมโยงอยู่',
+      confirmLabel: 'ลบ',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setLoading(true)
-
     try {
-      const res = await fetch(`/api/room-types/${id}`, {
-        method: 'DELETE',
-      })
-
+      const res = await fetch(`/api/room-types/${id}`, { method: 'DELETE' })
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'ไม่สามารถลบประเภทห้องได้')
       }
-
-      // Refresh the page
+      toast.success('ลบประเภทห้องสำเร็จ')
       router.refresh()
-    } catch (error: any) {
-      alert(error.message || 'เกิดข้อผิดพลาด')
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'เกิดข้อผิดพลาด')
     } finally {
       setLoading(false)
     }
@@ -49,6 +52,3 @@ export default function DeleteRoomTypeButton({ id }: DeleteRoomTypeButtonProps) 
     </button>
   )
 }
-
-
-

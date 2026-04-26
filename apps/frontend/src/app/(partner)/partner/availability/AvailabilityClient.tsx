@@ -23,6 +23,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, Info, Plus, Trash2, X } from 'lucide-react'
 
 import { apiFetch, apiJson } from '@/lib/api'
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 // ---- Types ----------------------------------------------------
 
@@ -108,6 +110,8 @@ interface Props {
 
 export default function AvailabilityClient({ initialResources }: Props) {
   const { hotels, cars, room_types } = initialResources
+  const toast = useToast()
+  const confirm = useConfirm()
 
   const [target, setTarget] = useState<Target>(() => {
     if (hotels[0]) return { kind: 'hotel', hotelId: hotels[0].id, roomTypeId: null }
@@ -266,12 +270,19 @@ export default function AvailabilityClient({ initialResources }: Props) {
   }
 
   async function deleteBlock(id: string) {
-    if (!confirm('ลบรายการบล็อกนี้หรือไม่?')) return
+    const ok = await confirm({
+      title: 'ลบรายการบล็อกนี้?',
+      body: 'วันที่ที่บล็อกไว้จะกลับมาเปิดให้จองได้อีกครั้ง',
+      confirmLabel: 'ลบ',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await apiJson(`/api/partner/availability/${id}`, { method: 'DELETE' })
+      toast.success('ลบรายการบล็อกสำเร็จ')
       await fetchData()
     } catch (err) {
-      alert((err as Error).message)
+      toast.error((err as Error).message)
     }
   }
 

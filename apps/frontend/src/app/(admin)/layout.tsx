@@ -22,6 +22,12 @@
 /** Provider สำหรับระบบ i18n (รองรับภาษาไทย/อังกฤษ) */
 import I18nProvider from '@/i18n/client'
 
+/** Toast / notification system — replaces window.alert() in admin pages */
+import { ToastProvider } from '@/components/shared/Toast'
+
+/** Branded confirm dialog — replaces window.confirm() */
+import { ConfirmDialogProvider } from '@/components/shared/ConfirmDialog'
+
 // ============================================================
 // Component Props
 // ============================================================
@@ -51,12 +57,16 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <I18nProvider>
-      {/* ============================================================
-          Container - พื้นหลังสีเทาอ่อน
-          ============================================================ */}
-      <div className="min-h-screen bg-slate-50 admin-ui">
-        {children}
-      </div>
+      <ToastProvider>
+        <ConfirmDialogProvider>
+          {/* ============================================================
+              Container - พื้นหลังสีเทาอ่อน
+              ============================================================ */}
+          <div className="min-h-screen bg-slate-50 admin-ui">
+            {children}
+          </div>
+        </ConfirmDialogProvider>
+      </ToastProvider>
     </I18nProvider>
   )
 }

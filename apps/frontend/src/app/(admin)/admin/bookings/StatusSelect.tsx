@@ -10,6 +10,8 @@ import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Loader2 } from 'lucide-react'
 import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 // ============================================================
 // Constants
@@ -34,6 +36,8 @@ interface BookingStatusSelectProps {
 
 export default function BookingStatusSelect({ bookingCode, currentStatus }: BookingStatusSelectProps) {
   const router = useRouter()
+  const toast = useToast()
+  const confirm = useConfirm()
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -61,8 +65,13 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
 
     // Cancel flow
     if (newStatus === 'CANCELLED') {
-      const confirmed = window.confirm('ต้องการยกเลิกการจองนี้หรือไม่?')
-      if (!confirmed) return
+      const ok = await confirm({
+        title: 'ยกเลิกการจองนี้?',
+        body: 'ระบบจะแจ้งลูกค้าและคำนวณการคืนเงินตามนโยบาย — ตรวจสอบให้ถี่ถ้วนก่อนยืนยัน',
+        confirmLabel: 'ยกเลิกการจอง',
+        variant: 'danger',
+      })
+      if (!ok) return
 
       setLoading(true)
       try {
@@ -72,13 +81,14 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
           body: JSON.stringify({ reason: 'ยกเลิกโดย Admin' }),
         })
         if (res.ok) {
+          toast.success('ยกเลิกการจองสำเร็จ')
           router.refresh()
         } else {
           const data = await res.json().catch(() => ({}))
-          alert(data.error || 'ไม่สามารถยกเลิกได้')
+          toast.error(data.error || 'ไม่สามารถยกเลิกได้')
         }
       } catch {
-        alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+        toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่')
       } finally {
         setLoading(false)
       }
@@ -94,13 +104,14 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
         body: JSON.stringify({ status: newStatus }),
       })
       if (res.ok) {
+        toast.success('อัปเดตสถานะสำเร็จ')
         router.refresh()
       } else {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'ไม่สามารถอัปเดตสถานะได้')
+        toast.error(data.error || 'ไม่สามารถอัปเดตสถานะได้')
       }
     } catch {
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่')
     } finally {
       setLoading(false)
     }

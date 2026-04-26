@@ -35,6 +35,9 @@ import { useState } from 'react'
 /** Lucide icons สำหรับ UI */
 import { Trash2, Loader2 } from 'lucide-react'
 
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
+
 // ============================================================
 // Component Props
 // ============================================================
@@ -62,16 +65,9 @@ interface DeleteHotelButtonProps {
  * @returns {JSX.Element} Delete button UI
  */
 export default function DeleteHotelButton({ id }: DeleteHotelButtonProps) {
-  // ----------------------------------------------------------
-  // Hooks
-  // ----------------------------------------------------------
-  /** Hook สำหรับ navigation และ refresh */
   const router = useRouter()
-
-  // ----------------------------------------------------------
-  // State
-  // ----------------------------------------------------------
-  /** State สำหรับสถานะการลบ */
+  const toast = useToast()
+  const confirm = useConfirm()
   const [loading, setLoading] = useState(false)
 
   // ----------------------------------------------------------
@@ -86,29 +82,26 @@ export default function DeleteHotelButton({ id }: DeleteHotelButtonProps) {
    * 3. Refresh หน้าเมื่อสำเร็จ หรือแสดง error
    */
   const handleDelete = async () => {
-    // ----------------------------------------------------------
-    // ยืนยันการลบ
-    // ----------------------------------------------------------
-    if (!confirm('คุณต้องการลบโรงแรมนี้หรือไม่?')) return
+    const ok = await confirm({
+      title: 'ลบโรงแรมนี้?',
+      body: 'การลบจะซ่อนโรงแรมจากหน้าสาธารณะ — ตรวจสอบว่าไม่มีการจองที่ยังไม่จบ',
+      confirmLabel: 'ลบโรงแรม',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setLoading(true)
     try {
-      // ----------------------------------------------------------
-      // เรียก API เพื่อลบ
-      // ----------------------------------------------------------
       const res = await fetch(`/api/hotels/${id}`, { method: 'DELETE' })
-
       if (res.ok) {
-        // ลบสำเร็จ -> refresh หน้า
+        toast.success('ลบโรงแรมสำเร็จ')
         router.refresh()
       } else {
-        // ลบไม่สำเร็จ -> แสดง error
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'ไม่สามารถลบโรงแรมได้ กรุณาลองใหม่อีกครั้ง')
+        toast.error(data.error || 'ไม่สามารถลบโรงแรมได้ กรุณาลองใหม่อีกครั้ง')
       }
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+    } catch {
+      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
     } finally {
       setLoading(false)
     }

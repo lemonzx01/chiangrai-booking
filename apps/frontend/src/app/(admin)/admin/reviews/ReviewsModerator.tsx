@@ -9,6 +9,8 @@
 import { useState } from 'react'
 import { Check, X, Trash2, Star, Clock, ShieldCheck } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import type { AdminReview } from './page'
 
 interface ReviewsResponse {
@@ -24,6 +26,8 @@ export default function ReviewsModerator({
 }: {
   initial: ReviewsResponse
 }) {
+  const toast = useToast()
+  const confirm = useConfirm()
   const [reviews, setReviews] = useState<AdminReview[]>(initial.reviews)
   const [summary, setSummary] = useState(initial.summary)
   const [filter, setFilter] = useState<FilterStatus>('pending')
@@ -71,13 +75,20 @@ export default function ReviewsModerator({
         pending: action === 'approve' ? Math.max(0, s.pending - 1) : s.pending,
         approved: action === 'approve' ? s.approved + 1 : s.approved,
       }))
-    } catch (err: any) {
-      alert(err.message || 'อัปเดตไม่สำเร็จ')
+      toast.success(action === 'approve' ? 'อนุมัติรีวิวแล้ว' : 'ปฏิเสธรีวิวแล้ว')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'อัปเดตไม่สำเร็จ')
     }
   }
 
   async function remove(r: AdminReview) {
-    if (!confirm('ลบรีวิวนี้ถาวร ใช่หรือไม่?')) return
+    const ok = await confirm({
+      title: 'ลบรีวิวนี้ถาวร?',
+      body: 'การลบนี้ย้อนกลับไม่ได้ — รีวิวจะหายจากระบบทั้งหมด',
+      confirmLabel: 'ลบรีวิว',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await apiFetch(`/api/admin/reviews/${r.id}`, {
         method: 'DELETE',
@@ -91,8 +102,9 @@ export default function ReviewsModerator({
         pending: r.is_approved ? s.pending : Math.max(0, s.pending - 1),
         approved: r.is_approved ? Math.max(0, s.approved - 1) : s.approved,
       }))
-    } catch (err: any) {
-      alert(err.message || 'ลบไม่สำเร็จ')
+      toast.success('ลบรีวิวสำเร็จ')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'ลบไม่สำเร็จ')
     }
   }
 

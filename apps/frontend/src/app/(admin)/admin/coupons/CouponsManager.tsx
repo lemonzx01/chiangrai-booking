@@ -9,6 +9,8 @@
 import { useState } from 'react'
 import { Plus, Edit, Trash2, X, Check, CircleOff } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import type { Coupon } from './page'
 
 interface FormState {
@@ -74,6 +76,8 @@ export default function CouponsManager({
 }: {
   initialCoupons: Coupon[]
 }) {
+  const toast = useToast()
+  const confirm = useConfirm()
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
   const [editing, setEditing] = useState<Coupon | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -133,7 +137,13 @@ export default function CouponsManager({
   }
 
   async function remove(c: Coupon) {
-    if (!confirm(`ลบคูปอง "${c.code}" ใช่หรือไม่?`)) return
+    const ok = await confirm({
+      title: `ลบคูปอง "${c.code}"?`,
+      body: 'ลูกค้าจะไม่สามารถใช้โค้ดนี้ได้อีก',
+      confirmLabel: 'ลบคูปอง',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await apiFetch(`/api/admin/coupons/${c.id}`, {
         method: 'DELETE',
@@ -145,8 +155,9 @@ export default function CouponsManager({
         )
       }
       setCoupons((prev) => prev.filter((x) => x.id !== c.id))
-    } catch (err: any) {
-      alert(err.message || 'ลบคูปองไม่สำเร็จ')
+      toast.success(`ลบคูปอง ${c.code} สำเร็จ`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'ลบคูปองไม่สำเร็จ')
     }
   }
 
@@ -159,8 +170,9 @@ export default function CouponsManager({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error?.message || 'อัปเดตไม่สำเร็จ')
       setCoupons((prev) => prev.map((x) => (x.id === c.id ? data.coupon : x)))
-    } catch (err: any) {
-      alert(err.message || 'อัปเดตไม่สำเร็จ')
+      toast.success(c.is_active ? 'ปิดใช้งานคูปองแล้ว' : 'เปิดใช้งานคูปองแล้ว')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'อัปเดตไม่สำเร็จ')
     }
   }
 

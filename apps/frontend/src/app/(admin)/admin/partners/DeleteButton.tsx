@@ -35,6 +35,9 @@ import { Trash2 } from 'lucide-react'
 /** Next.js hooks สำหรับ navigation */
 import { useRouter } from 'next/navigation'
 
+import { useToast } from '@/components/shared/Toast'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
+
 // ============================================================
 // Component Props
 // ============================================================
@@ -62,16 +65,9 @@ interface DeletePartnerButtonProps {
  * @returns {JSX.Element} Delete button UI
  */
 export default function DeletePartnerButton({ id }: DeletePartnerButtonProps) {
-  // ----------------------------------------------------------
-  // Hooks
-  // ----------------------------------------------------------
-  /** Hook สำหรับ navigation และ refresh */
   const router = useRouter()
-
-  // ----------------------------------------------------------
-  // State
-  // ----------------------------------------------------------
-  /** State สำหรับสถานะการลบ */
+  const toast = useToast()
+  const confirm = useConfirm()
   const [loading, setLoading] = useState(false)
 
   // ----------------------------------------------------------
@@ -86,32 +82,25 @@ export default function DeletePartnerButton({ id }: DeletePartnerButtonProps) {
    * 3. Refresh หน้าเมื่อสำเร็จ หรือแสดง error
    */
   const handleDelete = async () => {
-    // ----------------------------------------------------------
-    // ยืนยันการลบ
-    // ----------------------------------------------------------
-    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบพาร์ทเนอร์นี้?')) {
-      return
-    }
+    const ok = await confirm({
+      title: 'ลบพาร์ทเนอร์นี้?',
+      body: 'การลบจะตัดการเข้าถึงของพาร์ทเนอร์ทันที — ตรวจสอบว่าไม่มีงานค้าง',
+      confirmLabel: 'ลบพาร์ทเนอร์',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setLoading(true)
-
     try {
-      // ----------------------------------------------------------
-      // เรียก API เพื่อลบ
-      // ----------------------------------------------------------
-      const res = await fetch(`/api/partners/${id}`, {
-        method: 'DELETE',
-      })
-
+      const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' })
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'ไม่สามารถลบพาร์ทเนอร์ได้')
       }
-
-      // ลบสำเร็จ -> refresh หน้า
+      toast.success('ลบพาร์ทเนอร์สำเร็จ')
       router.refresh()
-    } catch (err: any) {
-      alert(err.message || 'เกิดข้อผิดพลาด: ' + err)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด')
     } finally {
       setLoading(false)
     }
