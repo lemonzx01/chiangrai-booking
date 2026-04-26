@@ -1,532 +1,273 @@
 /**
  * ============================================================
- * Hotels Client - หน้ารายการโรงแรม (Client Component)
+ * Hotels Client - listing page (Client Component)
  * ============================================================
  *
- * วัตถุประสงค์:
- *   - แสดงรายการโรงแรมพร้อมระบบกรอง
- *   - รองรับการค้นหาตามชื่อและสถานที่
- *   - กรองตามช่วงราคา
- *   - รองรับการเปลี่ยนภาษา (Thai/English)
+ * Premium upgrade (Phase 9):
+ *   - Sticky FilterSidebar on desktop
+ *   - BottomSheet filter trigger on mobile
+ *   - SearchAutocomplete with thumbnails
+ *   - ActiveFilterChips above results for one-tap removal
+ *   - Skeleton placeholders during transition
  *
- * Features:
- *   - Search Box ค้นหาตามชื่อ/สถานที่
- *   - Location Dropdown กรองตามทำเล
- *   - Price Range Dropdown กรองตามราคา
- *   - Hotel Cards แสดงผลแบบ Grid
- *   - ปุ่ม Clear Filters
- *
- * Components ภายใน:
- *   - CustomDropdown: Dropdown component ที่ใช้ซ้ำได้
- *
- * การใช้งาน:
- *   <HotelsClient hotels={hotelsArray} />
- *
+ * Filtering is still client-side (server returns the full
+ * active set), and URL ↔ state sync is preserved so users
+ * can share filtered links.
  * ============================================================
  */
 
 'use client'
 
-// ============================================================
-// การนำเข้า Dependencies
-// ============================================================
-
-/** React hooks สำหรับจัดการ state และ effects */
-import { useState, useRef, useEffect } from 'react'
-
-/** i18next hook สำหรับ localization */
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-
-/** Type definition สำหรับข้อมูลโรงแรม */
 import { Hotel } from '@chiangrai/shared/types'
 
-/** Hotel Card component สำหรับแสดงข้อมูลโรงแรมแต่ละแห่ง */
 import HotelCard from '@/components/cards/HotelCard'
+import SearchAutocomplete from '@/components/shared/SearchAutocomplete'
+import FilterSidebar, {
+  FilterSidebarSheet,
+  ActiveFilterChips,
+  MobileFilterTrigger,
+  EMPTY_FILTERS,
+  countActiveFilters,
+  type FilterState,
+} from '@/components/shared/FilterSidebar'
 
-/** Lucide icons สำหรับ UI */
-import { Search, MapPin, Banknote, ChevronDown, Check, LucideIcon, ArrowUpDown, Star } from 'lucide-react'
-
-// ============================================================
-// Type Definitions
-// ============================================================
-
-/**
- * Props interface สำหรับ HotelsClient
- *
- * @property {Hotel[]} hotels - รายการโรงแรมที่จะแสดง
- */
 interface HotelsClientProps {
   hotels: Hotel[]
+  /**
+   * Server hands these in from searchParams. They're plain strings —
+   * we coerce / validate before merging into FilterState below.
+   */
   initialFilters?: {
     q?: string
     location?: string
     price?: string
     star?: string
     sort?: string
+    minPrice?: number | null
+    maxPrice?: number | null
+    minStar?: number | null
   }
   allLocations?: string[]
 }
 
-/**
- * Interface สำหรับตัวเลือกใน Dropdown
- *
- * @property {string} value - ค่าที่จะใช้ในการกรอง
- * @property {string} label - ข้อความที่แสดงให้ผู้ใช้เห็น
- */
-interface DropdownOption {
-  value: string
-  label: string
+const VALID_SORTS: ReadonlySet<FilterState['sort']> = new Set([
+  'newest',
+  'price_asc',
+  'price_desc',
+  'star_desc',
+  'rating_desc',
+])
+function coerceSort(s?: string): FilterState['sort'] {
+  return s && VALID_SORTS.has(s as FilterState['sort']) ? (s as FilterState['sort']) : 'newest'
 }
 
-// ============================================================
-// Custom Dropdown Component
-// ============================================================
-
-/**
- * Custom Dropdown Component
- *
- * @description
- *   Dropdown component ที่สร้างขึ้นเองเพื่อความสวยงาม
- *   รองรับ icons, keyboard navigation, และ outside click
- *
- *   Features:
- *   - แสดง icon ด้านหน้า
- *   - Animation เมื่อเปิด/ปิด
- *   - Highlight ตัวเลือกที่เลือกอยู่
- *   - ปิดเมื่อ click นอก dropdown
- *
- * @param {Object} props - Component props
- * @param {DropdownOption[]} props.options - รายการตัวเลือก
- * @param {string} props.value - ค่าที่เลือกอยู่ปัจจุบัน
- * @param {Function} props.onChange - Callback เมื่อเปลี่ยนค่า
- * @param {string} props.placeholder - ข้อความเมื่อยังไม่ได้เลือก
- * @param {LucideIcon} props.icon - Icon ที่แสดงด้านหน้า
- *
- * @returns {JSX.Element} Dropdown UI
- */
-function CustomDropdown({
-  options,
-  value,
-  onChange,
-  placeholder,
-  icon: Icon
-}: {
-  options: DropdownOption[]
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
-  icon: LucideIcon
-}) {
-  // ----------------------------------------------------------
-  // State และ Refs
-  // ----------------------------------------------------------
-  /** State สำหรับเปิด/ปิด dropdown */
-  const [isOpen, setIsOpen] = useState(false)
-
-  /** Ref สำหรับตรวจจับ click นอก dropdown */
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  /** หาตัวเลือกที่ตรงกับ value ปัจจุบัน */
-  const selectedOption = options.find(opt => opt.value === value)
-
-  // ----------------------------------------------------------
-  // Effect: ปิด Dropdown เมื่อ click นอก
-  // ----------------------------------------------------------
-  useEffect(() => {
-    /**
-     * Handler สำหรับ click event
-     * ปิด dropdown ถ้า click นอกพื้นที่
-     */
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    // เพิ่ม event listener
-    document.addEventListener('mousedown', handleClickOutside)
-
-    // Cleanup เมื่อ unmount
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // ----------------------------------------------------------
-  // Render Dropdown
-  // ----------------------------------------------------------
-  return (
-    <div ref={dropdownRef} className="relative w-full lg:min-w-[200px]">
-      {/* Dropdown Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl transition-all duration-200 text-sm sm:text-base ${
-          isOpen
-            ? 'bg-white ring-2 ring-indigo-500 shadow-lg'
-            : 'bg-slate-50 hover:bg-white hover:shadow-md'
-        }`}
-      >
-        {/* Icon */}
-        <Icon className={`flex-shrink-0 transition-colors ${isOpen ? 'text-indigo-600' : 'text-slate-400'}`} size={18} />
-
-        {/* Label */}
-        <span className={`flex-1 text-left font-medium ${selectedOption?.value ? 'text-slate-800' : 'text-slate-400'}`}>
-          {selectedOption?.label || placeholder}
-        </span>
-
-        {/* Chevron Icon - หมุนเมื่อเปิด */}
-        <ChevronDown className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} size={16} />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border-2 border-indigo-500 z-50 overflow-visible">
-          {options.map((option, index) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => {
-                onChange(option.value)
-                setIsOpen(false)
-              }}
-              className={`w-full flex items-center justify-between px-4 py-3 transition-all text-left group
-                ${value === option.value
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-700 hover:bg-slate-50'
-                }
-                ${index === 0 ? 'rounded-t-lg' : ''}
-                ${index === options.length - 1 ? 'rounded-b-lg' : ''}
-              `}
-            >
-              {/* Option Label */}
-              <span className={`${value === option.value ? 'font-semibold' : 'font-medium'}`}>
-                {option.label}
-              </span>
-
-              {/* Check Icon สำหรับตัวเลือกที่เลือกอยู่ */}
-              {value === option.value && (
-                <Check size={16} className="text-white" strokeWidth={3} />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+// Translate the legacy `?price=low|mid|high` shorthand into a min/max pair
+// so we keep older shareable URLs working.
+function priceRangeFromLegacy(p: string | undefined): [number | null, number | null] {
+  switch (p) {
+    case 'low':
+      return [0, 20000]
+    case 'mid':
+      return [20000, 40000]
+    case 'high':
+      return [40000, 100000]
+    default:
+      return [null, null]
+  }
 }
 
-// ============================================================
-// Main Component - HotelsClient
-// ============================================================
-
-/**
- * Client Component สำหรับแสดงรายการโรงแรม
- *
- * @description
- *   Component หลักที่แสดงรายการโรงแรมพร้อมระบบกรอง
- *   รับข้อมูลโรงแรมจาก Server Component และจัดการ filtering
- *
- *   โครงสร้าง UI:
- *   - Header พร้อม title และ subtitle
- *   - Filter Box (Search, Location, Price)
- *   - Results Count และ Clear Filters
- *   - Hotels Grid (3 columns on desktop)
- *   - Empty State เมื่อไม่พบผลลัพธ์
- *
- * @param {HotelsClientProps} props - Props ที่มีรายการโรงแรม
- * @returns {JSX.Element} Hotels listing UI
- *
- * @example
- *   <HotelsClient hotels={hotelsArray} />
- */
 export default function HotelsClient({
   hotels,
   initialFilters,
   allLocations = [],
 }: HotelsClientProps) {
-  // ----------------------------------------------------------
-  // Hooks
-  // ----------------------------------------------------------
-  /** Hook สำหรับ translation */
   const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  // ----------------------------------------------------------
-  // Filter States
-  // ----------------------------------------------------------
-  /** State สำหรับคำค้นหา */
-  const [searchTerm, setSearchTerm] = useState(initialFilters?.q || '')
+  const [legacyMin, legacyMax] = priceRangeFromLegacy(initialFilters?.price)
+  const [filters, setFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    q: initialFilters?.q || '',
+    location: initialFilters?.location || '',
+    minPrice: initialFilters?.minPrice ?? legacyMin,
+    maxPrice: initialFilters?.maxPrice ?? legacyMax,
+    minStar:
+      initialFilters?.minStar ??
+      (initialFilters?.star && initialFilters.star !== 'all'
+        ? Number(initialFilters.star)
+        : null),
+    sort: coerceSort(initialFilters?.sort),
+  })
+  const [sheetOpen, setSheetOpen] = useState(false)
 
-  /** State สำหรับช่วงราคา */
-  const [priceFilter, setPriceFilter] = useState(initialFilters?.price || 'all')
-
-  /** State สำหรับสถานที่ */
-  const [selectedLocation, setSelectedLocation] = useState(initialFilters?.location || '')
-  /** State สำหรับคะแนนดาวขั้นต่ำ */
-  const [starFilter, setStarFilter] = useState(initialFilters?.star || 'all')
-  const [sortFilter, setSortFilter] = useState(initialFilters?.sort || 'newest')
-
+  // URL sync (debounced) — preserves shareable filtered links.
   useEffect(() => {
-    setSearchTerm(initialFilters?.q || '')
-    setSelectedLocation(initialFilters?.location || '')
-    setPriceFilter(initialFilters?.price || 'all')
-    setStarFilter(initialFilters?.star || 'all')
-    setSortFilter(initialFilters?.sort || 'newest')
-  }, [initialFilters?.q, initialFilters?.location, initialFilters?.price, initialFilters?.star, initialFilters?.sort])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    const t = setTimeout(() => {
       const next = new URLSearchParams()
-
-      if (searchTerm.trim()) next.set('q', searchTerm.trim())
-      if (selectedLocation) next.set('location', selectedLocation)
-      if (priceFilter && priceFilter !== 'all') next.set('price', priceFilter)
-      if (starFilter && starFilter !== 'all') next.set('star', starFilter)
-      if (sortFilter && sortFilter !== 'newest') next.set('sort', sortFilter)
-
-      const nextQuery = next.toString()
-      const currentQuery = searchParams.toString()
-      if (nextQuery !== currentQuery) {
-        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+      if (filters.q) next.set('q', filters.q)
+      if (filters.location) next.set('location', filters.location)
+      if (filters.minPrice != null) next.set('min_price', String(filters.minPrice))
+      if (filters.maxPrice != null) next.set('max_price', String(filters.maxPrice))
+      if (filters.minStar != null) next.set('star', String(filters.minStar))
+      if (filters.sort && filters.sort !== 'newest') next.set('sort', filters.sort)
+      const nextStr = next.toString()
+      if (nextStr !== searchParams.toString()) {
+        router.replace(nextStr ? `${pathname}?${nextStr}` : pathname, { scroll: false })
       }
-    }, 300)
+    }, 200)
+    return () => clearTimeout(t)
+  }, [filters, pathname, router, searchParams])
 
-    return () => clearTimeout(timer)
-  }, [searchTerm, selectedLocation, priceFilter, starFilter, sortFilter, pathname, router, searchParams])
+  // Distinct locations from props (preferred) or from the dataset.
+  const locations = useMemo(
+    () =>
+      allLocations.length > 0
+        ? allLocations
+        : Array.from(
+            new Set(
+              hotels
+                .map((h) => h.location || h.location_th || h.location_en)
+                .filter((s): s is string => !!s)
+            )
+          ),
+    [allLocations, hotels]
+  )
 
-  // ----------------------------------------------------------
-  // Computed Values
-  // ----------------------------------------------------------
-  /**
-   * ดึงรายการสถานที่ที่ไม่ซ้ำกัน
-   * ใช้สำหรับสร้างตัวเลือกใน Location Dropdown
-   */
-  const locations = allLocations.length > 0
-    ? allLocations
-    : [...new Set(hotels.map((h) => h.location || h.location_th || h.location_en).filter(Boolean))] as string[]
+  // Apply filters client-side. Backend already returns active=true for
+  // public callers; we just narrow further here.
+  const visible = useMemo(() => {
+    const term = filters.q.trim().toLowerCase()
+    const filtered = hotels.filter((h) => {
+      const loc = h.location || h.location_th || h.location_en || ''
+      if (term) {
+        const inName =
+          h.name_th?.toLowerCase().includes(term) ||
+          h.name_en?.toLowerCase().includes(term) ||
+          loc.toLowerCase().includes(term)
+        if (!inName) return false
+      }
+      if (filters.location && loc !== filters.location) return false
+      if (filters.minPrice != null && (h.price_per_night || 0) < filters.minPrice)
+        return false
+      if (filters.maxPrice != null && (h.price_per_night || 0) > filters.maxPrice)
+        return false
+      if (filters.minStar != null && (h.star_rating || 0) < filters.minStar)
+        return false
+      return true
+    })
 
-  // ----------------------------------------------------------
-  // Helper Functions
-  // ----------------------------------------------------------
-  /**
-   * แปลง filter string เป็นช่วงราคา
-   *
-   * @param {string} filter - ค่า filter ('all', 'low', 'mid', 'high')
-   * @returns {[number, number]} ช่วงราคา [min, max]
-   */
-  const getPriceRange = (filter: string): [number, number] => {
-    switch (filter) {
-      case 'low': return [0, 20000]       // ถูก: 0 - 20,000 บาท
-      case 'mid': return [20000, 40000]    // ปานกลาง: 20,000 - 40,000 บาท
-      case 'high': return [40000, 100000]  // แพง: 40,000 - 100,000 บาท
-      default: return [0, 100000]          // ทั้งหมด
-    }
-  }
+    const sorted = [...filtered].sort((a, b) => {
+      switch (filters.sort) {
+        case 'price_asc':
+          return (a.price_per_night || 0) - (b.price_per_night || 0)
+        case 'price_desc':
+          return (b.price_per_night || 0) - (a.price_per_night || 0)
+        case 'star_desc':
+          return (b.star_rating || 0) - (a.star_rating || 0)
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+    })
+    return sorted
+  }, [hotels, filters])
 
-  /** ช่วงราคาปัจจุบันตาม filter */
-  const priceRange = getPriceRange(priceFilter)
-
-  // ----------------------------------------------------------
-  // Filter Hotels
-  // ----------------------------------------------------------
-  /**
-   * กรองโรงแรมตามเงื่อนไขทั้งหมด
-   *
-   * เงื่อนไข:
-   * 1. ตรงกับคำค้นหา (ชื่อ/สถานที่)
-   * 2. ราคาอยู่ในช่วงที่เลือก
-   * 3. ตรงกับสถานที่ที่เลือก
-   */
-  const filteredHotels = hotels.filter((hotel) => {
-    // ดึงสถานที่ของโรงแรม
-    const hotelLocation = hotel.location || hotel.location_th || hotel.location_en || ''
-
-    // ตรวจสอบคำค้นหา (ชื่อไทย, ชื่ออังกฤษ, สถานที่)
-    const matchesSearch =
-      hotel.name_th.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotel.name_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotelLocation.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // ตรวจสอบช่วงราคา
-    const matchesPrice =
-      hotel.price_per_night >= priceRange[0] && hotel.price_per_night <= priceRange[1]
-
-    // ตรวจสอบสถานที่
-    const matchesLocation = !selectedLocation || hotelLocation === selectedLocation
-
-    // ตรวจสอบคะแนนดาว
-    const minStar = starFilter === 'all' ? 0 : Number(starFilter) || 0
-    const matchesStar = (hotel.star_rating || 0) >= minStar
-
-    // ต้องผ่านทุกเงื่อนไข
-    return matchesSearch && matchesPrice && matchesLocation && matchesStar
-  })
-
-  const sortedHotels = [...filteredHotels].sort((a, b) => {
-    if (sortFilter === 'price_asc') return a.price_per_night - b.price_per_night
-    if (sortFilter === 'price_desc') return b.price_per_night - a.price_per_night
-    if (sortFilter === 'star_desc') return (b.star_rating || 0) - (a.star_rating || 0)
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  })
-
-  // ----------------------------------------------------------
-  // Dropdown Options
-  // ----------------------------------------------------------
-  /** ตัวเลือกสำหรับ Location Dropdown */
-  const locationOptions: DropdownOption[] = [
-    { value: '', label: t('common.allLocations') },
-    ...locations.map(loc => ({ value: loc, label: loc }))
-  ]
-
-  /** ตัวเลือกสำหรับ Price Dropdown */
-  const priceOptions: DropdownOption[] = [
-    { value: 'all', label: t('common.allPrices') },
-    { value: 'low', label: t('common.priceLow') },
-    { value: 'mid', label: t('common.priceMid') },
-    { value: 'high', label: t('common.priceHigh') },
-  ]
-
-  /** ตัวเลือกสำหรับ Star Rating Dropdown */
-  const starOptions: DropdownOption[] = [
-    { value: 'all', label: t('common.allStars') || 'ทุกระดับ' },
-    { value: '5', label: '5 ดาว' },
-    { value: '4', label: '4 ดาวขึ้นไป' },
-    { value: '3', label: '3 ดาวขึ้นไป' },
-    { value: '2', label: '2 ดาวขึ้นไป' },
-  ]
-
-  const sortOptions: DropdownOption[] = [
-    { value: 'newest', label: t('common.newest') || 'ใหม่ล่าสุด' },
-    { value: 'price_asc', label: t('common.priceLow') || 'ราคาต่ำไปสูง' },
-    { value: 'price_desc', label: t('common.priceHigh') || 'ราคาสูงไปต่ำ' },
-    { value: 'star_desc', label: t('common.rating') || 'คะแนนสูงสุด' },
-  ]
-
-  // ----------------------------------------------------------
-  // Render Component
-  // ----------------------------------------------------------
   return (
     <div className="min-h-screen pt-24 pb-12">
-      {/* ============================================================
-          Header Section - Gradient Background
-          ============================================================ */}
-      <div className="bg-gradient-to-br from-indigo-600 to-purple-700 py-16">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-indigo-600 to-purple-700 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
             {t('navbar.packages')}
           </h1>
-
-          {/* Subtitle */}
-          <p className="text-xl text-white/80">
+          <p className="text-base sm:text-xl text-white/80 mb-6">
             {t('hotels.subtitle') || 'คัดสรรแพ็คเกจที่พักพรีเมียมในราคาที่ดีที่สุด'}
           </p>
+          {/* Search box on the gradient banner */}
+          <div className="max-w-2xl">
+            <SearchAutocomplete
+              scope="hotel"
+              initialValue={filters.q}
+              placeholder="ค้นหาที่พัก, ที่ตั้ง, ชื่อโรงแรม..."
+              onSubmit={(term) => setFilters((f) => ({ ...f, q: term }))}
+            />
+          </div>
         </div>
       </div>
 
-      {/* ============================================================
-          Main Content
-          ============================================================ */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8">
-        {/* ============================================================
-            Filter Box
-            ============================================================ */}
-        <div className="relative bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 sm:mb-8 overflow-visible z-20">
-          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 overflow-visible">
-            {/* Search Input */}
-            <div className="flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white">
-              <Search className="text-slate-400 flex-shrink-0" size={18} />
-              <input
-                type="text"
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent outline-none border-none text-sm sm:text-base text-slate-800 font-medium placeholder:text-slate-400"
+      {/* Body */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10">
+        <div className="flex gap-6">
+          {/* Sidebar (desktop) */}
+          <FilterSidebar
+            kind="hotel"
+            filters={filters}
+            onChange={setFilters}
+            locations={locations}
+            priceMin={0}
+            priceMax={50000}
+            resultCount={visible.length}
+          />
+
+          {/* Main column */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-slate-600 font-medium">
+                {t('common.found')}{' '}
+                <span className="text-indigo-600 font-semibold">{visible.length}</span>{' '}
+                {t('common.packages')}
+              </p>
+              <MobileFilterTrigger
+                onClick={() => setSheetOpen(true)}
+                activeCount={countActiveFilters(filters)}
               />
             </div>
 
-            {/* Location Dropdown */}
-            <CustomDropdown
-              options={locationOptions}
-              value={selectedLocation}
-              onChange={setSelectedLocation}
-              placeholder={t('common.allLocations')}
-              icon={MapPin}
-            />
+            {/* Active chips */}
+            <ActiveFilterChips filters={filters} onChange={setFilters} />
 
-            {/* Price Dropdown */}
-            <CustomDropdown
-              options={priceOptions}
-              value={priceFilter}
-              onChange={setPriceFilter}
-              placeholder={t('common.allPrices')}
-              icon={Banknote}
-            />
-
-            {/* Star Rating Dropdown */}
-            <CustomDropdown
-              options={starOptions}
-              value={starFilter}
-              onChange={setStarFilter}
-              placeholder={t('common.allStars') || 'ทุกระดับ'}
-              icon={Star}
-            />
-
-            <CustomDropdown
-              options={sortOptions}
-              value={sortFilter}
-              onChange={setSortFilter}
-              placeholder={t('common.sortBy') || 'เรียงลำดับ'}
-              icon={ArrowUpDown}
-            />
+            {/* Grid */}
+            {visible.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+                {visible.map((hotel) => (
+                  <HotelCard key={hotel.id} hotel={hotel} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-white border border-slate-100 p-16 text-center">
+                <p className="text-slate-500 text-lg">
+                  {t('hotels.noResults') || 'ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFilters(EMPTY_FILTERS)}
+                  className="mt-3 text-sm text-indigo-600 font-semibold hover:underline"
+                >
+                  ล้างตัวกรองทั้งหมด
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* ============================================================
-            Results Count และ Clear Filters
-            ============================================================ */}
-        <div className="flex items-center justify-between mb-6">
-          {/* จำนวนผลลัพธ์ */}
-          <p className="text-slate-600 font-medium">
-            {t('common.found')} <span className="text-indigo-600 font-semibold">{sortedHotels.length}</span> {t('common.packages')}
-          </p>
-
-          {/* ปุ่ม Clear Filters - แสดงเมื่อมี filter ถูกใช้ */}
-          {(searchTerm || selectedLocation || priceFilter !== 'all' || starFilter !== 'all' || sortFilter !== 'newest') && (
-            <button
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedLocation('')
-                setPriceFilter('all')
-                setStarFilter('all')
-                setSortFilter('newest')
-              }}
-              className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"
-            >
-              {t('common.clearFilters')} ✕
-            </button>
-          )}
-        </div>
-
-        {/* ============================================================
-            Hotels Grid หรือ Empty State
-            ============================================================ */}
-        {sortedHotels.length > 0 ? (
-          // Hotels Grid - 1 column mobile, 2 tablet, 3 desktop
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {sortedHotels.map((hotel) => (
-              <HotelCard key={hotel.id} hotel={hotel} />
-            ))}
-          </div>
-        ) : (
-          // Empty State - เมื่อไม่พบผลลัพธ์
-          <div className="text-center py-16">
-            <p className="text-slate-500 text-lg">{t('hotels.noResults') || 'ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข'}</p>
-          </div>
-        )}
       </div>
+
+      {/* Mobile filter sheet */}
+      <FilterSidebarSheet
+        kind="hotel"
+        filters={filters}
+        onChange={setFilters}
+        locations={locations}
+        priceMin={0}
+        priceMax={50000}
+        resultCount={visible.length}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+      />
     </div>
   )
 }
