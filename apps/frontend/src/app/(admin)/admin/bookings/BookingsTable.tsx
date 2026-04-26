@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, ChevronDown, Undo2 } from 'lucide-react'
+import { Search, ChevronDown, Undo2, CalendarClock } from 'lucide-react'
 import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 import { BookingStatus } from '@chiangrai/shared/types'
 import BookingStatusSelect from './StatusSelect'
 import RefundModal from './RefundModal'
+import RescheduleModal from './RescheduleModal'
 
 const ITEMS_PER_PAGE = 10
 
@@ -64,6 +65,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
   const [filterOpen, setFilterOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [refundTarget, setRefundTarget] = useState<BookingRow | null>(null)
+  const [rescheduleTarget, setRescheduleTarget] = useState<BookingRow | null>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
   // Close filter dropdown on click outside
@@ -259,23 +261,39 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                     />
                   </td>
                   <td className="px-6 py-4">
-                    {(() => {
-                      const refundable = getRefundable(booking)
-                      if (refundable <= 0) {
-                        return <span className="text-xs text-slate-400">-</span>
-                      }
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => setRefundTarget(booking)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
-                          title={`คืนเงินได้สูงสุด ${refundable.toLocaleString()} บาท`}
-                        >
-                          <Undo2 size={12} />
-                          คืนเงิน
-                        </button>
-                      )
-                    })()}
+                    <div className="flex items-center gap-2">
+                      {/* Reschedule — disabled on terminal-status bookings
+                          since the backend rejects those anyway */}
+                      {booking.status !== 'CANCELLED' &&
+                        booking.status !== 'COMPLETED' && (
+                          <button
+                            type="button"
+                            onClick={() => setRescheduleTarget(booking)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                            title="เลื่อนวันการจอง"
+                          >
+                            <CalendarClock size={12} />
+                            เลื่อนวัน
+                          </button>
+                        )}
+                      {(() => {
+                        const refundable = getRefundable(booking)
+                        if (refundable <= 0) {
+                          return null
+                        }
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => setRefundTarget(booking)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                            title={`คืนเงินได้สูงสุด ${refundable.toLocaleString()} บาท`}
+                          >
+                            <Undo2 size={12} />
+                            คืนเงิน
+                          </button>
+                        )
+                      })()}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -299,6 +317,18 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
           customerName={refundTarget.customer_name}
           maxRefundable={getRefundable(refundTarget)}
           onClose={() => setRefundTarget(null)}
+        />
+      )}
+
+      {/* Reschedule modal */}
+      {rescheduleTarget && (
+        <RescheduleModal
+          open
+          bookingCode={rescheduleTarget.booking_code}
+          customerName={rescheduleTarget.customer_name}
+          currentCheckIn={rescheduleTarget.check_in_date}
+          currentCheckOut={rescheduleTarget.check_out_date}
+          onClose={() => setRescheduleTarget(null)}
         />
       )}
 
