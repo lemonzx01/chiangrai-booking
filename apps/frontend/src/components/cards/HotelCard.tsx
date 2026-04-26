@@ -131,10 +131,10 @@ export default function HotelCard({ hotel }: HotelCardProps) {
   // Render
   // ----------------------------------------------------------
   return (
-    <Link href={`/hotels/${hotel.id}`}>
-      <div className="group bg-white rounded-2xl border-2 border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300">
+    <Link href={`/hotels/${hotel.id}`} className="block group focus-ring rounded-2xl">
+      <div className="card-premium bg-white rounded-2xl border border-slate-100 overflow-hidden">
         {/* ============================================================ */}
-        {/* ส่วนรูปภาพ */}
+        {/* ส่วนรูปภาพ                                                  */}
         {/* ============================================================ */}
         <div className="relative h-56 overflow-hidden">
           {/* รูปภาพโรงแรม - ใช้รูปแรกจาก array หรือ placeholder */}
@@ -142,17 +142,22 @@ export default function HotelCard({ hotel }: HotelCardProps) {
             src={hotel.images?.[0] || '/placeholder-hotel.jpg'}
             alt={name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover img-zoom"
           />
 
+          {/* Subtle gradient at the bottom of the image — improves
+              legibility of any future overlay (price, "ลด N%" pill). */}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
           {/* Badge แสดงระดับดาว (มุมบนซ้าย) */}
-          <div className="absolute top-4 left-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+          <div className="absolute top-4 left-4 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
             <Star size={14} className="text-yellow-500 fill-yellow-500" />
             <span className="text-sm font-bold text-slate-900">{hotel.star_rating}</span>
           </div>
 
           {/* Badge แสดงประเภทห้อง (มุมบนขวา) */}
-          <div className="absolute top-4 right-4 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-bold">
+          <div className="absolute top-4 right-4 bg-indigo-600/95 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
             {roomType}
           </div>
         </div>

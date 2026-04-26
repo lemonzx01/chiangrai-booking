@@ -314,19 +314,21 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
       <section className="relative py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           {/* Section Header */}
-          <div className="flex items-center justify-between mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900">
-              {t('home.weeklyDeals.title')}
-            </h2>
-            {/* Link ดูทั้งหมด (Desktop) */}
-            <Link
-              href="/hotels"
-              className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
-            >
-              {t('home.weeklyDeals.viewAll')}
-              <ArrowRight size={18} />
-            </Link>
-          </div>
+          <Reveal>
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-slate-900">
+                {t('home.weeklyDeals.title')}
+              </h2>
+              {/* Link ดูทั้งหมด (Desktop) */}
+              <Link
+                href="/hotels"
+                className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
+              >
+                {t('home.weeklyDeals.viewAll')}
+                <ArrowRight size={18} />
+              </Link>
+            </div>
+          </Reveal>
 
           {/* Hotels Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -397,19 +399,21 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
         <section className="py-24 bg-slate-50">
           <div className="max-w-7xl mx-auto px-6 sm:px-8">
             {/* Section Header */}
-            <div className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900">
-                {t('navbar.cars')}
-              </h2>
-              {/* Link ดูทั้งหมด (Desktop) */}
-              <Link
-                href="/cars"
-                className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
-              >
-                {t('home.weeklyDeals.viewAll')}
-                <ArrowRight size={18} />
-              </Link>
-            </div>
+            <Reveal>
+              <div className="flex items-center justify-between mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900">
+                  {t('navbar.cars')}
+                </h2>
+                {/* Link ดูทั้งหมด (Desktop) */}
+                <Link
+                  href="/cars"
+                  className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
+                >
+                  {t('home.weeklyDeals.viewAll')}
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </Reveal>
 
             {/* Cars Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">

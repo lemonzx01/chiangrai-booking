@@ -133,22 +133,24 @@ export default function CarCard({ car }: CarCardProps) {
   // Render
   // ----------------------------------------------------------
   return (
-    <Link href={`/cars/${car.id}`}>
-      <div className="group bg-white rounded-2xl border-2 border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300">
+    <Link href={`/cars/${car.id}`} className="block group focus-ring rounded-2xl">
+      <div className="card-premium bg-white rounded-2xl border border-slate-100 overflow-hidden">
         {/* ============================================================ */}
-        {/* ส่วนรูปภาพ */}
+        {/* ส่วนรูปภาพ                                                  */}
         {/* ============================================================ */}
         <div className="relative h-56 overflow-hidden bg-slate-100">
-          {/* รูปภาพรถ - ใช้รูปแรกจาก array หรือ placeholder */}
           <Image
             src={car.images?.[0] || '/placeholder-car.jpg'}
             alt={name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover img-zoom"
           />
 
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
           {/* Badge แสดงประเภทรถ (มุมบนขวา) */}
-          <div className="absolute top-4 right-4 bg-slate-900 text-white px-3 py-1.5 rounded-full text-xs font-bold">
+          <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
             {carType}
           </div>
         </div>
