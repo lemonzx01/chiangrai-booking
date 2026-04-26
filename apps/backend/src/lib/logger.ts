@@ -150,6 +150,13 @@ function write(level: LogLevel, msg: string, context: Record<string, unknown>) {
   if (!shouldLog(level)) return
   const line = format(level, msg, context)
 
+  // Sentry hook (opt-in): forward warn/error/fatal to Sentry if
+  // it's been initialized via instrumentation.ts. Failures are
+  // swallowed — we'd rather lose telemetry than crash a request.
+  if (level === 'error' || level === 'fatal' || level === 'warn') {
+    forwardToSentry(level, msg, context).catch(() => {})
+  }
+
   // Browser path: no process.stdout — use console.
   if (typeof window !== 'undefined' || typeof process === 'undefined' || !process.stdout) {
     if (level === 'error' || level === 'fatal') {
@@ -170,6 +177,79 @@ function write(level: LogLevel, msg: string, context: Record<string, unknown>) {
   } else {
     process.stdout.write(line + '\n')
   }
+}
+
+// ============================================================
+// Optional Sentry transport
+// ============================================================
+//
+// When `NEXT_PUBLIC_SENTRY_DSN` (or `SENTRY_DSN`) is set, we
+// forward warn/error/fatal lines to Sentry. The import is
+// dynamic so apps without the dependency installed don't pay
+// any cost (and don't break the build).
+//
+// Wiring (separate, app-level):
+//   - Add `@sentry/nextjs` to apps/backend/package.json
+//   - Run `npx @sentry/wizard@latest -i nextjs` once to scaffold
+//     instrumentation.ts and the config files
+//   - Set SENTRY_DSN in Vercel env
+//
+// Until then this is a no-op — keeping the code path here means
+// that wiring it later is a one-line install, not a code change
+// across every route handler.
+
+let sentryAttempted = false
+type SentryLike = {
+  captureMessage: (msg: string, level?: string) => void
+  captureException: (err: unknown) => void
+  withScope: (cb: (scope: { setExtras: (e: Record<string, unknown>) => void }) => void) => void
+}
+let sentryInstance: SentryLike | null = null
+
+async function loadSentry(): Promise<SentryLike | null> {
+  if (sentryAttempted) return sentryInstance
+  sentryAttempted = true
+
+  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
+  if (!dsn) return null
+
+  try {
+    // The package is optional. We use a dynamic Function-eval so
+    // tsc / bundler don't try to resolve the import at build time
+    // when the dep isn't installed. If the import fails at
+    // runtime (no dep, no DSN, etc.) we silently fall back to
+    // local-only logging.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dynamicImport = new Function('m', 'return import(m)') as (m: string) => Promise<any>
+    const mod = await dynamicImport('@sentry/nextjs').catch(() => null)
+    if (!mod) return null
+    sentryInstance = mod as SentryLike
+    return sentryInstance
+  } catch {
+    return null
+  }
+}
+
+async function forwardToSentry(
+  level: LogLevel,
+  msg: string,
+  context: Record<string, unknown>
+) {
+  const Sentry = await loadSentry()
+  if (!Sentry) return
+
+  const sanitized = sanitize(context) as Record<string, unknown>
+  const sentryLevel =
+    level === 'fatal' ? 'fatal' : level === 'error' ? 'error' : 'warning'
+
+  Sentry.withScope((scope) => {
+    scope.setExtras(sanitized)
+    if (sanitized.error instanceof Error) {
+      Sentry.captureException(sanitized.error)
+    } else {
+      Sentry.captureMessage(msg, sentryLevel)
+    }
+  })
 }
 
 export interface Logger {
