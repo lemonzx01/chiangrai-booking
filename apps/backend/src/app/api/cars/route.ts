@@ -44,6 +44,7 @@ import {
   isMockMode
 } from '../../../lib/auth'
 import { logger } from '../../../lib/logger'
+import { withPublicCache, withPrivateNoStore } from '../../../lib/cache'
 
 // ============================================================
 // GET Handler - ดึงรายการรถเช่า
@@ -164,13 +165,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // ส่งกลับข้อมูลพร้อม pagination info
-    return NextResponse.json({
+    // Public callers get a CDN-cacheable response (60s edge, 5min SWR).
+    // Admins/partners see filtered data and must always get fresh.
+    const res = NextResponse.json({
       data,
       total: count,
       limit,
       offset,
     })
+    if (role === 'admin' || (role === 'partner' && partnerAuth.success)) {
+      return withPrivateNoStore(res)
+    }
+    return withPublicCache(res)
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
