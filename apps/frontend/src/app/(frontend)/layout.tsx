@@ -34,6 +34,12 @@ import Footer from '@/components/shared/Footer'
 /** Cookie consent banner (PDPA) */
 import CookieConsent from '@/components/shared/CookieConsent'
 
+/** Toast / notification system — replaces window.alert() across the site. */
+import { ToastProvider } from '@/components/shared/Toast'
+
+/** Skip-to-content link — first focusable element for keyboard users. */
+import SkipLink from '@/components/shared/SkipLink'
+
 /** I18n Provider สำหรับ Client-side localization */
 import I18nProvider from '@/i18n/client'
 
@@ -61,22 +67,27 @@ export default function FrontendLayout({
   return (
     // I18nProvider ครอบทั้งหมดเพื่อให้ใช้ translation ได้
     <I18nProvider>
-      {/* Container หลัก - min-h-screen ให้ความสูงเต็มจอ */}
-      <div className="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white bg-[#fafbfc]">
-        {/* Navbar - แถบเมนูด้านบน */}
-        <Navbar />
+      <ToastProvider>
+        {/* WCAG 2.4.1 — first focusable element jumps past the navbar */}
+        <SkipLink />
 
-        {/* Main Content - เนื้อหาหลักของแต่ละหน้า */}
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+        {/* Container หลัก - min-h-screen ให้ความสูงเต็มจอ */}
+        <div className="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white bg-[#fafbfc]">
+          {/* Navbar - แถบเมนูด้านบน */}
+          <Navbar />
 
-        {/* Footer - ส่วนท้ายของหน้า */}
-        <Footer />
+          {/* Main Content - id matches SkipLink href */}
+          <main id="main-content" className="flex-1 flex flex-col">
+            {children}
+          </main>
 
-        {/* Cookie consent banner (PDPA-compliant) */}
-        <CookieConsent />
-      </div>
+          {/* Footer - ส่วนท้ายของหน้า */}
+          <Footer />
+
+          {/* Cookie consent banner (PDPA-compliant) */}
+          <CookieConsent />
+        </div>
+      </ToastProvider>
     </I18nProvider>
   )
 }

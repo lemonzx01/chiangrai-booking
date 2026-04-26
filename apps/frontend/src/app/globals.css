@@ -86,6 +86,45 @@ body {
   }
 }
 
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
 }
@@ -107,6 +146,21 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+.animate-slide-in-right { animation: slide-in-right 0.4s ease-out forwards; }
+.animate-slide-in-left  { animation: slide-in-left 0.4s ease-out forwards; }
+.animate-float          { animation: float 3s ease-in-out infinite; }
+.animate-pulse-glow     { animation: pulse-glow 2s ease-out infinite; }
+
+/* Reduced motion: kill all animations and transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Utilities */
@@ -137,6 +191,31 @@ body {
   /* Card hover effect */
   .card-hover {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Premium card hover — subtle lift + ring glow + brighter shadow */
+  .card-premium {
+    @apply transition-all duration-500 ease-out;
+    will-change: transform, box-shadow;
+  }
+  .card-premium:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 20px 40px -16px rgba(15, 23, 42, 0.18),
+      0 8px 16px -8px rgba(79, 70, 229, 0.18);
+  }
+
+  /* Smoother, longer image zoom on card hover */
+  .img-zoom {
+    @apply transition-transform duration-700 ease-out;
+  }
+  .group:hover .img-zoom {
+    transform: scale(1.08);
+  }
+
+  /* Inline focus ring — for buttons inside dialogs / search dropdowns */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
   }
 }
 
