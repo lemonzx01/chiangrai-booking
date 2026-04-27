@@ -4,6 +4,7 @@ import { BookingStatus } from '@chiangrai/shared/types'
 
 import { getBackendUrl } from '@/lib/api'
 import PartnerSidebar from '@/components/partner/Sidebar'
+import ExportCsvButton from '@/components/admin/ExportCsvButton'
 
 import PartnerBookingsTable from './PartnerBookingsTable'
 
@@ -71,11 +72,14 @@ export default async function PartnerBookingsPage() {
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookings</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Track all bookings that belong to your cars or hotels.
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookings</h1>
+              <p className="text-sm text-slate-500 mt-1">
+                Track all bookings that belong to your cars or hotels.
+              </p>
+            </div>
+            <ExportCsvButton endpoint="/api/partner/bookings/export" />
           </div>
 
           <PartnerBookingsTable bookings={bookings} />
