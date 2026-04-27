@@ -46,6 +46,9 @@ import SkipLink from '@/components/shared/SkipLink'
 /** Floating LINE / chat button — reveals on scroll, shows everywhere */
 import FloatingContact from '@/components/shared/FloatingContact'
 
+/** PWA "Add to Home Screen" prompt — only mounts once per user */
+import PwaInstallPrompt from '@/components/shared/PwaInstallPrompt'
+
 /** I18n Provider สำหรับ Client-side localization */
 import I18nProvider from '@/i18n/client'
 
@@ -97,6 +100,10 @@ export default function FrontendLayout({
           {/* Floating LINE button — auto-hides on detail pages where
               StickyBookBar already occupies the bottom-right */}
           <FloatingContact hideOnMobileWhenStickyBarVisible />
+
+          {/* PWA install prompt — appears after 30s on supported browsers,
+              respects 14-day dismiss, hidden if already installed */}
+          <PwaInstallPrompt />
           </div>
         </ConfirmDialogProvider>
       </ToastProvider>
