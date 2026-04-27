@@ -8,6 +8,7 @@ import { User, BookOpen, LogOut, Loader2, Calendar, MapPin, Car, Building2, Chec
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import CancelBookingModal from '@/components/ui/CancelBookingModal'
+import ModificationRequestModal from '@/components/shared/ModificationRequestModal'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import type { Booking } from '@chiangrai/shared/types'
 import useLocalize from '@/hooks/useLocalize'
@@ -57,6 +58,10 @@ export default function ProfilePage() {
 
   // Cancel booking modal
   const [cancellingBooking, setCancellingBooking] = useState<Booking | null>(null)
+
+  // Modification request modal — customer asks to change dates,
+  // admin reviews and applies via /admin/bookings/[code]/reschedule
+  const [modifyingBooking, setModifyingBooking] = useState<Booking | null>(null)
 
   useEffect(() => {
     loadProfile()
@@ -610,14 +615,22 @@ export default function ProfilePage() {
                     <span className="text-lg font-bold text-indigo-600">
                       {formatCurrency(booking.total_price)}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
                       {['PENDING', 'CONFIRMED', 'PAID'].includes(booking.status) && (
-                        <button
-                          onClick={() => setCancellingBooking(booking)}
-                          className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-                        >
-                          {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
-                        </button>
+                        <>
+                          <button
+                            onClick={() => setModifyingBooking(booking)}
+                            className="px-3 py-1.5 text-xs font-medium text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
+                          >
+                            {lang === 'th' ? 'ขอเลื่อนวัน' : 'Reschedule'}
+                          </button>
+                          <button
+                            onClick={() => setCancellingBooking(booking)}
+                            className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
+                          </button>
+                        </>
                       )}
                       <Link href={`/success?code=${booking.booking_code}`}>
                         <Button variant="outline" size="sm">
@@ -646,6 +659,18 @@ export default function ProfilePage() {
             setCancellingBooking(null)
             loadProfile()
           }}
+        />
+      )}
+
+      {/* Modification request modal — sends an inbox entry to
+          admin; doesn't mutate the booking directly. */}
+      {modifyingBooking && (
+        <ModificationRequestModal
+          open
+          bookingCode={modifyingBooking.booking_code}
+          currentCheckIn={modifyingBooking.check_in_date}
+          currentCheckOut={modifyingBooking.check_out_date}
+          onClose={() => setModifyingBooking(null)}
         />
       )}
     </div>
