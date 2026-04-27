@@ -204,6 +204,16 @@ interface BookingEmailData {
  * @returns ผลการส่งอีเมล หรือ null
  */
 export async function sendBookingConfirmationEmail(data: BookingEmailData) {
+  // Build a "view your booking" URL that takes the customer to
+  // the dedicated detail page. Email is included as a query
+  // hint so the page can authenticate without forcing login.
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://gotjourneythailand.com'
+  ).replace(/\/$/, '')
+  const bookingUrl = `${siteUrl}/bookings/${data.bookingCode}?email=${encodeURIComponent(data.customerEmail)}`
+
   const { subject, html } = renderBookingConfirmationEmail({
     customerName: data.customerName,
     bookingCode: data.bookingCode,
@@ -212,6 +222,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
     checkOut: data.checkOut,
     totalPrice: data.totalPrice,
     status: data.status,
+    bookingUrl,
   })
   return sendEmail({ to: data.customerEmail, subject, html })
 }
