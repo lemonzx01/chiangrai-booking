@@ -27,7 +27,7 @@ export interface AdminNotification {
 interface NotificationsResponse {
   notifications: AdminNotification[]
   pagination: { total: number; limit: number; offset: number; hasMore: boolean }
-  summary: { unread: number }
+  summary: { unread: number; types?: string[] }
 }
 
 async function getInitialNotifications(): Promise<NotificationsResponse> {
@@ -39,7 +39,7 @@ async function getInitialNotifications(): Promise<NotificationsResponse> {
     return {
       notifications: [],
       pagination: { total: 0, limit: 100, offset: 0, hasMore: false },
-      summary: { unread: 0 },
+      summary: { unread: 0, types: [] },
     }
   }
 }
