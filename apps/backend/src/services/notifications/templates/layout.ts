@@ -94,6 +94,11 @@ export interface EmailLayoutOptions {
   cta?: { label: string; url: string }
   /** Optional small footer note above the auto-footer. */
   footerNote?: string
+  /** Optional unsubscribe URL — appears in the footer for marketing
+   * campaigns. Transactional emails (booking confirmations,
+   * password resets) leave this undefined and don't show
+   * the unsubscribe link. */
+  unsubscribeUrl?: string
 }
 
 /**
@@ -191,6 +196,11 @@ export function wrapEmail(options: EmailLayoutOptions): string {
           <a href="${url}/contact" style="color:${BRAND.muted};text-decoration:underline;">ติดต่อเรา</a>
           &nbsp;·&nbsp;
           <a href="${url}/privacy" style="color:${BRAND.muted};text-decoration:underline;">ความเป็นส่วนตัว</a>
+          ${
+            options.unsubscribeUrl
+              ? `&nbsp;·&nbsp;<a href="${escapeHtml(options.unsubscribeUrl)}" style="color:${BRAND.muted};text-decoration:underline;">ยกเลิกรับอีเมล</a>`
+              : ''
+          }
         </div>
         <div>นี่เป็นอีเมลอัตโนมัติ — กรุณาอย่าตอบกลับ / This is an automated email — please don't reply.</div>
       </div>

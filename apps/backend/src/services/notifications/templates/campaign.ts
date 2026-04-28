@@ -22,6 +22,9 @@ export interface CampaignTemplateData {
   customerName: string
   /** Optional CTA button. */
   cta?: { label: string; url: string }
+  /** One-click unsubscribe URL (HMAC-signed). REQUIRED for
+   * marketing emails to comply with PDPA / CAN-SPAM. */
+  unsubscribeUrl: string
 }
 
 export function renderCampaignEmail(data: CampaignTemplateData) {
@@ -32,8 +35,7 @@ export function renderCampaignEmail(data: CampaignTemplateData) {
     heading: data.subject,
     body: markdownLiteToHtml(personalized),
     cta: data.cta,
-    footerNote:
-      'หากไม่ต้องการรับอีเมลแบบนี้ กรุณาตอบกลับเพื่อแจ้งยกเลิก / To unsubscribe, please reply to this email.',
+    unsubscribeUrl: data.unsubscribeUrl,
   })
   return { subject: data.subject, html }
 }

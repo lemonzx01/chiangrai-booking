@@ -36,6 +36,10 @@ import { logAdminAction } from '../../../../lib/audit'
 import { logger } from '../../../../lib/logger'
 import { sendEmail } from '../../../../services/notifications/email'
 import { renderCampaignEmail } from '../../../../services/notifications/templates/campaign'
+import {
+  isUnsubscribed,
+  signUnsubscribeToken,
+} from '../../../../lib/unsubscribe'
 
 const COHORTS = [
   'all_customers',
@@ -169,9 +173,29 @@ export async function POST(request: Request) {
     })
   }
 
+  // ---- Strip unsubscribed addresses BEFORE the dry-run preview
+  //      so the admin sees the real send count, not the gross cohort.
+  //      Skipping this would lie to the admin and break our PDPA /
+  //      CAN-SPAM compliance the moment a campaign goes out.
+  let unsubscribedSkipped = 0
+  if (recipients.length > 0) {
+    const checks = await Promise.all(
+      recipients.map((r) =>
+        isUnsubscribed(r.email).then((u) => ({ ...r, _opted_out: u }))
+      )
+    )
+    unsubscribedSkipped = checks.filter((c) => c._opted_out).length
+    recipients = checks
+      .filter((c) => !c._opted_out)
+      .map(({ email, name }) => ({ email, name }))
+  }
+
   if (recipients.length === 0) {
     return NextResponse.json(
-      { error: 'ไม่มีผู้รับที่ตรงกับเงื่อนไข' },
+      {
+        error: 'ไม่มีผู้รับที่ตรงกับเงื่อนไข',
+        unsubscribed_skipped: unsubscribedSkipped,
+      },
       { status: 400 }
     )
   }
@@ -181,6 +205,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       dry_run: true,
       recipient_count: recipients.length,
+      unsubscribed_skipped: unsubscribedSkipped,
       sample_emails: recipients.slice(0, 5).map((r) => r.email),
     })
   }
@@ -220,12 +245,22 @@ export async function POST(request: Request) {
   const errorSamples: string[] = []
   for (const r of recipients) {
     try {
+      // Per-recipient unsubscribe link — signed with HMAC of
+      // their email, so it's safe to include in a public URL.
+      const siteUrl = (
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        'https://gotjourneythailand.com'
+      ).replace(/\/$/, '')
+      const unsubscribeUrl = `${siteUrl}/email-preferences?token=${signUnsubscribeToken(r.email)}`
+
       const { subject, html } = renderCampaignEmail({
         subject: data.subject,
         body: data.body,
         preheader: data.preheader,
         customerName: r.name,
         cta: data.cta,
+        unsubscribeUrl,
       })
       // sendEmail returns null on failure (see implementation
       // in services/notifications/email.ts). Mock mode always
@@ -275,6 +310,7 @@ export async function POST(request: Request) {
     metadata: {
       cohort: data.cohort,
       recipient_count: recipients.length,
+      unsubscribed_skipped: unsubscribedSkipped,
       succeeded,
       failed,
       subject: data.subject,
@@ -285,6 +321,7 @@ export async function POST(request: Request) {
     id: campaignRow.id,
     status: finalStatus,
     recipient_count: recipients.length,
+    unsubscribed_skipped: unsubscribedSkipped,
     succeeded,
     failed,
     error_summary: errorSamples.length > 0 ? errorSamples : null,
