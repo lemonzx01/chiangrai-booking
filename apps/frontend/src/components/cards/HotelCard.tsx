@@ -64,6 +64,9 @@ import { useTranslation } from 'react-i18next'
 /** Blur placeholder data-URL */
 import { SHIMMER_DATA_URL } from '@/lib/blurPlaceholder'
 
+/** Wishlist heart toggle */
+import WishlistButton from '@/components/shared/WishlistButton'
+
 // ============================================================
 // Interface Definitions
 // ============================================================
@@ -154,6 +157,10 @@ export default function HotelCard({ hotel }: HotelCardProps) {
           {/* Subtle gradient at the bottom of the image — improves
               legibility of any future overlay (price, "ลด N%" pill). */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
+          {/* Wishlist heart — top-right, absolute-positioned over
+              the image. Stops click from following the parent Link. */}
+          <WishlistButton kind="hotel" id={hotel.id} />
 
           {/* Badge แสดงระดับดาว (มุมบนซ้าย) */}
           <div className="absolute top-4 left-4 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">

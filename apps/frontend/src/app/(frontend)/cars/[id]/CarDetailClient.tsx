@@ -31,6 +31,7 @@ import StickyBookBar from '@/components/shared/StickyBookBar'
 import TrustSignals from '@/components/shared/TrustSignals'
 import RecentlyViewed from '@/components/shared/RecentlyViewed'
 import Reveal from '@/components/shared/Reveal'
+import WishlistButton from '@/components/shared/WishlistButton'
 
 interface CarDetailClientProps {
   car: Car
@@ -141,6 +142,10 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
                   {t('common.bookNow')}
                 </Button>
               </Link>
+            </div>
+
+            <div className="mt-4">
+              <WishlistButton kind="car" id={car.id} variant="inline" showLabel />
             </div>
 
             <div className="mt-5">

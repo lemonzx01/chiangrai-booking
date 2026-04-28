@@ -100,6 +100,11 @@ export default function Footer() {
                   {t('navbar.cars')}
                 </Link>
               </li>
+              <li>
+                <Link href="/wishlist" className="hover:text-indigo-400 transition-colors">
+                  {lang === 'th' ? 'รายการที่ชอบ' : 'Wishlist'}
+                </Link>
+              </li>
             </ul>
           </div>
 

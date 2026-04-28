@@ -57,6 +57,7 @@ import StickyBookBar from '@/components/shared/StickyBookBar'
 import TrustSignals from '@/components/shared/TrustSignals'
 import RecentlyViewed from '@/components/shared/RecentlyViewed'
 import Reveal from '@/components/shared/Reveal'
+import WishlistButton from '@/components/shared/WishlistButton'
 
 /** Track viewing in localStorage */
 import useRecentlyViewed from '@/hooks/useRecentlyViewed'
@@ -319,6 +320,12 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 </Link>
               </div>
             )}
+
+            {/* Wishlist save button — sits in its own row above
+                trust signals so it doesn't fight the primary CTA */}
+            <div className="mt-4">
+              <WishlistButton kind="hotel" id={hotel.id} variant="inline" showLabel />
+            </div>
 
             {/* Trust signals reassurance under the booking CTA */}
             <div className="mt-5">

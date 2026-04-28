@@ -63,6 +63,9 @@ import { useTranslation } from 'react-i18next'
 /** Blur placeholder data-URL */
 import { SHIMMER_DATA_URL } from '@/lib/blurPlaceholder'
 
+/** Wishlist heart toggle */
+import WishlistButton from '@/components/shared/WishlistButton'
+
 // ============================================================
 // Interface Definitions
 // ============================================================
@@ -153,6 +156,9 @@ export default function CarCard({ car }: CarCardProps) {
           />
 
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
+          {/* Wishlist heart */}
+          <WishlistButton kind="car" id={car.id} />
 
           {/* Badge แสดงประเภทรถ (มุมบนขวา) */}
           <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
