@@ -1,5 +1,82 @@
 # 📝 Changelog - การแก้ไขและอัพเดท
 
+> Format note (2026-04): newer entries follow [Keep a Changelog](https://keepachangelog.com) — grouped Added / Changed / Fixed / Security under a dated heading. Older free-form entries below are preserved as-is.
+
+---
+
+## [Unreleased]
+
+This stretch of work took the project from "MVP-grade" to "production-ready and beyond". Every commit type-checks both apps and tests pass (300+ backend, 100 frontend). All commits in date order: `git log --oneline f9ad382..HEAD`.
+
+### Added — customer-facing
+
+- **`/bookings/[code]` detail page** — proper post-checkout view with status banner, item details, refund line if cancelled, action buttons that surface based on booking status. Lookup model: logged-in user matched by email automatically; guests pass `?email=…`; missing → friendly lookup form. Email confirmations now link here instead of `/success`.
+- **Self-service reschedule request** — customer-side button on profile + booking detail pages opens a modal that creates an admin inbox entry (`/api/bookings/[code]/modification-request`). Doesn't auto-mutate the booking — admin reviews because date changes can affect price.
+- **Wishlist** (`/wishlist`) — heart toggle on every card + detail page, localStorage-backed (no auth required), 100-entry cap, cross-tab sync via `storage` event. Future-proof for backend persistence without changing the hook contract.
+- **PWA install prompt** — captures `beforeinstallprompt`, surfaces after 30s on supported browsers, 14-day dismiss TTL, hidden when already installed. iOS Safari gets a "tap Share → Add to Home Screen" hint instead.
+- **Email preferences page** (`/email-preferences?token=…`) — HMAC-signed unsubscribe links in marketing emails. Public endpoint (no login forced) so unsubscribe rates stay healthy and our deliverability survives.
+- **Customer booking modification request** — submitted via `/api/bookings/[code]/modification-request`, drops admin inbox entry instead of mutating booking. Admin reviews + applies via the existing reschedule endpoint.
+
+### Added — admin
+
+- **Audit log** (`admin_audit_log` table, migration 0017) — append-only record of who did what, with snapshots of before-state on destructive actions. Wired into refund, manual booking, cancel, status change, hotel/car/partner deletes.
+- **Manual booking** — `POST /api/admin/bookings` for off-platform payments (cash, bank transfer, LINE Pay). Inserts a `payments` row with `stripe_checkout_session_id = "manual:<method>:<ref>"` so origin is traceable. Still respects availability; `force=true` overrides.
+- **Reschedule** — `POST /api/admin/bookings/[code]/reschedule` re-runs availability with the booking excluded from the conflict tally, returns specific 409 codes (`DATES_BLOCKED`/`ROOM_FULL`/`CAR_FULL`).
+- **Refund** — `POST /api/admin/bookings/[code]/refund` for arbitrary-amount refunds. Stripe + payment table updated atomically; optional `cancel_booking` flag.
+- **CSV export** — bookings + payments export endpoints, RFC-4180 with UTF-8 BOM (Excel-Thai compatible) and RFC 5987 filename encoding (Thai filenames survive). Audit-logged because bulk exports are privacy-sensitive.
+- **Email campaigns** (`/admin/campaigns`) — composer + history. 5 cohort options (all_customers, past_bookers, recent_bookers, cancelled, custom_emails), Markdown-lite body, dry-run preview, hard 1000 cap, sequential send to respect Resend's free-tier rate limit. Strips unsubscribed addresses pre-send. Each email carries a per-recipient HMAC-signed unsubscribe URL.
+- **Toast + ConfirmDialog** — replaced every `window.alert` / `window.confirm` across admin pages. Async-friendly, keyboard-accessible, branded.
+
+### Added — partner
+
+- **Stripe Connect onboarding UI** (`/partner/payouts`) — 5-state flow (not_started/loading/pending/active/error) on top of the existing backend endpoints. Auto-refreshes status when the partner returns from Stripe.
+- **Availability calendar** (`/partner/availability`) — partner-controlled blockout dates that flow through to the booking atomic RPC. Migration 0016 + the `availability_blocks` table.
+- **Analytics dashboard** (`/partner/analytics`) — KPIs (revenue, bookings, occupancy %), revenue timeline bar chart, status breakdown donut, top 5 dates. Window picker 7/30/90/365 days. Pure-CSS charts, no chart library.
+- **CSV export** of partner-owned bookings, mirrors the admin pattern.
+
+### Added — infrastructure & security
+
+- **Security headers** baseline (HSTS, CSP with explicit allow-lists, Referrer-Policy, Permissions-Policy, X-Frame-Options DENY) on both apps.
+- **Per-user rate limiting** — bucket by hashed cookie value when authenticated, fall back to IP. Stops "rotate IPs to brute-force one account" attacks.
+- **Sentry instrumentation templates** — copy + install path documented in `docs/SENTRY.md`. Logger transport already wired since `c671294`.
+- **Optional Sentry transport in logger** — forwards warn/error/fatal to Sentry when SDK is initialized; no-op otherwise.
+- **CDN caching** for public listing endpoints (`s-maxage=60, SWR=300`).
+- **Default placeholder assets** — `app/icon.tsx`, `app/apple-icon.tsx`, `app/opengraph-image.tsx` (Next.js conventions) generate gradient + "G" placeholders so production doesn't 404 before brand artwork lands.
+- **GitHub Actions CI** — typecheck + test + build matrix on every PR.
+- **Frontend tests** for FilterSidebar, CouponInput, SearchAutocomplete, Toast, ConfirmDialog, useRecentlyViewed (60 → 100).
+- **Email unsubscribe** infrastructure — `email_unsubscribes` table (migration 0019), HMAC-signed token helper, `GET/POST /api/email-preferences`, layout footer wired with optional unsubscribe link.
+- **Review spam-score heuristics** — `lib/spam.ts` scores submissions 0-100 on 7 heuristics (links / all-caps / repeated chars / too-short / emoji-heavy / profanity TH+EN / spam phrases TH+EN). Admin moderation queue sorts worst-first.
+- **Branded email templates** — `BRAND` constant, hidden preheader, eyebrow tag, styled CTA button, trust badges, footer with unsubscribe link, bilingual TH/EN content. Subject leads with ✓ + booking code for inbox scanability.
+
+### Added — docs
+
+- **`spec.md`** — 600-line engineering spec.
+- **`docs/API.md`** — 61-endpoint catalog grouped by audience.
+- **`docs/SENTRY.md`** — observability setup with cost guidance.
+- **`docs/BACKUP.md`** — disaster-recovery runbook with 3-layer strategy.
+- **`docs/E2E.md`** — Playwright scaffolding usage.
+
+### Changed
+
+- `lib/logger.ts` strips PII automatically; `console.*` removed across `apps/backend`.
+- All listings (hotels + cars) use `FilterSidebar` (sticky desktop, BottomSheet mobile) + `SearchAutocomplete` + `ActiveFilterChips`. Old inline dropdowns removed.
+- Hotel + car detail pages share `ImageGallery` (Lightbox) and `StickyBookBar`. Old per-page swap-galleries removed.
+- Cards use `next/image` with explicit `sizes` + AVIF/WebP + blur placeholder.
+- `next/font` switched to `display: 'swap'` to eliminate FOIT.
+
+### Security
+
+- CSRF double-submit cookie enforced on every mutating endpoint.
+- Account lockout (5 fails / 15min → 30min block) on customer + admin login.
+- RLS tightened — public read on bookings/payments dropped (migration 0010).
+- Webhook idempotency via `processed_webhooks` (migration 0011).
+
+### Removed
+
+- TestSprite-based test scripts (replaced by vitest workspaces + Playwright).
+
+---
+
 ## 🎯 สรุปการแก้ไขล่าสุด (Latest Updates)
 
 ### ✅ แก้ไข TestSprite Tests (TC005, TC008, TC009)
