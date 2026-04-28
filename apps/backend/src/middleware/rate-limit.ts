@@ -170,6 +170,62 @@ export function getClientIP(request: Request): string {
 }
 
 /**
+ * Build the rate-limit bucket identifier.
+ *
+ * If the caller has an auth cookie (admin/partner/user), key
+ * by a HASH of the cookie value so:
+ *   1. Authenticated users get a stable per-account bucket
+ *      regardless of which IP they're connecting from. Stops
+ *      "rotate IPs to brute-force one account" attacks.
+ *   2. Anonymous callers fall back to IP — same as before.
+ *
+ * Why hash instead of decode + use sub:
+ *   Decoding the JWT payload (without verifying) is fast but
+ *   trusts attacker-supplied input. A forged token could pick
+ *   a victim's user_id and exhaust their bucket, locking them
+ *   out. Hashing the raw cookie value means a forger gets
+ *   their OWN bucket — exactly like a different IP — and the
+ *   real user is unaffected.
+ *
+ * Hash uses HMAC-SHA256 with JWT_SECRET so the bucket name
+ * isn't directly recoverable from the cookie. Truncate to 16
+ * hex chars — 64 bits is plenty for collision avoidance at
+ * our scale.
+ */
+import { createHmac } from 'crypto'
+
+export function getRateLimitIdentity(request: Request): string {
+  const cookieHeader = request.headers.get('cookie') || ''
+
+  // Match in priority order — admin > partner > user — so that
+  // an admin who happens to also have a stale user cookie gets
+  // bucketed by their admin identity (separate quota).
+  const adminMatch = /(?:^|;\s*)admin_token=([^;]+)/.exec(cookieHeader)
+  const partnerMatch = /(?:^|;\s*)partner_token=([^;]+)/.exec(cookieHeader)
+  const userMatch = /(?:^|;\s*)user_token=([^;]+)/.exec(cookieHeader)
+
+  const found =
+    (adminMatch && { kind: 'admin', token: adminMatch[1] }) ||
+    (partnerMatch && { kind: 'partner', token: partnerMatch[1] }) ||
+    (userMatch && { kind: 'user', token: userMatch[1] }) ||
+    null
+
+  if (found) {
+    const secret =
+      process.env.JWT_SECRET ||
+      'rate-limit-fallback-secret-only-for-dev-mock-mode'
+    const hash = createHmac('sha256', secret)
+      .update(found.token)
+      .digest('hex')
+      .slice(0, 16)
+    return `${found.kind}:${hash}`
+  }
+
+  // No auth → fall back to IP
+  return `ip:${getClientIP(request)}`
+}
+
+/**
  * Rate limit middleware สำหรับ Next.js API routes
  *
  * @param request - HTTP Request object
@@ -187,8 +243,11 @@ export function rateLimitMiddleware(
   request: Request,
   endpoint: string
 ): Response | null {
-  const ip = getClientIP(request)
-  const { allowed, remaining, resetTime } = checkRateLimit(ip, endpoint)
+  // Per-user bucketing when authenticated, else per-IP. See
+  // getRateLimitIdentity for why hashing the cookie beats
+  // decoding the JWT subject.
+  const identity = getRateLimitIdentity(request)
+  const { allowed, remaining, resetTime } = checkRateLimit(identity, endpoint)
 
   if (!allowed) {
     return new Response(
@@ -290,9 +349,9 @@ export async function rateLimitAsync(
     RATE_LIMIT_CONFIG[endpoint as keyof typeof RATE_LIMIT_CONFIG] ||
     RATE_LIMIT_CONFIG.default
 
-  const ip = getClientIP(request)
+  const identity = getRateLimitIdentity(request)
   const windowSeconds = Math.ceil(config.windowMs / 1000)
-  const key = `rl:${endpoint}:${ip}`
+  const key = `rl:${endpoint}:${identity}`
 
   const { count, ttlSeconds } = await kvIncrement(key, windowSeconds)
 

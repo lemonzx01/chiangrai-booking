@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   checkRateLimit,
   getClientIP,
+  getRateLimitIdentity,
   rateLimitMiddleware,
   RATE_LIMIT_CONFIG,
 } from '@/middleware/rate-limit'
@@ -147,5 +148,86 @@ describe('rateLimitMiddleware', () => {
     const result = rateLimitMiddleware(request, '/api/checkout')
     expect(result!.headers.get('X-RateLimit-Remaining')).toBe('0')
     expect(result!.headers.get('Retry-After')).toBeDefined()
+  })
+})
+
+// ============================================================
+// getRateLimitIdentity — per-user vs per-IP bucketing
+// ============================================================
+
+describe('getRateLimitIdentity', () => {
+  it('falls back to ip:<ip> when no auth cookie is present', () => {
+    const request = new Request('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': '203.0.113.5' },
+    })
+    expect(getRateLimitIdentity(request)).toBe('ip:203.0.113.5')
+  })
+
+  it('returns "ip:unknown" when neither cookie nor IP header is present', () => {
+    const request = new Request('http://localhost/api/test')
+    expect(getRateLimitIdentity(request)).toBe('ip:unknown')
+  })
+
+  it('keys by hashed admin_token when present, regardless of IP', () => {
+    const cookie = 'admin_token=eyJalg.JWT.SIGNATURE'
+    const reqA = new Request('http://localhost/api/test', {
+      headers: {
+        cookie,
+        'x-forwarded-for': '1.1.1.1',
+      },
+    })
+    const reqB = new Request('http://localhost/api/test', {
+      headers: {
+        cookie,
+        'x-forwarded-for': '8.8.8.8', // different IP
+      },
+    })
+    const idA = getRateLimitIdentity(reqA)
+    const idB = getRateLimitIdentity(reqB)
+    expect(idA).toBe(idB) // same cookie → same bucket
+    expect(idA).toMatch(/^admin:[a-f0-9]{16}$/)
+  })
+
+  it('different cookies produce different buckets', () => {
+    const reqA = new Request('http://localhost/api/test', {
+      headers: { cookie: 'admin_token=alice-token' },
+    })
+    const reqB = new Request('http://localhost/api/test', {
+      headers: { cookie: 'admin_token=bob-token' },
+    })
+    expect(getRateLimitIdentity(reqA)).not.toBe(getRateLimitIdentity(reqB))
+  })
+
+  it('admin_token wins over partner_token', () => {
+    const request = new Request('http://localhost/api/test', {
+      headers: {
+        cookie: 'admin_token=admin-x; partner_token=partner-y',
+      },
+    })
+    expect(getRateLimitIdentity(request)).toMatch(/^admin:/)
+  })
+
+  it('partner_token wins over user_token', () => {
+    const request = new Request('http://localhost/api/test', {
+      headers: {
+        cookie: 'partner_token=partner-x; user_token=user-y',
+      },
+    })
+    expect(getRateLimitIdentity(request)).toMatch(/^partner:/)
+  })
+
+  it('uses user_token when only user cookie is present', () => {
+    const request = new Request('http://localhost/api/test', {
+      headers: { cookie: 'user_token=foo' },
+    })
+    expect(getRateLimitIdentity(request)).toMatch(/^user:[a-f0-9]{16}$/)
+  })
+
+  it('does not leak the raw token in the identity string', () => {
+    const request = new Request('http://localhost/api/test', {
+      headers: { cookie: 'user_token=secret-jwt-payload' },
+    })
+    const id = getRateLimitIdentity(request)
+    expect(id).not.toContain('secret-jwt-payload')
   })
 })
