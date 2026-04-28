@@ -112,6 +112,21 @@ const nextConfig = {
           },
         ],
       },
+      // Service worker — never cache. Browsers ALREADY treat
+      // sw.js with a 24h max-cache-age internally (the
+      // "service worker update on reload" rule), but explicitly
+      // setting no-cache makes update rollouts instant when the
+      // user reloads, which is the behavior we actually want.
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          // Service-Worker-Allowed lets us scope to / even when
+          // the file is at /sw.js (already the default, but
+          // explicit is safer when reverse proxies are involved).
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
     ]
   },
 

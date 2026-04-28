@@ -49,6 +49,9 @@ import FloatingContact from '@/components/shared/FloatingContact'
 /** PWA "Add to Home Screen" prompt — only mounts once per user */
 import PwaInstallPrompt from '@/components/shared/PwaInstallPrompt'
 
+/** Registers /sw.js once on mount; pre-caches /offline */
+import ServiceWorkerRegister from '@/components/shared/ServiceWorkerRegister'
+
 /** I18n Provider สำหรับ Client-side localization */
 import I18nProvider from '@/i18n/client'
 
@@ -104,6 +107,11 @@ export default function FrontendLayout({
           {/* PWA install prompt — appears after 30s on supported browsers,
               respects 14-day dismiss, hidden if already installed */}
           <PwaInstallPrompt />
+
+          {/* Register /sw.js once on window load — pre-caches the
+              offline page and enables the PWA icon in browsers
+              that require an active SW for installability */}
+          <ServiceWorkerRegister />
           </div>
         </ConfirmDialogProvider>
       </ToastProvider>
