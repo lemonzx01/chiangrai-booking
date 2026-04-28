@@ -1,0 +1,100 @@
+name: CI
+
+# Run on every PR + every push to main. Avoids the surprise where
+# "but it worked on my machine" is the only thing standing between
+# the team and a broken main branch.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel in-flight runs on the same branch when a new commit lands.
+# Saves CI minutes when someone pushes a fix-up two seconds after
+# noticing a typo.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Required env for tests to run in mock mode without real services.
+# JWT_SECRET is a fake — it just needs to be ≥ 16 chars to pass the
+# validator. Empty SUPABASE_URL triggers mock mode so tests don't
+# try to talk to a real DB.
+env:
+  JWT_SECRET: ci-test-jwt-secret-at-least-32-chars-long-ok
+  NEXTAUTH_SECRET: ci-test-nextauth-secret-32-chars-long-ok
+  NEXT_PUBLIC_SUPABASE_URL: ''
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ''
+
+jobs:
+  # ------------------------------------------------------------
+  # Type-check both apps. Catches regressions in milliseconds
+  # rather than at deploy time.
+  # ------------------------------------------------------------
+  typecheck:
+    name: Type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Backend tsc
+        working-directory: apps/backend
+        run: npx tsc --noEmit
+      - name: Frontend tsc
+        working-directory: apps/frontend
+        run: npx tsc --noEmit
+
+  # ------------------------------------------------------------
+  # Unit tests. Each app's vitest suite runs in parallel via the
+  # matrix so a slow file in one suite doesn't block the other.
+  # ------------------------------------------------------------
+  test:
+    name: Test (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run tests
+        working-directory: apps/${{ matrix.app }}
+        run: npm test
+
+  # ------------------------------------------------------------
+  # Build both apps. Catches Next.js-specific issues that tsc
+  # alone misses (server-only imports leaking into client
+  # bundles, dynamic-route generation problems).
+  # ------------------------------------------------------------
+  build:
+    name: Build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build
+        working-directory: apps/${{ matrix.app }}
+        run: npm run build
+        env:
+          # Both apps still build without these (mock mode), but
+          # giving Next.js a sentinel value avoids the verbose
+          # warning lines in the build log.
+          BACKEND_URL: 'http://localhost:3001'
