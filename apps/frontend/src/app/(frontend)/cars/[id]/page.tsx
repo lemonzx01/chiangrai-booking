@@ -32,12 +32,19 @@
 // ============================================================
 
 import { getBackendUrl } from '@/lib/api'
+import type { Metadata } from 'next'
 
 /** Next.js utility สำหรับแสดงหน้า 404 */
 import { notFound } from 'next/navigation'
 
 /** Client component สำหรับแสดงรายละเอียดรถ */
 import CarDetailClient from './CarDetailClient'
+
+/** JSON-LD builders for rich Google results */
+import {
+  buildCarSchema,
+  buildBreadcrumbSchema,
+} from '@/lib/structuredData'
 
 // ============================================================
 // Type Definitions
@@ -74,31 +81,58 @@ interface Props {
  * @param {Props} props - Props ที่มี params
  * @returns {Promise<Metadata>} Metadata object สำหรับ Next.js
  */
-export async function generateMetadata({ params }: Props) {
-  // ดึง id จาก params (await เนื่องจากเป็น Promise)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-
-  // Fetch car from backend API
   const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
     cache: 'no-store',
   })
-  const json = await res.json()
+  const json = await res.json().catch(() => ({}))
   const car = json.data ?? json
 
-  // ----------------------------------------------------------
-  // Return Metadata
-  // ----------------------------------------------------------
-  // ถ้าไม่พบรถ
-  if (!car || car.error) {
+  if (!car || car.error || !car.id) {
     return {
-      title: 'Car Not Found | Got Journey Thailand',
+      title: 'ไม่พบรถ / Car not found',
+      robots: { index: false, follow: false },
     }
   }
 
-  // ถ้าพบรถ - ใช้ชื่อและรายละเอียดภาษาอังกฤษ
+  const titleTh = car.name_th || ''
+  const titleEn = car.name_en || ''
+  const title = titleTh && titleEn && titleTh !== titleEn
+    ? `${titleTh} — ${titleEn}`
+    : titleTh || titleEn || 'รถเช่า'
+
+  const rawDesc = car.description_th || car.description_en || ''
+  const description =
+    rawDesc.length > 158 ? rawDesc.slice(0, 155).trimEnd() + '...' : rawDesc
+
+  const images: string[] = Array.isArray(car.images) ? car.images.slice(0, 4) : []
+
   return {
-    title: `${car.name_en} | Got Journey Thailand`,
-    description: car.description_en,
+    title,
+    description,
+    alternates: {
+      canonical: `/cars/${id}`,
+      languages: {
+        th: `/cars/${id}`,
+        en: `/cars/${id}`,
+      },
+    },
+    openGraph: {
+      type: 'website',
+      url: `/cars/${id}`,
+      title,
+      description,
+      images: images.length > 0 ? images.map((url) => ({ url })) : undefined,
+      locale: 'th_TH',
+      alternateLocale: ['en_US'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: images.slice(0, 1),
+    },
   }
 }
 
@@ -125,7 +159,6 @@ export async function generateMetadata({ params }: Props) {
  * @throws {NotFound} ถ้าไม่พบรถ จะ redirect ไปหน้า 404
  */
 export default async function CarDetailPage({ params }: Props) {
-  // ดึง id จาก params
   const { id } = await params
 
   const res = await fetch(`${getBackendUrl()}/api/cars/${id}`, {
@@ -138,8 +171,38 @@ export default async function CarDetailPage({ params }: Props) {
     notFound()
   }
 
-  // ----------------------------------------------------------
-  // Render Client Component
-  // ----------------------------------------------------------
-  return <CarDetailClient car={car} />
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildCarSchema({
+        id: car.id,
+        name: car.name_en || car.name_th || 'Car rental',
+        alternateName:
+          car.name_th && car.name_th !== car.name_en
+            ? car.name_th
+            : undefined,
+        description: car.description_en || car.description_th || '',
+        images: Array.isArray(car.images) ? car.images : [],
+        carType: car.car_type_en || car.car_type_th || null,
+        passengers: car.max_passengers || null,
+        pricePerDay:
+          Number(car.base_price_per_day || car.price_per_day) || 0,
+      }),
+      buildBreadcrumbSchema([
+        { name: 'หน้าแรก', url: '/' },
+        { name: 'รถเช่า', url: '/cars' },
+        { name: car.name_th || car.name_en || 'Car', url: `/cars/${id}` },
+      ]),
+    ],
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <CarDetailClient car={car} />
+    </>
+  )
 }
