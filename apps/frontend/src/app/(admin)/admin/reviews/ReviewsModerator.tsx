@@ -246,7 +246,7 @@ export default function ReviewsModerator({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 mb-2">
+                <div className="flex items-center gap-1 mb-2 flex-wrap">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <Star
                       key={n}
@@ -258,6 +258,16 @@ export default function ReviewsModerator({
                       }
                     />
                   ))}
+                  {/* Spam-score badge — only shown for pending
+                      reviews with a score above the noise floor.
+                      Color escalates: yellow ≥ 30, orange ≥ 50,
+                      red ≥ 70 — gives admin a quick visual cue. */}
+                  {!r.is_approved && (r.spam_score || 0) >= 30 && (
+                    <SpamBadge
+                      score={r.spam_score || 0}
+                      reasons={r.spam_reasons || []}
+                    />
+                  )}
                 </div>
 
                 {r.comment && (
@@ -278,5 +288,53 @@ export default function ReviewsModerator({
         </div>
       )}
     </>
+  )
+}
+
+// ---------------------------------------------------------------
+// SpamBadge — color-coded by score with reason chips
+// ---------------------------------------------------------------
+
+const REASON_LABELS: Record<string, string> = {
+  many_links: 'ลิงก์มากผิดปกติ',
+  multiple_links: 'มีหลายลิงก์',
+  link_only: 'มีแค่ลิงก์',
+  all_caps: 'พิมพ์ตัวพิมพ์ใหญ่หมด',
+  mostly_caps: 'ตัวพิมพ์ใหญ่เยอะ',
+  character_runs: 'พิมพ์ซ้ำตัวอักษร',
+  long_run: 'มีตัวอักษรซ้ำยาว',
+  too_short: 'สั้นเกินไป',
+  low_content: 'เนื้อหาน้อย',
+  emoji_heavy: 'อีโมจิเยอะผิดปกติ',
+  profanity: 'มีคำหยาบ',
+  spam_phrase: 'มีวลีน่าสงสัย',
+}
+
+function SpamBadge({ score, reasons }: { score: number; reasons: string[] }) {
+  const tone =
+    score >= 70
+      ? 'bg-red-100 text-red-700 border-red-200'
+      : score >= 50
+        ? 'bg-orange-100 text-orange-700 border-orange-200'
+        : 'bg-amber-100 text-amber-700 border-amber-200'
+
+  return (
+    <div
+      className={`ml-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs font-semibold ${tone}`}
+      title={reasons.map((r) => REASON_LABELS[r] || r).join(', ')}
+    >
+      <span>⚠ น่าสงสัย {score}/100</span>
+      {reasons.slice(0, 2).map((r) => (
+        <span
+          key={r}
+          className="px-1.5 py-0.5 rounded bg-white/60 text-[10px] font-medium"
+        >
+          {REASON_LABELS[r] || r}
+        </span>
+      ))}
+      {reasons.length > 2 && (
+        <span className="text-[10px] opacity-70">+{reasons.length - 2}</span>
+      )}
+    </div>
   )
 }

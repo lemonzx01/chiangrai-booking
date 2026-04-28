@@ -24,6 +24,13 @@ export interface AdminReview {
   moderated_by: string | null
   rejection_reason: string | null
   created_at: string
+  /** 0..100 spam score from heuristics (lib/spam.ts). Pending
+   * queue is sorted spam_score DESC so the worst offenders
+   * surface first. */
+  spam_score?: number
+  /** Short codes like 'many_links', 'all_caps' explaining why
+   * the heuristic flagged it. Shown as chips in the admin UI. */
+  spam_reasons?: string[]
   hotel?: { id: string; name_th: string; name_en: string } | null
   car?: { id: string; name_th: string; name_en: string } | null
 }

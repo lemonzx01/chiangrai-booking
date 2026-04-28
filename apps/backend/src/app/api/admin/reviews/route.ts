@@ -37,8 +37,18 @@ export async function GET(request: Request) {
       .select('*, hotel:hotels(id,name_th,name_en), car:cars(id,name_th,name_en)', {
         count: 'exact',
       })
-      .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    // Pending: sort by spam_score DESC so the obvious-junk reviews
+    // are at the top (admin can swat them fast). Approved: keep
+    // newest-first since spam_score is irrelevant once approved.
+    if (status === 'pending') {
+      query = query
+        .order('spam_score', { ascending: false })
+        .order('created_at', { ascending: false })
+    } else {
+      query = query.order('created_at', { ascending: false })
+    }
 
     if (status === 'pending') query = query.eq('is_approved', false)
     if (status === 'approved') query = query.eq('is_approved', true)

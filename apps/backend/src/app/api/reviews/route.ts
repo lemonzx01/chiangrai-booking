@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/server'
 import { createAdminNotification } from '../../../services/notifications/admin-inbox'
+import { scoreReview } from '../../../lib/spam'
 
 export async function GET(request: Request) {
   try {
@@ -115,6 +116,13 @@ export async function POST(request: Request) {
       )
     }
 
+    // Score the comment for spam-likelihood. Doesn't auto-reject —
+    // every review still goes to the moderation queue, but the
+    // score lets admins triage worst-first.
+    const { score: spamScore, reasons: spamReasons } = scoreReview(
+      comment || ''
+    )
+
     const supabase = await createAdminClient()
     const { data, error } = await supabase
       .from('reviews')
@@ -126,6 +134,8 @@ export async function POST(request: Request) {
         rating,
         comment,
         is_approved: false, // Moderation required — admin must approve
+        spam_score: spamScore,
+        spam_reasons: spamReasons,
       })
       .select()
       .single()
