@@ -32,6 +32,9 @@ import { cookies } from 'next/headers'
 /** Admin Sidebar component */
 import AdminSidebar from '@/components/admin/Sidebar'
 
+/** Live system status — DB ping, services, deploy info */
+import SystemStatusWidget from '@/components/admin/SystemStatusWidget'
+
 /** Lucide icons สำหรับ UI */
 import { Building2, Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 
@@ -301,6 +304,13 @@ export default async function DashboardPage() {
               เพิ่มรถ
             </Link>
           </div>
+        </div>
+
+        {/* ============================================================
+            System status widget - live health from /api/health
+            ============================================================ */}
+        <div className="mb-6 sm:mb-8">
+          <SystemStatusWidget />
         </div>
 
         {/* ============================================================
