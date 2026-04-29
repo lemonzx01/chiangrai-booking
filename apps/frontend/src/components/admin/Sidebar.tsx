@@ -36,7 +36,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
-import { Compass, LayoutDashboard, Building2, Car, Calendar, LogOut, Menu, X, Users, CreditCard, Tag, MessageSquare, Bell, Send } from 'lucide-react'
+import { Compass, LayoutDashboard, Building2, Car, Calendar, LogOut, Menu, X, Users, CreditCard, Tag, MessageSquare, Bell, Send, Gift } from 'lucide-react'
 
 // ============================================================
 // Constants - Navigation Menu
@@ -53,6 +53,7 @@ const navigation = [
   { name: 'การจอง', href: '/admin/bookings', icon: Calendar },
   { name: 'การชำระเงิน', href: '/admin/payments', icon: CreditCard },
   { name: 'คูปอง', href: '/admin/coupons', icon: Tag },
+  { name: 'แนะนำเพื่อน', href: '/admin/referrals', icon: Gift },
   { name: 'รีวิว', href: '/admin/reviews', icon: MessageSquare },
   { name: 'การแจ้งเตือน', href: '/admin/notifications', icon: Bell },
   { name: 'แคมเปญอีเมล', href: '/admin/campaigns', icon: Send },
