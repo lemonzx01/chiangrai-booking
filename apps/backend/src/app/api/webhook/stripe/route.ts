@@ -29,10 +29,12 @@ import { createAdminClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { sendBookingConfirmationEmail } from '../../../../services/notifications/email'
+import { sendBookingConfirmationEmail, sendEmail } from '../../../../services/notifications/email'
 import { sendPartnerBookingNotification, sendAdminBookingNotification } from '../../../../services/notifications/partner'
 import { logger } from '../../../../lib/logger'
 import { isStripeMockMode } from '../../../../lib/auth'
+import { qualifyAndIssueRewards } from '../../../../lib/referral'
+import { renderReferralRewardEmail } from '../../../../services/notifications/templates/referralReward'
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -169,6 +171,23 @@ export async function POST(request: Request) {
             }
 
             sendAdminBookingNotification(booking).catch((e) => logger.error('notification dispatch failed', { error: e }))
+
+            // ----- Referral rewards (best-effort, fire-and-forget) -----
+            // If this is the referee's first paid booking AND they
+            // were attributed to a referrer at signup time, both
+            // sides earn a coupon. Failures here are logged but
+            // never bubble — payment processing is the priority.
+            if (booking.customer_email) {
+              dispatchReferralReward(
+                booking.customer_email,
+                booking.id
+              ).catch((e) =>
+                logger.error('referral reward dispatch failed', {
+                  bookingId: booking.id,
+                  error: e instanceof Error ? e.message : String(e),
+                })
+              )
+            }
           }
         }
         break
@@ -265,4 +284,101 @@ export async function POST(request: Request) {
     logger.error('webhook processing error', { eventId: event.id, type: event.type, error })
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
+}
+
+// ===============================================================
+// Referral reward dispatch
+// ===============================================================
+//
+// Wraps qualifyAndIssueRewards with side-effect emails. Lives
+// here (not in lib/referral) because lib/referral shouldn't
+// depend on the email service — that would couple a pure data-
+// layer module to a delivery concern.
+//
+// The function is intentionally async and fire-and-forget from
+// the caller's POV. We swallow all errors after logging because
+// the caller (the Stripe webhook) cannot meaningfully retry: the
+// payment is already confirmed.
+
+async function dispatchReferralReward(
+  customerEmail: string,
+  bookingId: string
+): Promise<void> {
+  const result = await qualifyAndIssueRewards(customerEmail, bookingId)
+  if (result.status !== 'rewarded' || !result.reward) {
+    // Log only the interesting non-success outcomes — 'no_referral'
+    // is the common case and isn't worth a log line.
+    if (result.status === 'error') {
+      logger.warn('referral: reward issuance ended in error state', {
+        bookingId,
+      })
+    }
+    return
+  }
+
+  const r = result.reward
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://gotjourneythailand.com'
+  ).replace(/\/$/, '')
+
+  // Build the discount label. Currently we hardcode the percent
+  // shape because lib/referral hardcodes the type — if we ever
+  // make it configurable, read REFERRAL_REWARD_PERCENT here too.
+  const pct = process.env.REFERRAL_REWARD_PERCENT || '10'
+  const discountLabel = `${pct}%`
+
+  // 90 days from now matches the default in lib/referral.
+  const expiresAt = new Date()
+  const days = Number(process.env.REFERRAL_REWARD_DAYS || 90)
+  expiresAt.setDate(expiresAt.getDate() + days)
+  const expiresIso = expiresAt.toISOString()
+
+  // Both emails are best-effort — log on failure but don't bubble.
+  const referrerEmail = renderReferralRewardEmail({
+    side: 'referrer',
+    recipientName: r.referrerName,
+    otherPartyName: r.refereeName,
+    couponCode: r.referrerCouponCode,
+    discountLabel,
+    expiresAt: expiresIso,
+    ctaUrl: siteUrl,
+  })
+  const refereeEmail = renderReferralRewardEmail({
+    side: 'referee',
+    recipientName: r.refereeName,
+    otherPartyName: r.referrerName,
+    couponCode: r.refereeCouponCode,
+    discountLabel,
+    expiresAt: expiresIso,
+    ctaUrl: siteUrl,
+  })
+
+  sendEmail({
+    to: r.referrerEmail,
+    subject: referrerEmail.subject,
+    html: referrerEmail.html,
+  }).catch((e) =>
+    logger.error('referral: referrer reward email failed', {
+      referralId: r.referralId,
+      error: e instanceof Error ? e.message : String(e),
+    })
+  )
+
+  sendEmail({
+    to: r.refereeEmail,
+    subject: refereeEmail.subject,
+    html: refereeEmail.html,
+  }).catch((e) =>
+    logger.error('referral: referee reward email failed', {
+      referralId: r.referralId,
+      error: e instanceof Error ? e.message : String(e),
+    })
+  )
+
+  logger.info('referral: rewards issued', {
+    referralId: r.referralId,
+    bookingId,
+  })
 }

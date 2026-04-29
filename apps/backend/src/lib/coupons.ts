@@ -15,6 +15,18 @@ interface CouponRecord {
   starts_at: string | null
   expires_at: string | null
   is_active: boolean
+  /**
+   * If set, only a booking whose customer_email matches
+   * (case-insensitive) can redeem this coupon. Used by the
+   * referral reward flow to scope auto-issued coupons to the
+   * intended recipient. NULL = traditional public coupon.
+   */
+  bound_to_email?: string | null
+  /**
+   * Provenance tag — e.g. 'referral_referrer' / 'referral_referee'.
+   * NULL for admin-issued promo codes.
+   */
+  source?: string | null
 }
 
 export type CouponValidationResult =
@@ -61,7 +73,17 @@ export async function validateCouponForBooking(
   supabase: any,
   rawCode: string,
   bookingType: BookingType,
-  totalAmount: number
+  totalAmount: number,
+  /**
+   * Optional. When provided AND the coupon has bound_to_email
+   * set, the booking's customer_email must match (case-
+   * insensitive) or the redemption is rejected.
+   *
+   * Pass undefined for "we don't know the customer email yet" —
+   * the validation will still pass for unbound coupons but
+   * reject any bound coupon, which is the safe default.
+   */
+  customerEmail?: string | null
 ): Promise<CouponValidationResult> {
   const code = normalizeCouponCode(rawCode)
 
@@ -103,6 +125,21 @@ export async function validateCouponForBooking(
     couponRecord.applies_to !== bookingType
   ) {
     return { valid: false, error: 'คูปองนี้ใช้กับการจองประเภทนี้ไม่ได้' }
+  }
+
+  // Email-bound check — used by referral reward coupons. If the
+  // coupon is bound but the caller didn't provide an email, or
+  // the email doesn't match, reject. Comparison is case-
+  // insensitive because email addresses are.
+  if (couponRecord.bound_to_email) {
+    const expected = couponRecord.bound_to_email.trim().toLowerCase()
+    const actual = (customerEmail || '').trim().toLowerCase()
+    if (!actual || expected !== actual) {
+      return {
+        valid: false,
+        error: 'คูปองนี้ใช้ได้เฉพาะอีเมลที่ได้รับสิทธิ์เท่านั้น',
+      }
+    }
   }
 
   if (totalAmount < couponRecord.min_spend) {

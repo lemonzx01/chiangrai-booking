@@ -281,3 +281,312 @@ function maskEmailMidLocal(email: string): string {
   const masked = local.length <= 2 ? '*' : local[0] + '***'
   return masked + domain
 }
+
+// ===============================================================
+// Reward issuance (phase 2)
+// ===============================================================
+//
+// When a referee makes their first PAID booking, both sides earn
+// a coupon. The flow is:
+//
+//   1. Stripe webhook flips booking → PAID
+//   2. Webhook calls qualifyAndIssueRewards(refereeEmail, bookingId)
+//   3. We look up the user behind that email
+//   4. Find a 'pending' referral row keyed on that user
+//   5. Atomically claim it (UPDATE ... WHERE status='pending') so
+//      concurrent webhooks can't double-issue
+//   6. Insert two coupon rows — one bound to each side's email —
+//      and write the codes back to the referrals row
+//   7. Send notification emails to both sides (best-effort)
+//
+// The whole thing is wrapped so any error → log + return. A
+// reward-issuance failure must NEVER prevent a booking from
+// being marked PAID. Worst case: an admin re-issues the reward
+// manually using the audit trail.
+
+const REWARD_CODE_PREFIX = 'GIFT'
+const REWARD_CODE_RANDOM_LEN = 8
+
+// Coupon parameters. Tunable via env if you want to change the
+// program economics without redeploying — but defaults are sane.
+const REWARD_DISCOUNT_PERCENT = Number(
+  process.env.REFERRAL_REWARD_PERCENT || 10
+)
+const REWARD_MAX_DISCOUNT_THB = Number(
+  process.env.REFERRAL_REWARD_MAX_THB || 500
+)
+const REWARD_VALID_DAYS = Number(process.env.REFERRAL_REWARD_DAYS || 90)
+
+function generateRewardCode(): string {
+  let out = REWARD_CODE_PREFIX + '-'
+  for (let i = 0; i < REWARD_CODE_RANDOM_LEN; i++) {
+    out += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
+  }
+  return out
+}
+
+interface QualifiedReward {
+  status: 'rewarded'
+  referralId: string
+  referrerEmail: string
+  referrerName: string | null
+  refereeEmail: string
+  refereeName: string | null
+  referrerCouponCode: string
+  refereeCouponCode: string
+}
+
+interface QualifyOutcome {
+  status:
+    | 'rewarded' // success — both coupons issued, emails will fire
+    | 'no_referral' // referee not part of any referral
+    | 'already_processed' // race-lost — another worker handled it
+    | 'unknown_user' // email doesn't map to a registered user
+    | 'error' // unexpected DB failure (already logged)
+  reward?: QualifiedReward
+}
+
+/**
+ * Best-effort: qualify the referee for rewards if they have a
+ * pending referral, issue coupons to both sides.
+ *
+ * @param refereeEmail — the customer_email on the booking
+ * @param bookingId — for audit context only; not persisted here
+ *
+ * Never throws. Logs internally. Returns a status the caller
+ * can use to fire emails / log audit, but the caller is free
+ * to ignore the return.
+ */
+export async function qualifyAndIssueRewards(
+  refereeEmail: string,
+  bookingId: string | null
+): Promise<QualifyOutcome> {
+  if (!refereeEmail) return { status: 'unknown_user' }
+
+  try {
+    const supabase = await createAdminClient()
+
+    // 1. Resolve referee user. If they booked as a guest with an
+    //    email that isn't registered, no reward — referral system
+    //    is for tracked users only.
+    const { data: refereeRaw } = await supabase
+      .from('users')
+      .select('id, email, name')
+      .ilike('email', refereeEmail.trim())
+      .maybeSingle()
+    const referee = refereeRaw as
+      | { id: string; email: string; name: string | null }
+      | null
+    if (!referee) return { status: 'unknown_user' }
+
+    // 2. Find a pending referral row keyed on this referee.
+    const { data: pendingRaw } = await supabase
+      .from('referrals')
+      .select('id, referrer_id, referee_id, status')
+      .eq('referee_id', referee.id)
+      .eq('status', 'pending')
+      .maybeSingle()
+    const pending = pendingRaw as {
+      id: string
+      referrer_id: string
+      referee_id: string
+      status: string
+    } | null
+    if (!pending) return { status: 'no_referral' }
+
+    // 3. Atomically claim qualification. Conditional UPDATE
+    //    prevents concurrent webhooks from both winning.
+    const nowIso = new Date().toISOString()
+    const { data: claimedRaw, error: claimErr } = await supabase
+      .from('referrals')
+      .update({ status: 'qualified', qualified_at: nowIso })
+      .eq('id', pending.id)
+      .eq('status', 'pending')
+      .select('id')
+
+    if (claimErr) {
+      logger.error('referral: qualify claim failed', {
+        referralId: pending.id,
+        bookingId,
+        error: claimErr.message,
+      })
+      return { status: 'error' }
+    }
+
+    const claimed = (claimedRaw as Array<{ id: string }> | null) || []
+    if (claimed.length === 0) {
+      // Another worker beat us to it. Not an error.
+      return { status: 'already_processed' }
+    }
+
+    // 4. Resolve referrer for email/name.
+    const { data: referrerRaw } = await supabase
+      .from('users')
+      .select('id, email, name')
+      .eq('id', pending.referrer_id)
+      .maybeSingle()
+    const referrer = referrerRaw as
+      | { id: string; email: string; name: string | null }
+      | null
+    if (!referrer) {
+      logger.error('referral: referrer user missing after qualify', {
+        referralId: pending.id,
+      })
+      return { status: 'error' }
+    }
+
+    // 5. Generate coupon codes + insert. Retry on rare unique
+    //    collisions (4 attempts is enough at our entropy).
+    const referrerCode = await issueRewardCoupon(supabase, {
+      email: referrer.email,
+      source: 'referral_referrer',
+      description: 'Referral reward — thanks for inviting a friend',
+    })
+    const refereeCode = await issueRewardCoupon(supabase, {
+      email: referee.email,
+      source: 'referral_referee',
+      description: 'Welcome gift — thanks for trying us out',
+    })
+
+    if (!referrerCode || !refereeCode) {
+      logger.error('referral: coupon insert failed; reward incomplete', {
+        referralId: pending.id,
+        bookingId,
+      })
+      // Leave the referral in 'qualified' so an admin can retry
+      // by hand. Don't roll back to 'pending' — the qualifying
+      // booking has already been paid.
+      return { status: 'error' }
+    }
+
+    // 6. Stamp the codes on the referrals row + flip to rewarded.
+    const { error: stampErr } = await supabase
+      .from('referrals')
+      .update({
+        referrer_coupon_code: referrerCode,
+        referee_coupon_code: refereeCode,
+        status: 'rewarded',
+        rewarded_at: new Date().toISOString(),
+      })
+      .eq('id', pending.id)
+
+    if (stampErr) {
+      logger.error('referral: rewarded stamp failed (coupons issued)', {
+        referralId: pending.id,
+        error: stampErr.message,
+      })
+      // Coupons are usable; row is in an awkward 'qualified' state
+      // but admin can reconcile. Continue so emails still fire.
+    }
+
+    return {
+      status: 'rewarded',
+      reward: {
+        status: 'rewarded',
+        referralId: pending.id,
+        referrerEmail: referrer.email,
+        referrerName: referrer.name,
+        refereeEmail: referee.email,
+        refereeName: referee.name,
+        referrerCouponCode: referrerCode,
+        refereeCouponCode: refereeCode,
+      },
+    }
+  } catch (err) {
+    logger.error('referral: qualifyAndIssueRewards threw', {
+      bookingId,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return { status: 'error' }
+  }
+}
+
+/**
+ * Insert a single email-bound reward coupon. Returns the code
+ * on success, null on failure. Retries on unique-code collision.
+ */
+async function issueRewardCoupon(
+  supabase: any,
+  input: { email: string; source: string; description: string }
+): Promise<string | null> {
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + REWARD_VALID_DAYS)
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const code = generateRewardCode()
+    const { error } = await supabase.from('coupons').insert({
+      code,
+      description: input.description,
+      discount_type: 'PERCENT',
+      discount_value: REWARD_DISCOUNT_PERCENT,
+      max_discount: REWARD_MAX_DISCOUNT_THB,
+      min_spend: 0,
+      applies_to: 'ALL',
+      starts_at: new Date().toISOString(),
+      expires_at: expiresAt.toISOString(),
+      is_active: true,
+      bound_to_email: input.email.trim().toLowerCase(),
+      source: input.source,
+    })
+
+    if (!error) return code
+
+    // 23505 = code collision; retry. Anything else: bail out.
+    const errCode = (error as { code?: string }).code
+    if (errCode !== '23505') {
+      logger.error('referral: coupon insert error', {
+        source: input.source,
+        error: error.message,
+      })
+      return null
+    }
+  }
+
+  logger.error('referral: coupon insert exhausted retries', {
+    source: input.source,
+  })
+  return null
+}
+
+/**
+ * Admin action — flip a referral to 'voided'. Used when the
+ * admin spots fraud (e.g. someone made multiple accounts to
+ * self-refer). Does NOT revoke already-issued coupons — that's
+ * a separate action via the coupon admin UI, because the admin
+ * may want to keep one side's reward and only void the other.
+ */
+export async function voidReferral(referralId: string): Promise<{
+  ok: boolean
+  reason?: string
+}> {
+  if (!referralId) return { ok: false, reason: 'missing_id' }
+
+  try {
+    const supabase = await createAdminClient()
+    const { data: updatedRaw, error } = await supabase
+      .from('referrals')
+      .update({ status: 'voided' })
+      .eq('id', referralId)
+      .neq('status', 'voided')
+      .select('id')
+
+    if (error) {
+      logger.error('referral: void failed', {
+        referralId,
+        error: error.message,
+      })
+      return { ok: false, reason: 'db_error' }
+    }
+    const updated = (updatedRaw as Array<{ id: string }> | null) || []
+    if (updated.length === 0) {
+      return { ok: false, reason: 'not_found_or_already_voided' }
+    }
+    return { ok: true }
+  } catch (err) {
+    logger.error('referral: void threw', {
+      referralId,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return { ok: false, reason: 'exception' }
+  }
+}

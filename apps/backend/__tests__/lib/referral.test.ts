@@ -19,7 +19,12 @@ vi.mock('@/lib/supabase/server', () => ({
   createAdminClient: vi.fn(async () => ({ from: fromMock })),
 }))
 
-import { resolveReferrer, recordReferral } from '@/lib/referral'
+import {
+  resolveReferrer,
+  recordReferral,
+  qualifyAndIssueRewards,
+  voidReferral,
+} from '@/lib/referral'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -119,5 +124,176 @@ describe('recordReferral', () => {
       code: 'ABCDEFGH',
     })
     expect(result).toEqual({ recorded: false, reason: 'db_error' })
+  })
+})
+
+describe('qualifyAndIssueRewards', () => {
+  it('returns unknown_user for empty email without DB calls', async () => {
+    const result = await qualifyAndIssueRewards('', null)
+    expect(result.status).toBe('unknown_user')
+    expect(fromMock).not.toHaveBeenCalled()
+  })
+
+  it('returns unknown_user when the email does not map to a user', async () => {
+    // Single 'users' query that returns no row.
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            ilike: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await qualifyAndIssueRewards('ghost@example.com', 'b1')
+    expect(result.status).toBe('unknown_user')
+  })
+
+  it('returns no_referral when the user has no pending referral', async () => {
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            ilike: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'u1', email: 'u@x.com', name: 'U' },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'referrals') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await qualifyAndIssueRewards('u@x.com', 'b1')
+    expect(result.status).toBe('no_referral')
+  })
+
+  it('returns already_processed when the conditional UPDATE matches no rows', async () => {
+    // Simulates a concurrent webhook winning the race. The
+    // referral row exists with status='pending', but by the time
+    // we UPDATE it the other worker has already flipped it.
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            ilike: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'u1', email: 'u@x.com', name: 'U' },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'referrals') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: {
+                    id: 'r1',
+                    referrer_id: 'rx',
+                    referee_id: 'u1',
+                    status: 'pending',
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({
+              eq: () => ({
+                select: async () => ({ data: [], error: null }),
+              }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await qualifyAndIssueRewards('u@x.com', 'b1')
+    expect(result.status).toBe('already_processed')
+  })
+})
+
+describe('voidReferral', () => {
+  it('returns missing_id when called without an id', async () => {
+    const result = await voidReferral('')
+    expect(result).toEqual({ ok: false, reason: 'missing_id' })
+    expect(fromMock).not.toHaveBeenCalled()
+  })
+
+  it('returns not_found_or_already_voided when no rows are updated', async () => {
+    fromMock.mockReturnValue({
+      update: () => ({
+        eq: () => ({
+          neq: () => ({
+            select: async () => ({ data: [], error: null }),
+          }),
+        }),
+      }),
+    })
+
+    const result = await voidReferral('non-existent')
+    expect(result).toEqual({
+      ok: false,
+      reason: 'not_found_or_already_voided',
+    })
+  })
+
+  it('returns ok when the row is successfully voided', async () => {
+    fromMock.mockReturnValue({
+      update: () => ({
+        eq: () => ({
+          neq: () => ({
+            select: async () => ({
+              data: [{ id: 'r1' }],
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    })
+
+    const result = await voidReferral('r1')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('returns db_error on unexpected DB errors', async () => {
+    fromMock.mockReturnValue({
+      update: () => ({
+        eq: () => ({
+          neq: () => ({
+            select: async () => ({
+              data: null,
+              error: { message: 'boom' },
+            }),
+          }),
+        }),
+      }),
+    })
+
+    const result = await voidReferral('r1')
+    expect(result).toEqual({ ok: false, reason: 'db_error' })
   })
 })

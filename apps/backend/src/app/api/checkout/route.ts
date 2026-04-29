@@ -236,7 +236,10 @@ export async function POST(request: Request) {
         supabase,
         coupon_code,
         booking.booking_type as BookingType,
-        originalAmount
+        originalAmount,
+        // Pass through the booking's customer_email so email-bound
+        // referral coupons match against the actual buyer.
+        booking.customer_email || null
       )
 
       if (!couponValidation.valid) {

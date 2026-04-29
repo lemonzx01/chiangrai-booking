@@ -11,6 +11,11 @@ export async function POST(request: Request) {
     const code = typeof body?.code === 'string' ? body.code : ''
     const bookingType = body?.booking_type as BookingType
     const totalPrice = Number(body?.total_price)
+    // Optional — only required when validating an email-bound
+    // coupon (e.g. referral reward). Unbound public coupons
+    // ignore this.
+    const customerEmail =
+      typeof body?.customer_email === 'string' ? body.customer_email : null
 
     if (!code.trim()) {
       return NextResponse.json(
@@ -38,7 +43,8 @@ export async function POST(request: Request) {
       supabase,
       code,
       bookingType,
-      totalPrice
+      totalPrice,
+      customerEmail
     )
 
     if (!result.valid) {
