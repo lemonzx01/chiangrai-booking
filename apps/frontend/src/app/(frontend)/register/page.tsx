@@ -28,10 +28,10 @@
 // ============================================================
 
 /** React hooks สำหรับจัดการ state */
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 
 /** Next.js hooks สำหรับ navigation */
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 /** Next.js Link component */
 import Link from 'next/link'
@@ -40,7 +40,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 /** Lucide icons สำหรับ UI */
-import { UserPlus, Loader2 } from 'lucide-react'
+import { UserPlus, Loader2, Gift } from 'lucide-react'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
@@ -60,6 +60,23 @@ import Input from '@/components/ui/Input'
  * @returns {JSX.Element} Register page UI
  */
 export default function RegisterPage() {
+  // useSearchParams must run inside a Suspense boundary on Next 14.
+  return (
+    <Suspense fallback={<RegisterPageFallback />}>
+      <RegisterPageInner />
+    </Suspense>
+  )
+}
+
+function RegisterPageFallback() {
+  return (
+    <div className="min-h-screen pt-24 pb-12 bg-slate-50 flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+    </div>
+  )
+}
+
+function RegisterPageInner() {
   // ----------------------------------------------------------
   // Hooks
   // ----------------------------------------------------------
@@ -69,8 +86,30 @@ export default function RegisterPage() {
   /** Hook สำหรับ navigation */
   const router = useRouter()
 
+  /** Hook สำหรับ query params (?ref=...) */
+  const searchParams = useSearchParams()
+
   /** ภาษาปัจจุบัน */
   const lang = i18n.language
+
+  // ----------------------------------------------------------
+  // Referral capture
+  // ----------------------------------------------------------
+  // The ref param flows: marketing link → /register?ref=CODE → here →
+  // POST body. We normalize once on read and keep a stable string in
+  // state so re-renders don't re-parse the URL.
+  const [referralCode, setReferralCode] = useState<string>('')
+
+  useEffect(() => {
+    const raw = searchParams.get('ref')
+    if (!raw) return
+    const normalized = raw.trim().toUpperCase()
+    // Defensive: only accept the alphabet our generator uses, in case
+    // someone hand-types a code with spaces or punctuation.
+    if (/^[A-Z0-9]{4,16}$/.test(normalized)) {
+      setReferralCode(normalized)
+    }
+  }, [searchParams])
 
   // ----------------------------------------------------------
   // State
@@ -135,6 +174,10 @@ export default function RegisterPage() {
           email: formData.email,
           phone: formData.phone || undefined,
           password: formData.password,
+          // Pass through the referral code if one was on the URL.
+          // Backend treats it as advisory — invalid/missing codes
+          // never block registration.
+          ref: referralCode || undefined,
         }),
       })
 
@@ -185,6 +228,25 @@ export default function RegisterPage() {
               <UserPlus className="w-8 h-8 text-indigo-600" />
             </div>
           </div>
+
+          {/* Referral Banner — shown when ?ref=CODE is on the URL */}
+          {referralCode && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
+              <Gift className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-emerald-800">
+                  {lang === 'th'
+                    ? 'คุณได้รับการแนะนำจากเพื่อน!'
+                    : 'You were referred by a friend!'}
+                </p>
+                <p className="text-emerald-700 mt-0.5">
+                  {lang === 'th'
+                    ? `รหัสแนะนำ: ${referralCode} — ทั้งคุณและเพื่อนจะได้รับส่วนลดเมื่อจองครั้งแรก`
+                    : `Referral code: ${referralCode} — you'll both get a discount on your first booking`}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

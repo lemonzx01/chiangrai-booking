@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import CancelBookingModal from '@/components/ui/CancelBookingModal'
 import ModificationRequestModal from '@/components/shared/ModificationRequestModal'
+import ReferralCard from '@/components/shared/ReferralCard'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import type { Booking } from '@chiangrai/shared/types'
 import useLocalize from '@/hooks/useLocalize'
@@ -551,6 +552,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Referral Program Card — share code, see funnel */}
+        <ReferralCard />
 
         {/* Bookings Section */}
         <div className="bg-white rounded-2xl shadow-xl p-6">

@@ -65,6 +65,7 @@ import { validatePassword, sanitizeInput } from '../../../../lib/utils'
 /** Type สำหรับข้อมูล User */
 import type { User } from '@chiangrai/shared/types'
 import { logger } from '../../../../lib/logger'
+import { resolveReferrer, recordReferral } from '../../../../lib/referral'
 
 // ============================================================
 // POST Handler - สมัครสมาชิก
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
   try {
     // ดึงข้อมูลจาก request body
     const body = await request.json()
-    const { email, password, name, phone } = body
+    const { email, password, name, phone, ref } = body
 
     // ----------------------------------------------------------
     // ตรวจสอบข้อมูลที่จำเป็น
@@ -183,6 +184,26 @@ export async function POST(request: Request) {
       // เพิ่มเข้า mock data
       addMockUser(newUser)
 
+      // ----------------------------------------------------------
+      // Referral attribution (best-effort — never fail signup)
+      // ----------------------------------------------------------
+      if (ref) {
+        try {
+          const referrer = await resolveReferrer(ref)
+          if (referrer && referrer.id !== newUser.id) {
+            await recordReferral({
+              referrerId: referrer.id,
+              refereeId: newUser.id,
+              code: String(ref).trim().toUpperCase(),
+            })
+          }
+        } catch (refErr) {
+          logger.warn('register: referral attribution failed (mock)', {
+            error: refErr,
+          })
+        }
+      }
+
       return NextResponse.json({
         message: 'สมัครสมาชิกสำเร็จ',
         user: {
@@ -239,6 +260,26 @@ export async function POST(request: Request) {
         { error: 'ไม่สามารถสมัครสมาชิกได้' },
         { status: 500 }
       )
+    }
+
+    // ----------------------------------------------------------
+    // Referral attribution (best-effort — never fail signup)
+    // ----------------------------------------------------------
+    if (ref) {
+      try {
+        const referrer = await resolveReferrer(ref)
+        if (referrer && referrer.id !== newUser.id) {
+          await recordReferral({
+            referrerId: referrer.id,
+            refereeId: newUser.id,
+            code: String(ref).trim().toUpperCase(),
+          })
+        }
+      } catch (refErr) {
+        logger.warn('register: referral attribution failed', {
+          error: refErr,
+        })
+      }
     }
 
     // ส่ง verification email (non-blocking)
