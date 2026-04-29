@@ -35,6 +35,9 @@ import AdminSidebar from '@/components/admin/Sidebar'
 /** Live system status — DB ping, services, deploy info */
 import SystemStatusWidget from '@/components/admin/SystemStatusWidget'
 
+/** Growth-health analytics — referral funnel, coupon source mix, signup trend */
+import AnalyticsSection from './AnalyticsSection'
+
 /** Lucide icons สำหรับ UI */
 import { Building2, Car, Calendar, DollarSign, Plus, ArrowRight } from 'lucide-react'
 
@@ -340,6 +343,11 @@ export default async function DashboardPage() {
             </Link>
           ))}
         </div>
+
+        {/* ============================================================
+            Analytics Section — referral funnel, coupon mix, signup trend
+            ============================================================ */}
+        <AnalyticsSection />
 
         {/* ============================================================
             Recent Bookings Table - ตารางการจองล่าสุด

@@ -728,6 +728,49 @@ export interface DashboardStats {
   totalCars: number
 }
 
+/**
+ * Deeper analytics returned by /api/admin/analytics. Drives the
+ * "Growth health" section on the admin dashboard. Kept distinct
+ * from DashboardStats because the simple-counts contract is used
+ * by other features and we want freedom to evolve this independently.
+ */
+export interface AnalyticsResponse {
+  referrals: {
+    total: number
+    pending: number
+    qualified: number
+    rewarded: number
+    voided: number
+    /** Conversion: rewarded / total. 0-100 percentage. */
+    conversionRate: number
+    last30d: {
+      signups: number
+      qualified: number
+      rewarded: number
+    }
+    topReferrers: Array<{
+      name: string | null
+      emailMasked: string
+      qualifiedCount: number
+    }>
+  }
+  coupons: {
+    totalActive: number
+    bySource: {
+      admin: number
+      referralReferrer: number
+      referralReferee: number
+    }
+    last30d: {
+      issued: number
+      redemptions: number
+      totalDiscountThb: number
+    }
+  }
+  /** Per-day signup counts for the last 30 days, oldest first. */
+  signupsTrend30d: Array<{ date: string; count: number }>
+}
+
 // ============================================================
 // Navigation Types (Types สำหรับ Navigation)
 // ============================================================
