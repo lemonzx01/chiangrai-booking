@@ -68,8 +68,10 @@
 ## 🗄️ Database (Supabase)
 
 ### Schema
-- [ ] Migrations ทั้งหมดถูก apply ตามลำดับ
-- [ ] `supabase/migrations/0015_admin_notifications.sql` apply แล้ว
+- [ ] Migrations ทั้งหมดถูก apply ตามลำดับ — ตรวจไฟล์ล่าสุดใน `supabase/migrations/` ตรงกับ DB
+  - 0015 admin_notifications, 0016 availability_blocks, 0017 admin_audit_log
+  - 0018 email_campaigns, 0019 email_unsubscribes, 0020 reviews_spam_score
+  - 0021 user_wishlist, 0022 referrals, 0023 referral_rewards
 - [ ] มี **admin user อย่างน้อย 1 คน** ใน `admins` table
 - [ ] ลบ seed data ที่เป็น "test" / "demo" ออกหมดแล้ว
 - [ ] ตรวจ foreign keys มี `ON DELETE` policy ที่ถูกต้อง (CASCADE หรือ SET NULL)
@@ -105,7 +107,7 @@
 - [ ] ใส่ `RESEND_API_KEY` หรือ `BREVO_API_KEY` ใน backend env
 - [ ] Verify domain ใน provider (SPF, DKIM, DMARC records)
 - [ ] `EMAIL_FROM_ADDRESS` ใช้ domain ที่ verify แล้ว (ไม่ใช่ `gmail.com`)
-- [ ] Test ส่งอีเมลทั้ง 7 templates:
+- [ ] Test ส่งอีเมลทั้ง templates:
   - [ ] Email verification (register)
   - [ ] Password reset
   - [ ] Booking confirmation
@@ -113,6 +115,9 @@
   - [ ] Booking cancellation
   - [ ] Partner booking notification
   - [ ] Admin booking notification
+  - [ ] Referral reward (referrer side)
+  - [ ] Referral reward (referee side)
+  - [ ] Email campaign (marketing) — ตรวจว่า unsubscribe link ทำงาน
 - [ ] ตรวจ email ไม่เข้า spam folder (ทดสอบ Gmail, Outlook, Yahoo)
 - [ ] ตรวจ user data ใน template ถูก escape (ลอง name = `<script>alert(1)</script>`)
 
@@ -181,6 +186,27 @@
 - [ ] Slack/Discord webhook alert เมื่อ downtime
 - [ ] Sentry / Rollbar รับ error events
 - [ ] Log aggregator (Axiom / Datadog) รับ `stdout` ทุก function
+
+---
+
+## 🎁 Referral Program
+
+- [ ] Decide on the reward economics — defaults are 10% / max ฿500 / 90 days.
+      Override via `REFERRAL_REWARD_PERCENT` / `REFERRAL_REWARD_MAX_THB` /
+      `REFERRAL_REWARD_DAYS` env vars BEFORE first paying customer
+      (changing them later doesn't retroactively update issued coupons).
+- [ ] Manually test the full loop in staging:
+  - [ ] User A copies their code from `/profile`
+  - [ ] User B signs up at `/register?ref=<CODE>` — green banner appears
+  - [ ] User B books and pays
+  - [ ] Both A and B receive reward emails
+  - [ ] Both coupon codes appear in `/admin/referrals` row
+  - [ ] User B can apply their coupon at the next checkout
+  - [ ] User C cannot apply User B's coupon (bound_to_email check)
+- [ ] Admin verifies `/admin/referrals` filters work (pending/qualified/rewarded/voided)
+- [ ] Admin tests void flow — confirms it writes to `admin_audit_log`
+- [ ] Confirm self-referral is rejected (sign up with `?ref=` of one's own code)
+- [ ] Confirm second sign-up using the same email is rejected at register step
 
 ---
 

@@ -32,7 +32,7 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | GET | `/api/room-types?hotel_id=…` | Room types under a hotel. |
 | GET | `/api/reviews?hotel_id=…&car_id=…` | Approved reviews only. |
 | POST | `/api/reviews` | Submit a review (queued for moderation, scored by `lib/spam.ts`). |
-| POST | `/api/coupons/validate` | Live coupon check. Body: `{code, booking_type, total_price}`. Returns `{valid, discount_amount, final_amount}` or `{valid:false, error}`. |
+| POST | `/api/coupons/validate` | Live coupon check. Body: `{code, booking_type, total_price, customer_email?}`. `customer_email` is required when validating an email-bound (referral) coupon — unbound coupons ignore it. Returns `{valid, discount_amount, final_amount}` or `{valid:false, error}`. |
 | GET | `/api/email-preferences?token=…` | Read unsubscribe status. Token = HMAC-signed email. |
 | POST | `/api/email-preferences` | Toggle subscription. Body: `{token, unsubscribed, reason?}`. |
 | POST | `/api/contact` | Contact form submission. |
@@ -65,6 +65,9 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | POST | `/api/auth/resend-verification` | |
 | GET / PUT | `/api/user/profile` | Read / update name + phone. |
 | GET | `/api/user/bookings` | List of caller's bookings. |
+| GET | `/api/user/wishlist` | Cross-device wishlist (hotels + cars). |
+| POST / DELETE | `/api/user/wishlist` | Add / remove. Body: `{kind:'hotel'\|'car', id}`. |
+| GET | `/api/user/referrals` | Caller's referral code, share URL, funnel counts, masked invitee list. Lazy-creates code on first call. |
 
 ## Partner (`partner_token`; admin also passes)
 
@@ -98,6 +101,8 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | GET / POST | `/api/admin/notifications` | Inbox. |
 | GET / PATCH | `/api/admin/notifications/[id]` | Read / mark-read. |
 | GET / POST | `/api/admin/campaigns` | Email campaign list / send. POST validates cohort + drops unsubscribed addresses + audits. |
+| GET | `/api/admin/referrals` | List with optional `?status=pending\|qualified\|rewarded\|voided`. Newest 100, both sides joined. |
+| POST | `/api/admin/referrals/[id]/void` | Mark referral voided (audit-logged). Body: `{reason?}`. Does NOT deactivate already-issued coupons — that's a separate coupon-admin action. |
 | POST / DELETE | `/api/hotels`, `/api/hotels/[id]` | CRUD with audit on delete. |
 | POST / DELETE | `/api/cars`, `/api/cars/[id]` | Same. |
 | POST / DELETE | `/api/partners`, `/api/partners/[id]` | Same. |

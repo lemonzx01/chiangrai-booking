@@ -35,6 +35,15 @@
 - [PRODUCT_SPECIFICATION.md](./development/PRODUCT_SPECIFICATION.md) - Product Specification Document
 - [QUESTIONS_FOR_CLIENT.md](./development/QUESTIONS_FOR_CLIENT.md) - คำถามสำหรับ Client
 
+### 🚀 Deployment & Operations
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - คู่มือ deploy ไปยัง Vercel (two-project setup)
+- [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) - Pre-launch checklist (security, schema, monitoring)
+- [SECRET_ROTATION.md](./SECRET_ROTATION.md) - วิธีหมุน secret (JWT, Supabase, Stripe, Google OAuth)
+- [BACKUP.md](./BACKUP.md) - Backup & restore procedure
+- [SENTRY.md](./SENTRY.md) - Error tracking integration
+- [E2E.md](./E2E.md) - End-to-end smoke tests
+- [API.md](./API.md) - API endpoint reference
+
 ---
 
 ## 📖 เอกสารหลัก

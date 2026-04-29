@@ -107,6 +107,19 @@
 
 > ถ้าไม่ตั้ง backend จะใช้ in-memory rate limiter (reset เมื่อ cold start)
 
+#### 🎁 Referral Program (Optional — มีค่า default)
+
+| Key | Default | คำอธิบาย |
+|-----|---------|----------|
+| `REFERRAL_REWARD_PERCENT` | `10` | % ส่วนลดของคูปองที่ออกให้ทั้ง 2 ฝ่าย |
+| `REFERRAL_REWARD_MAX_THB` | `500` | เพดานส่วนลดต่อ 1 คูปอง (บาท) |
+| `REFERRAL_REWARD_DAYS` | `90` | วันหมดอายุของคูปองนับจากวันออก |
+
+> ปรับค่าเศรษฐศาสตร์ของระบบแนะนำเพื่อนได้โดยไม่ต้อง redeploy
+> — แค่อัปเดต env แล้ว Vercel จะ pick up อัตโนมัติ
+>
+> คูปองที่ออกไปแล้ว **ไม่ retroactive** — ค่าใหม่ใช้กับคูปองรอบถัดไปเท่านั้น
+
 ### 1.3 Deploy Backend
 ```bash
 # ถ้าใช้ Vercel CLI
