@@ -55,6 +55,7 @@ import { SignJWT } from 'jose'
 /** บริการส่งอีเมล */
 import { sendEmail } from '../../../../services/notifications/email'
 import { renderEmailVerificationEmail } from '../../../../services/notifications/templates/emailVerification'
+import { renderReferralSignupEmail } from '../../../../services/notifications/templates/referralSignup'
 
 /** ฟังก์ชันจัดการข้อมูล Mock */
 import { findMockUser, addMockUser } from '../../../../lib/mock-data'
@@ -191,11 +192,18 @@ export async function POST(request: Request) {
         try {
           const referrer = await resolveReferrer(ref)
           if (referrer && referrer.id !== newUser.id) {
-            await recordReferral({
+            const result = await recordReferral({
               referrerId: referrer.id,
               refereeId: newUser.id,
               code: String(ref).trim().toUpperCase(),
             })
+            if (result.recorded) {
+              dispatchReferralSignupEmail({
+                referrerEmail: referrer.email,
+                referrerName: referrer.name,
+                refereeName: sanitizedName,
+              })
+            }
           }
         } catch (refErr) {
           logger.warn('register: referral attribution failed (mock)', {
@@ -269,11 +277,21 @@ export async function POST(request: Request) {
       try {
         const referrer = await resolveReferrer(ref)
         if (referrer && referrer.id !== newUser.id) {
-          await recordReferral({
+          const result = await recordReferral({
             referrerId: referrer.id,
             refereeId: newUser.id,
             code: String(ref).trim().toUpperCase(),
           })
+          // Notify the referrer ONLY if attribution actually
+          // landed. If recorded=false (already_referred / db_error /
+          // self_referral) we skip silently — no email surprises.
+          if (result.recorded) {
+            dispatchReferralSignupEmail({
+              referrerEmail: referrer.email,
+              referrerName: referrer.name,
+              refereeName: sanitizedName,
+            })
+          }
         }
       } catch (refErr) {
         logger.warn('register: referral attribution failed', {
@@ -332,4 +350,55 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+}
+
+// ===============================================================
+// Referral signup notification dispatch
+// ===============================================================
+//
+// Lives in this file (not lib/referral) because it's a pure
+// side-effect: lib/referral is the data layer, this is a delivery
+// concern, and mixing them would couple the data module to the
+// email service.
+//
+// Fire-and-forget: caller doesn't await. Email failures are
+// logged but never bubble — registration must not depend on
+// email delivery.
+
+interface DispatchReferralSignupInput {
+  referrerEmail: string
+  referrerName: string | null
+  refereeName: string
+}
+
+function dispatchReferralSignupEmail(input: DispatchReferralSignupInput): void {
+  // Wrap in an async IIFE so the function returns synchronously
+  // and the caller doesn't have to remember to .catch() or await.
+  void (async () => {
+    try {
+      const siteUrl = (
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        'https://gotjourneythailand.com'
+      ).replace(/\/$/, '')
+
+      const rendered = renderReferralSignupEmail({
+        referrerName: input.referrerName,
+        refereeName: input.refereeName,
+        // /profile is where the referrer can see their funnel +
+        // share the code again.
+        ctaUrl: `${siteUrl}/profile`,
+      })
+
+      await sendEmail({
+        to: input.referrerEmail,
+        subject: rendered.subject,
+        html: rendered.html,
+      })
+    } catch (err) {
+      logger.error('[EMAIL] referral signup notification failed', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  })()
 }

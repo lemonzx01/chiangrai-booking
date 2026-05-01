@@ -26,6 +26,7 @@ import {
   BRAND,
 } from '@/services/notifications/templates/layout'
 import { renderBookingConfirmationEmail } from '@/services/notifications/templates/bookingConfirmation'
+import { renderReferralSignupEmail } from '@/services/notifications/templates/referralSignup'
 
 describe('escapeHtml', () => {
   it('escapes the five HTML-unsafe characters', () => {
@@ -212,5 +213,74 @@ describe('renderBookingConfirmationEmail', () => {
   it('omits the CTA when no bookingUrl', () => {
     const { html } = renderBookingConfirmationEmail(sample)
     expect(html).not.toMatch(/padding:14px 28px/)
+  })
+})
+
+describe('renderReferralSignupEmail', () => {
+  const baseInput = {
+    referrerName: 'Somchai',
+    refereeName: 'Niran',
+    ctaUrl: 'https://example.com/profile',
+  }
+
+  it('produces a Thai subject line with the celebration emoji', () => {
+    const { subject } = renderReferralSignupEmail(baseInput)
+    expect(subject).toContain('🎉')
+    expect(subject).toContain('สมัครสมาชิก')
+  })
+
+  it('greets the referrer by name when provided', () => {
+    const { html } = renderReferralSignupEmail(baseInput)
+    expect(html).toContain('สวัสดีคุณ Somchai')
+  })
+
+  it('falls back to a generic greeting when referrer name is null', () => {
+    const { html } = renderReferralSignupEmail({
+      ...baseInput,
+      referrerName: null,
+    })
+    // Should NOT contain any 'สวัสดีคุณ' (which always pairs with a name).
+    expect(html).not.toContain('สวัสดีคุณ')
+    expect(html).toContain('สวัสดี')
+  })
+
+  it('uses the referee name in the headline when provided', () => {
+    const { html } = renderReferralSignupEmail(baseInput)
+    expect(html).toContain('Niran เพิ่งสมัครสมาชิกผ่านลิงก์ของคุณ')
+  })
+
+  it('falls back to a generic friend label when referee name is empty', () => {
+    const { html } = renderReferralSignupEmail({
+      ...baseInput,
+      refereeName: '',
+    })
+    expect(html).toContain('เพื่อนคนหนึ่งของคุณ')
+  })
+
+  it('escapes HTML in the referee name (XSS hardening)', () => {
+    const { html } = renderReferralSignupEmail({
+      ...baseInput,
+      refereeName: '<script>alert(1)</script>',
+    })
+    expect(html).not.toContain('<script>alert(1)</script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+
+  it('does NOT promise the reward yet (only after first paid booking)', () => {
+    // Critical: this email fires at SIGNUP, before the referee
+    // has booked anything. We must not say "you got a coupon" —
+    // that comes from the separate referralReward template.
+    const { html } = renderReferralSignupEmail(baseInput)
+    expect(html).toContain('จองและชำระเงินสำเร็จเป็นครั้งแรก')
+    // Anti-regression: no past-tense reward language.
+    expect(html).not.toMatch(/ได้รับคูปองแล้ว/)
+  })
+
+  it('embeds the CTA URL pointing to the profile', () => {
+    const { html } = renderReferralSignupEmail({
+      ...baseInput,
+      ctaUrl: 'https://example.com/profile',
+    })
+    expect(html).toContain('https://example.com/profile')
   })
 })
