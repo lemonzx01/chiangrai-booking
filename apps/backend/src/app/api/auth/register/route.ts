@@ -67,6 +67,7 @@ import { validatePassword, sanitizeInput } from '../../../../lib/utils'
 import type { User } from '@chiangrai/shared/types'
 import { logger } from '../../../../lib/logger'
 import { resolveReferrer, recordReferral } from '../../../../lib/referral'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 // ============================================================
 // POST Handler - สมัครสมาชิก
@@ -98,6 +99,15 @@ import { resolveReferrer, recordReferral } from '../../../../lib/referral'
  */
 export async function POST(request: Request) {
   try {
+    // ----------------------------------------------------------
+    // Rate limit FIRST — protects the signup-triggered referral
+    // email dispatch from being weaponized. Without this, an
+    // attacker can bomb a target user's inbox by registering
+    // many accounts with their ?ref code.
+    // ----------------------------------------------------------
+    const limitResponse = await rateLimitAsync(request, '/api/auth/register')
+    if (limitResponse) return limitResponse
+
     // ดึงข้อมูลจาก request body
     const body = await request.json()
     const { email, password, name, phone, ref } = body
@@ -199,6 +209,7 @@ export async function POST(request: Request) {
             })
             if (result.recorded) {
               dispatchReferralSignupEmail({
+                referrerId: referrer.id,
                 referrerEmail: referrer.email,
                 referrerName: referrer.name,
                 refereeName: sanitizedName,
@@ -287,6 +298,7 @@ export async function POST(request: Request) {
           // self_referral) we skip silently — no email surprises.
           if (result.recorded) {
             dispatchReferralSignupEmail({
+              referrerId: referrer.id,
               referrerEmail: referrer.email,
               referrerName: referrer.name,
               refereeName: sanitizedName,
@@ -364,8 +376,63 @@ export async function POST(request: Request) {
 // Fire-and-forget: caller doesn't await. Email failures are
 // logged but never bubble — registration must not depend on
 // email delivery.
+//
+// Per-referrer throttle:
+//   The endpoint-level IP rate limit blocks bulk-signup attacks
+//   from one origin. But an attacker with a botnet could still
+//   spread signups across IPs. To prevent inbox flooding, we
+//   also cap notifications-per-referrer to 5 per 24h. Above that
+//   we silently drop additional sends (the referral itself is
+//   still recorded — the referrer just doesn't get an email
+//   storm). Stored in-memory, which means each serverless
+//   instance has its own counter; that's an acceptable upper
+//   bound for this kind of soft anti-abuse since cold starts
+//   are infrequent and the worst-case is a few extra emails.
+
+const REFERRER_NOTIFY_MAX = 5
+const REFERRER_NOTIFY_WINDOW_MS = 24 * 60 * 60 * 1000
+
+interface ReferrerNotifyEntry {
+  count: number
+  windowStart: number
+}
+
+const referrerNotifyMap = new Map<string, ReferrerNotifyEntry>()
+
+/**
+ * Returns true if we should send a notification to this referrer
+ * right now. Increments the counter as a side-effect when the
+ * answer is true — caller doesn't need to remember to update.
+ *
+ * Exported for tests; the implementation is intentionally simple
+ * (in-memory map, sliding window) and doesn't need a separate
+ * library.
+ */
+export function _shouldNotifyReferrerForTest(referrerId: string): boolean {
+  return shouldNotifyReferrer(referrerId)
+}
+
+function shouldNotifyReferrer(referrerId: string): boolean {
+  const now = Date.now()
+  const existing = referrerNotifyMap.get(referrerId)
+
+  // No entry, or the window has rolled over → fresh start.
+  if (!existing || now - existing.windowStart > REFERRER_NOTIFY_WINDOW_MS) {
+    referrerNotifyMap.set(referrerId, { count: 1, windowStart: now })
+    return true
+  }
+
+  if (existing.count >= REFERRER_NOTIFY_MAX) {
+    return false
+  }
+
+  existing.count++
+  return true
+}
 
 interface DispatchReferralSignupInput {
+  /** Used as the throttle key — caller must always pass it. */
+  referrerId: string
   referrerEmail: string
   referrerName: string | null
   refereeName: string
@@ -375,6 +442,16 @@ function dispatchReferralSignupEmail(input: DispatchReferralSignupInput): void {
   // Wrap in an async IIFE so the function returns synchronously
   // and the caller doesn't have to remember to .catch() or await.
   void (async () => {
+    // Per-referrer throttle: silent drop above the limit. We log
+    // at info level so operators can see if a referrer is being
+    // hammered, but not warn — it's a designed behavior.
+    if (!shouldNotifyReferrer(input.referrerId)) {
+      logger.info('referral: signup notification throttled', {
+        referrerId: input.referrerId,
+      })
+      return
+    }
+
     try {
       const siteUrl = (
         process.env.NEXT_PUBLIC_SITE_URL ||

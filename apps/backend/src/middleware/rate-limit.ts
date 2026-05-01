@@ -77,6 +77,23 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 3,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
+  // Register - prevents bulk-signup attacks. Now especially
+  // important since signup triggers a referral notification
+  // email; without a cap, an attacker can bomb a target user's
+  // inbox by registering many accounts with their ?ref code.
+  // 5 per hour per IP is plenty for legitimate use (a household
+  // signing up multiple family members) but kills automation.
+  '/api/auth/register': {
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Login - protects against credential-stuffing on top of the
+  // per-account lockout. Generous because legitimate users do
+  // mistype passwords.
+  '/api/auth/login': {
+    maxRequests: 20,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests

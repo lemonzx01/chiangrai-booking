@@ -123,19 +123,50 @@ export async function GET() {
     const cutoff30 = dateMinusDays(30).toISOString()
 
     // --------------------------------------------------------
-    // 1. Pull all referrals (small table — capped by user count;
-    //    even at 10k users this returns fast and avoids per-status
-    //    round-trips).
+    // Run the four independent queries in PARALLEL (not serial).
+    // Each one is small and fast on its own; previously we
+    // awaited them sequentially, which meant total latency was
+    // sum(queries). With Promise.all it's max(queries) — typically
+    // a 3-4× speedup for this endpoint on a real DB.
+    //
+    //   1. referrals (the main table this endpoint shapes)
+    //   2. coupons (total, by source, last-30d issuance)
+    //   3. payments (coupon redemptions in last 30d)
+    //   4. users created in last 30d (signup trend)
+    //
+    // The 5th query — "top referrer details" — depends on
+    // result 1, so it runs after this group.
     // --------------------------------------------------------
-    const { data: refs, error: refsErr } = await supabase
-      .from('referrals')
-      .select('id, status, referrer_id, created_at')
+    const [
+      refsResult,
+      couponsResult,
+      redemptionsResult,
+      users30Result,
+    ] = await Promise.all([
+      supabase
+        .from('referrals')
+        .select('id, status, referrer_id, created_at'),
+      supabase
+        .from('coupons')
+        .select('id, source, is_active, created_at'),
+      supabase
+        .from('payments')
+        .select('coupon_code, discount_amount, status, paid_at')
+        .not('coupon_code', 'is', null)
+        .gte('paid_at', cutoff30),
+      supabase
+        .from('users')
+        .select('created_at')
+        .gte('created_at', cutoff30),
+    ])
 
-    if (refsErr) {
-      logger.error('analytics: referrals query failed', { error: refsErr.message })
+    if (refsResult.error) {
+      logger.error('analytics: referrals query failed', {
+        error: refsResult.error.message,
+      })
     }
 
-    const refsList = (refs as Array<{
+    const refsList = (refsResult.data as Array<{
       id: string
       status: string
       referrer_id: string
@@ -208,12 +239,9 @@ export async function GET() {
 
     // --------------------------------------------------------
     // 3. Coupons — total, by source, last-30d issuance.
+    //    Result already fetched in the parallel batch above.
     // --------------------------------------------------------
-    const { data: coupons } = await supabase
-      .from('coupons')
-      .select('id, source, is_active, created_at')
-
-    const couponList = (coupons as Array<{
+    const couponList = (couponsResult.data as Array<{
       id: string
       source: string | null
       is_active: boolean
@@ -234,15 +262,9 @@ export async function GET() {
     // --------------------------------------------------------
     // 4. Coupon redemptions in last 30d — from payments table.
     //    discount_amount + coupon_code are populated when a
-    //    coupon was applied at checkout.
+    //    coupon was applied at checkout. Already fetched above.
     // --------------------------------------------------------
-    const { data: redemptions } = await supabase
-      .from('payments')
-      .select('coupon_code, discount_amount, status, paid_at')
-      .not('coupon_code', 'is', null)
-      .gte('paid_at', cutoff30)
-
-    const redemptionList = (redemptions as Array<{
+    const redemptionList = (redemptionsResult.data as Array<{
       coupon_code: string | null
       discount_amount: number | string | null
       status: string
@@ -259,13 +281,9 @@ export async function GET() {
 
     // --------------------------------------------------------
     // 5. 30-day signup trend — bucket users.created_at into days.
+    //    Already fetched above.
     // --------------------------------------------------------
-    const { data: users30 } = await supabase
-      .from('users')
-      .select('created_at')
-      .gte('created_at', cutoff30)
-
-    const usersList = (users30 as Array<{ created_at: string }> | null) || []
+    const usersList = (users30Result.data as Array<{ created_at: string }> | null) || []
 
     // Pre-seed every day in the window to 0 so the chart is dense
     // (no gaps where a quiet day would otherwise be missing).
