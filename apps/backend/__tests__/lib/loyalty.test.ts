@@ -19,7 +19,12 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }))
 
-import { calculatePointsForAmount, awardPointsForBooking } from '@/lib/loyalty'
+import {
+  calculatePointsForAmount,
+  awardPointsForBooking,
+  redeemPointsForCoupon,
+  REDEEM_TIERS,
+} from '@/lib/loyalty'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -192,5 +197,166 @@ describe('awardPointsForBooking', () => {
     })
     expect(result.awarded).toBe(true)
     expect(result.points).toBe(15)
+  })
+})
+
+describe('redeemPointsForCoupon', () => {
+  it('rejects an invalid tier without DB calls', async () => {
+    const result = await redeemPointsForCoupon({
+      userId: 'u1',
+      points: 137, // not a real tier
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe('invalid_tier')
+    expect(fromMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects unknown user before any decrement', async () => {
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await redeemPointsForCoupon({
+      userId: 'ghost',
+      points: 100,
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe('unknown_user')
+  })
+
+  it('rejects when balance is below cost', async () => {
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'u1', email: 'u@x.com', loyalty_points: 50 },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await redeemPointsForCoupon({
+      userId: 'u1',
+      points: 100, // tier exists, but balance is only 50
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe('insufficient_points')
+  })
+
+  it('returns race_lost when conditional UPDATE matches no rows', async () => {
+    // Pre-flight check sees balance=100, but the UPDATE comes
+    // back empty (a concurrent redemption already drained the
+    // points). This is the contention path.
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'u1', email: 'u@x.com', loyalty_points: 100 },
+                error: null,
+              }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({
+              gte: () => ({
+                select: async () => ({ data: [], error: null }),
+              }),
+            }),
+          }),
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await redeemPointsForCoupon({
+      userId: 'u1',
+      points: 100,
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe('race_lost')
+  })
+
+  it('returns ok with coupon code on a fresh redemption', async () => {
+    // Track call counts to verify the order: user lookup,
+    // user update, coupon insert, ledger insert.
+    let userUpdateCalls = 0
+    let couponInserts = 0
+    let ledgerInserts = 0
+
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'u1', email: 'u@x.com', loyalty_points: 200 },
+                error: null,
+              }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({
+              gte: () => ({
+                select: async () => {
+                  userUpdateCalls++
+                  return {
+                    data: [{ loyalty_points: 100 }],
+                    error: null,
+                  }
+                },
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'coupons') {
+        return {
+          insert: async () => {
+            couponInserts++
+            return { error: null }
+          },
+        }
+      }
+      if (table === 'loyalty_ledger') {
+        return {
+          insert: async () => {
+            ledgerInserts++
+            return { error: null }
+          },
+        }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await redeemPointsForCoupon({
+      userId: 'u1',
+      points: 100,
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.couponCode).toMatch(/^REDEEM-[A-Z0-9]+$/)
+      expect(result.pointsRemaining).toBe(100)
+      expect(result.valueThb).toBe(REDEEM_TIERS[0].valueThb)
+    }
+    expect(userUpdateCalls).toBe(1)
+    expect(couponInserts).toBe(1)
+    expect(ledgerInserts).toBe(1)
   })
 })

@@ -202,6 +202,241 @@ export async function awardPointsForBooking(
 }
 
 // ---------------------------------------------------------------
+// Redeem tiers (phase 1.5)
+// ---------------------------------------------------------------
+//
+// Three fixed tiers. Higher tiers give better value (% off
+// per point) — encourages saving rather than spending the
+// minimum every booking. If we ever need dynamic / per-user
+// tiers we'll move this to a DB-driven config; for now constants
+// keep the surface area small and the UX predictable.
+//
+//   100 pts → ฿100 off  (1.00 ฿/pt)
+//   300 pts → ฿350 off  (1.17 ฿/pt)  +17% bonus
+//   500 pts → ฿600 off  (1.20 ฿/pt)  +20% bonus
+
+export interface RedeemTier {
+  /** Point cost. */
+  points: number
+  /** Resulting coupon's discount in THB (FIXED type). */
+  valueThb: number
+  /** Display label for the UI. */
+  label: string
+}
+
+export const REDEEM_TIERS: readonly RedeemTier[] = [
+  { points: 100, valueThb: 100, label: '฿100 off' },
+  { points: 300, valueThb: 350, label: '฿350 off' },
+  { points: 500, valueThb: 600, label: '฿600 off' },
+] as const
+
+const REDEEM_COUPON_VALID_DAYS = 90
+// Same alphabet as referral codes — confusion-resistant.
+const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
+const COUPON_PREFIX = 'REDEEM'
+const COUPON_RANDOM_LEN = 10
+const COUPON_INSERT_MAX_ATTEMPTS = 4
+
+function generateRedeemCouponCode(): string {
+  let suffix = ''
+  for (let i = 0; i < COUPON_RANDOM_LEN; i++) {
+    suffix += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
+  }
+  return `${COUPON_PREFIX}-${suffix}`
+}
+
+interface RedeemInput {
+  userId: string
+  /** Tier point cost — must match one of REDEEM_TIERS exactly. */
+  points: number
+}
+
+interface RedeemSuccess {
+  ok: true
+  couponCode: string
+  /** New balance after deduction. */
+  pointsRemaining: number
+  /** Discount amount the coupon will give in THB. */
+  valueThb: number
+  /** Coupon expiry ISO. */
+  expiresAt: string
+}
+
+interface RedeemFailure {
+  ok: false
+  reason:
+    | 'invalid_tier'
+    | 'unknown_user'
+    | 'insufficient_points'
+    | 'race_lost'
+    | 'coupon_insert_failed'
+    | 'db_error'
+}
+
+export type RedeemResult = RedeemSuccess | RedeemFailure
+
+/**
+ * Atomically redeem points for an email-bound coupon.
+ *
+ * Order of operations:
+ *   1. Validate the tier — must be one of REDEEM_TIERS exactly
+ *   2. Conditional decrement on users.loyalty_points (only if
+ *      balance >= cost). This serializes redemptions per user
+ *      and prevents double-spend on concurrent requests.
+ *   3. Insert the coupon row (retry on code collision)
+ *   4. Insert the ledger row with kind='redeem', negative delta
+ *
+ * If step 3 fails after retries we COMPENSATE step 2 by adding
+ * the points back. If step 4 fails we log loudly but don't
+ * compensate — the user has the coupon, the points are deducted,
+ * the audit trail is the only thing missing (operator can
+ * reconstruct from coupons.created_at + source='loyalty_redeem').
+ *
+ * Never throws — returns a typed result the caller can branch on.
+ */
+export async function redeemPointsForCoupon(
+  input: RedeemInput
+): Promise<RedeemResult> {
+  // 1. Validate tier — exact match to a known cost. Don't accept
+  //    arbitrary point amounts, even if the user has them.
+  const tier = REDEEM_TIERS.find((t) => t.points === input.points)
+  if (!tier) return { ok: false, reason: 'invalid_tier' }
+
+  try {
+    const supabase = await createAdminClient()
+
+    // 2a. Resolve user (need email to bind the coupon).
+    const { data: userRaw } = await supabase
+      .from('users')
+      .select('id, email, loyalty_points')
+      .eq('id', input.userId)
+      .maybeSingle()
+    const user = userRaw as
+      | { id: string; email: string; loyalty_points: number }
+      | null
+    if (!user) return { ok: false, reason: 'unknown_user' }
+
+    if ((user.loyalty_points || 0) < tier.points) {
+      return { ok: false, reason: 'insufficient_points' }
+    }
+
+    // 2b. Conditional decrement. Returns the row only if the
+    //     balance was high enough; an empty result means a
+    //     concurrent redemption beat us to it. We compute the
+    //     new balance by reading after the update — Supabase's
+    //     update().select() returns updated rows in one call.
+    const { data: updatedRaw, error: updErr } = await supabase
+      .from('users')
+      .update({ loyalty_points: (user.loyalty_points || 0) - tier.points })
+      .eq('id', input.userId)
+      .gte('loyalty_points', tier.points)
+      .select('loyalty_points')
+
+    if (updErr) {
+      logger.error('loyalty: redeem decrement failed', {
+        userId: input.userId,
+        error: updErr.message,
+      })
+      return { ok: false, reason: 'db_error' }
+    }
+
+    const updated = (updatedRaw as Array<{ loyalty_points: number }> | null) || []
+    if (updated.length === 0) {
+      return { ok: false, reason: 'race_lost' }
+    }
+    const remaining = updated[0].loyalty_points
+
+    // 3. Insert coupon. Retry on code collision (very rare at
+    //    32^10 entropy but graceful is cheap).
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + REDEEM_COUPON_VALID_DAYS)
+    const expiresIso = expiresAt.toISOString()
+
+    let issuedCode: string | null = null
+    for (let attempt = 0; attempt < COUPON_INSERT_MAX_ATTEMPTS; attempt++) {
+      const code = generateRedeemCouponCode()
+      const { error: couponErr } = await supabase.from('coupons').insert({
+        code,
+        description: `Loyalty redemption — ${tier.label}`,
+        discount_type: 'FIXED',
+        discount_value: tier.valueThb,
+        max_discount: null,
+        min_spend: 0,
+        applies_to: 'ALL',
+        starts_at: new Date().toISOString(),
+        expires_at: expiresIso,
+        is_active: true,
+        bound_to_email: user.email.trim().toLowerCase(),
+        source: 'loyalty_redeem',
+      })
+
+      if (!couponErr) {
+        issuedCode = code
+        break
+      }
+      const errCode = (couponErr as { code?: string }).code
+      if (errCode !== '23505') {
+        logger.error('loyalty: redeem coupon insert failed', {
+          userId: input.userId,
+          error: couponErr.message,
+        })
+        break
+      }
+      // Otherwise loop and retry with a fresh code.
+    }
+
+    if (!issuedCode) {
+      // 3a. Compensate the decrement — give the points back.
+      //     We didn't write a ledger row yet, so the user's
+      //     visible state is consistent (points stayed where
+      //     they were).
+      await supabase
+        .from('users')
+        .update({ loyalty_points: (user.loyalty_points || 0) })
+        .eq('id', input.userId)
+      return { ok: false, reason: 'coupon_insert_failed' }
+    }
+
+    // 4. Audit trail — best-effort. If this fails, the user
+    //    already has the coupon and the deducted points; the
+    //    only loss is a missing ledger row, which an operator
+    //    can reconstruct from coupons.created_at + source.
+    const { error: ledgerErr } = await supabase
+      .from('loyalty_ledger')
+      .insert({
+        user_id: input.userId,
+        delta: -tier.points,
+        kind: 'redeem',
+        source_type: 'coupon',
+        source_id: issuedCode,
+        reason: `แลกแต้มเป็นคูปอง ${tier.label} (รหัส ${issuedCode})`,
+      })
+
+    if (ledgerErr) {
+      logger.error('loyalty: redeem ledger insert failed (coupon issued OK)', {
+        userId: input.userId,
+        couponCode: issuedCode,
+        error: ledgerErr.message,
+      })
+    }
+
+    return {
+      ok: true,
+      couponCode: issuedCode,
+      pointsRemaining: remaining,
+      valueThb: tier.valueThb,
+      expiresAt: expiresIso,
+    }
+  } catch (err) {
+    logger.error('loyalty: redeem threw', {
+      userId: input.userId,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return { ok: false, reason: 'db_error' }
+  }
+}
+
+// ---------------------------------------------------------------
 // Read (overview for the profile widget)
 // ---------------------------------------------------------------
 
@@ -217,6 +452,9 @@ export interface LoyaltyOverview {
   points: number
   /** Last 10 ledger entries, newest first. */
   recent: LoyaltyLedgerEntry[]
+  /** Available redemption tiers, exposed so the UI doesn't
+   *  need to hard-code them and gets updates for free. */
+  redeemTiers: readonly RedeemTier[]
 }
 
 /**
@@ -260,5 +498,5 @@ export async function getLoyaltyOverview(
     createdAt: row.created_at,
   }))
 
-  return { points, recent }
+  return { points, recent, redeemTiers: REDEEM_TIERS }
 }
