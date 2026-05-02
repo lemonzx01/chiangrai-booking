@@ -20,6 +20,7 @@ import { Users, Check, ArrowLeft } from 'lucide-react'
 
 import { Car } from '@chiangrai/shared/types'
 import { formatCurrency } from '@chiangrai/shared/utils'
+import LoyaltyPointsPreview from '@/components/shared/LoyaltyPointsPreview'
 
 import useLocalize from '@/hooks/useLocalize'
 import useRecentlyViewed from '@/hooks/useRecentlyViewed'
@@ -135,6 +136,12 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
                     {t('common.perDay')}
                   </span>
                 </p>
+                <div className="mt-2">
+                  <LoyaltyPointsPreview
+                    amountThb={Number(car.price_per_day) || 0}
+                    size="md"
+                  />
+                </div>
               </div>
 
               <Link href={`/booking?type=CAR&id=${car.id}`} className="w-full sm:w-auto">

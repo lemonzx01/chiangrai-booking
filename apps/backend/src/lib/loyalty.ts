@@ -33,12 +33,17 @@
 
 import { createAdminClient } from './supabase/server'
 import { logger } from './logger'
+import { LOYALTY_DEFAULT_RATE_THB_PER_POINT } from '@chiangrai/shared/constants'
 
 // ---------------------------------------------------------------
 // Tunable rate
 // ---------------------------------------------------------------
 
-const DEFAULT_RATE_THB_PER_POINT = 100
+// Mirrors the shared default so backend and frontend "+X pts"
+// previews compute the same number. Backend additionally allows
+// runtime overrides via env; frontend uses the shared default
+// directly.
+const DEFAULT_RATE_THB_PER_POINT = LOYALTY_DEFAULT_RATE_THB_PER_POINT
 
 function getRateThbPerPoint(): number {
   const raw = Number(process.env.LOYALTY_RATE_THB_PER_POINT)

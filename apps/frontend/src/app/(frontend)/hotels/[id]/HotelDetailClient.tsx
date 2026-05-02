@@ -45,6 +45,7 @@ import { Hotel, RoomType, Currency } from '@chiangrai/shared/types'
 /** Utility function สำหรับ format ราคา */
 import { formatCurrency } from '@chiangrai/shared/utils'
 import { formatCurrency as formatCurrencyWithType } from '@chiangrai/shared/currency'
+import LoyaltyPointsPreview from '@/components/shared/LoyaltyPointsPreview'
 
 /** Custom hook สำหรับดึงข้อมูลตามภาษา */
 import useLocalize from '@/hooks/useLocalize'
@@ -283,7 +284,11 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                           <p className="text-xl font-black text-indigo-600">
                             {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}
                           </p>
-                          <p className="text-xs text-slate-500">/ คืน</p>
+                          <p className="text-xs text-slate-500 mb-1">/ คืน</p>
+                          <LoyaltyPointsPreview
+                            amountThb={Number(roomType.price_per_night) || 0}
+                            size="sm"
+                          />
                         </div>
                       </div>
                       <Link
@@ -312,6 +317,12 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                     {formatCurrency(hotel.price_per_night)}
                     <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
                   </p>
+                  <div className="mt-2">
+                    <LoyaltyPointsPreview
+                      amountThb={Number(hotel.price_per_night) || 0}
+                      size="md"
+                    />
+                  </div>
                 </div>
 
                 {/* ปุ่มจอง - Link ไปหน้า Booking */}
