@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input'
 import CancelBookingModal from '@/components/ui/CancelBookingModal'
 import ModificationRequestModal from '@/components/shared/ModificationRequestModal'
 import ReferralCard from '@/components/shared/ReferralCard'
+import LoyaltyCard from '@/components/shared/LoyaltyCard'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import type { Booking } from '@chiangrai/shared/types'
 import useLocalize from '@/hooks/useLocalize'
@@ -552,6 +553,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Loyalty points — phase 1 counter + history */}
+        <LoyaltyCard />
 
         {/* Referral Program Card — share code, see funnel */}
         <ReferralCard />

@@ -54,6 +54,7 @@ const tables: Record<string, Row[]> = {
   email_unsubscribes: [],
   user_wishlist: [],
   referrals: [],
+  loyalty_ledger: [],
 }
 
 // Generate room_types on demand from hotels (keeps mock hotels simple)

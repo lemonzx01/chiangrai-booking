@@ -35,6 +35,7 @@ import { logger } from '../../../../lib/logger'
 import { isStripeMockMode } from '../../../../lib/auth'
 import { qualifyAndIssueRewards } from '../../../../lib/referral'
 import { renderReferralRewardEmail } from '../../../../services/notifications/templates/referralReward'
+import { awardPointsForBooking } from '../../../../lib/loyalty'
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -183,6 +184,24 @@ export async function POST(request: Request) {
                 booking.id
               ).catch((e) =>
                 logger.error('referral reward dispatch failed', {
+                  bookingId: booking.id,
+                  error: e instanceof Error ? e.message : String(e),
+                })
+              )
+
+              // ----- Loyalty points award (idempotent at DB layer) -----
+              // 1 point per ฿100 by default (LOYALTY_RATE_THB_PER_POINT
+              // env tunes it). Guests don't earn — only registered
+              // users with a matching email. Re-firing this webhook
+              // doesn't double-credit because the ledger has a UNIQUE
+              // partial index on (source_id, kind='earn').
+              awardPointsForBooking({
+                customerEmail: booking.customer_email,
+                bookingId: booking.id,
+                amountThb: Number(booking.total_price) || 0,
+                bookingCode: booking.booking_code,
+              }).catch((e) =>
+                logger.error('loyalty award failed', {
                   bookingId: booking.id,
                   error: e instanceof Error ? e.message : String(e),
                 })
