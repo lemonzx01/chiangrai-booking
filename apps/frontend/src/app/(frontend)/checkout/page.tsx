@@ -399,7 +399,7 @@ function CheckoutContent() {
     : 1
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 pt-24 pb-12">
+    <div className="min-h-screen bg-slate-50 pt-24 pb-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ============================================================
             Header - ปุ่มกลับ + ชื่อหน้า

@@ -97,9 +97,9 @@ export default function WishlistPage() {
 
         {/* Empty */}
         {resolved !== null && resolved.length === 0 && (
-          <div className="rounded-3xl bg-gradient-to-br from-rose-50 via-white to-indigo-50 border border-rose-100 p-10 sm:p-16 text-center">
-            <div className="w-20 h-20 mx-auto rounded-full bg-white shadow-md flex items-center justify-center mb-5">
-              <Heart className="text-rose-400" size={28} />
+          <div className="rounded-3xl bg-white border border-slate-200 p-10 sm:p-16 text-center">
+            <div className="w-20 h-20 mx-auto rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-5">
+              <Heart className="text-slate-400" size={28} />
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-2">
               ยังไม่มีรายการที่บันทึก

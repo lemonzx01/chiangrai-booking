@@ -205,7 +205,7 @@ export default function AnalyticsClient({
 
       {/* Upcoming callout */}
       {stats.upcoming.next7Days > 0 && (
-        <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 sm:p-5 flex items-start gap-3">
+        <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 sm:p-5 flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0">
             <Users className="text-indigo-600" size={20} />
           </div>

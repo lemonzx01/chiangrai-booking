@@ -87,7 +87,7 @@ function MockCheckoutInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
         {/* Mock-mode banner */}
         <div className="flex items-start gap-3 p-3 bg-amber-100 border border-amber-300 rounded-lg text-amber-900 text-sm">
@@ -144,7 +144,7 @@ function MockCheckoutInner() {
           <Button
             onClick={pay}
             disabled={status === 'paying' || !sessionId}
-            className="w-full bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-semibold py-3 rounded-xl"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl"
           >
             {status === 'paying' ? (
               <>

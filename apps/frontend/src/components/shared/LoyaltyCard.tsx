@@ -232,7 +232,7 @@ export default function LoyaltyCard() {
       </p>
 
       {/* Hero number — the headline of the card */}
-      <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5 mb-5">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-5">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-amber-700 mb-1">

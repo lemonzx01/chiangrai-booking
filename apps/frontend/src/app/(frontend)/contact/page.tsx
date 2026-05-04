@@ -102,12 +102,12 @@ export default function ContactPage() {
       {/* ============================================================
           Header Section - Gradient Background
           ============================================================ */}
-      <div className="bg-gradient-to-br from-indigo-600 to-purple-700 py-16">
+      <div className="bg-white border-b border-slate-200 py-16">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             {t('contact.title')}
           </h1>
-          <p className="text-xl text-white/80">{t('contact.subtitle')}</p>
+          <p className="text-xl text-slate-600">{t('contact.subtitle')}</p>
         </div>
       </div>
 

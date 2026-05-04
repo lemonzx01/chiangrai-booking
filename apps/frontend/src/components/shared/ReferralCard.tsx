@@ -195,7 +195,7 @@ export default function ReferralCard() {
       </p>
 
       {/* Code box — primary affordance */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-4 mb-4">
+      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">
         <p className="text-xs uppercase tracking-wide text-indigo-700 mb-2">
           {lang === 'th' ? 'รหัสแนะนำของคุณ' : 'Your referral code'}
         </p>

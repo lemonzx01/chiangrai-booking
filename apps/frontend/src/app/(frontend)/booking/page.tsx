@@ -410,7 +410,7 @@ function BookingContent() {
   // Render Component
   // ----------------------------------------------------------
   return (
-    <div className="min-h-screen pt-24 pb-12 bg-gradient-to-b from-indigo-50/50 to-transparent">
+    <div className="min-h-screen pt-24 pb-12 bg-slate-50">
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
         {/* Back Button */}
         <Link

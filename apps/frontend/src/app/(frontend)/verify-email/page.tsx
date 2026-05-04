@@ -65,9 +65,9 @@ function VerifyEmailContent() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-slate-50">
-      <div className="bg-gradient-to-br from-indigo-600 to-purple-700 py-16">
+      <div className="bg-white border-b border-slate-200 py-16">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             {lang === 'th' ? 'ยืนยันอีเมล' : 'Email Verification'}
           </h1>
         </div>
