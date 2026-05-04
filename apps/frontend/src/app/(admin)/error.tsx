@@ -1,14 +1,14 @@
 'use client'
 
 /**
- * ============================================================
- * Admin Error Boundary
- * ============================================================
+ * Admin error boundary — same editorial recipe as the (frontend)
+ * one, scoped to the admin route group so the AdminSidebar layout
+ * stays around the error UI.
  */
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, LayoutDashboard, RefreshCw } from 'lucide-react'
+import { LayoutDashboard, RefreshCw } from 'lucide-react'
 
 interface ErrorProps {
   error: Error & { digest?: string }
@@ -22,41 +22,40 @@ export default function AdminError({ error, reset }: ErrorProps) {
   }, [error])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6 py-16">
-      <div className="max-w-md w-full text-center">
-        <div className="mx-auto h-20 w-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
-          <AlertTriangle className="h-10 w-10 text-red-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          เกิดข้อผิดพลาดในระบบแอดมิน
-        </h1>
-        <p className="text-base text-slate-600 mb-1">
-          Admin panel error
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6 py-24">
+      <div className="max-w-lg w-full">
+        <p className="font-display text-sm uppercase tracking-[0.3em] text-red-500 mb-2">
+          Error — Admin
         </p>
-        <p className="text-sm text-slate-500 mb-6">
-          เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่หรือกลับไปยังแดชบอร์ด
-          <br />
-          An unexpected error occurred. Try again or return to dashboard.
+        <h1 className="text-3xl md:text-4xl text-slate-900 leading-tight tracking-tight mb-3">
+          <span className="font-bold">เกิดข้อผิดพลาด</span>{' '}
+          <span className="font-display font-light italic text-slate-500">
+            ในระบบแอดมิน
+          </span>
+        </h1>
+        <div className="h-px w-12 bg-slate-300 my-5" />
+        <p className="text-sm text-slate-500 mb-2 leading-relaxed">
+          ลองรีเฟรช หรือกลับไปแดชบอร์ด — ถ้ายังไม่หาย ติดต่อทีมเทคนิค
         </p>
         {error.digest && (
-          <p className="text-xs text-slate-400 mb-6 font-mono">
+          <p className="text-xs text-slate-400 mb-8 font-mono">
             Error ID: {error.digest}
           </p>
         )}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 mt-6">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-800 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
-            ลองใหม่ / Try Again
+            ลองใหม่
           </button>
           <Link
             href="/admin/dashboard"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-6 py-3 text-sm font-medium text-slate-900 hover:border-slate-900 hover:bg-slate-50 transition-colors"
           >
             <LayoutDashboard className="h-4 w-4" />
-            แดชบอร์ด / Dashboard
+            แดชบอร์ด
           </Link>
         </div>
       </div>

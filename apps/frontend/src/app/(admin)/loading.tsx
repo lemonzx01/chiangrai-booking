@@ -1,18 +1,15 @@
 /**
- * ============================================================
- * Admin Loading Page
- * ============================================================
+ * Admin loading state. Matches the (frontend) editorial pattern —
+ * thin pulsing rule + tiny eyebrow caption, no spinner.
  */
-
-import { Loader2 } from 'lucide-react'
 
 export default function AdminLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="text-center">
-        <Loader2 className="mx-auto h-10 w-10 text-slate-900 animate-spin" />
-        <p className="mt-4 text-sm font-medium text-slate-600">
-          กำลังโหลด... / Loading...
+        <div className="h-px w-16 bg-slate-900 mx-auto mb-4 animate-pulse" />
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          กำลังโหลด
         </p>
       </div>
     </div>

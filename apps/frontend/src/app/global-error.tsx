@@ -2,11 +2,15 @@
 
 /**
  * ============================================================
- * Global Error Boundary - แสดงเมื่อ Root Layout เกิดข้อผิดพลาด
- * ============================================================
+ * Global Error Boundary — replaces the root layout when an
+ * error happens at the layout level (the route-group boundaries
+ * can't catch it). Required by Next.js App Router.
  *
- * Required by Next.js App Router. Must include <html> and <body>
- * because it replaces the root layout when an error occurs there.
+ * Inline styles only — Tailwind isn't guaranteed to be loaded
+ * here, since the failure may have happened during the layout's
+ * own render. We mirror the editorial recipe by hand: small
+ * uppercase eyebrow, mixed-weight headline with a serif italic,
+ * thin accent rule, slate palette.
  * ============================================================
  */
 
@@ -28,40 +32,54 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body
         style={{
           margin: 0,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontFamily:
+            "Plus Jakarta Sans, system-ui, -apple-system, sans-serif",
           minHeight: '100vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: '#fafbfc',
           color: '#0f172a',
-          padding: '2rem',
+          padding: '6rem 2rem',
         }}
       >
-        <div style={{ maxWidth: '32rem', textAlign: 'center' }}>
-          <div
+        <div style={{ maxWidth: '32rem', width: '100%' }}>
+          <p
             style={{
-              fontSize: '4rem',
-              fontWeight: 800,
-              color: '#dc2626',
-              marginBottom: '1rem',
+              fontSize: '0.75rem',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              color: '#ef4444',
+              margin: '0 0 0.5rem',
             }}
           >
-            500
-          </div>
+            Critical Error — 500
+          </p>
           <h1
             style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '0.5rem',
+              fontSize: '2rem',
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+              margin: '0 0 0.75rem',
+              color: '#0f172a',
             }}
           >
-            เกิดข้อผิดพลาดร้ายแรง / Critical Error
+            <span style={{ fontWeight: 700 }}>เกิดข้อผิดพลาด</span>{' '}
+            <em style={{ fontWeight: 300, color: '#64748b' }}>ร้ายแรง</em>
           </h1>
-          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-            ขออภัย เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง
-            <br />
-            Sorry, an unexpected error occurred. Please try again.
+          <div
+            style={{
+              height: 1,
+              width: 48,
+              background: '#cbd5e1',
+              margin: '1.25rem 0',
+            }}
+          />
+          <p style={{ color: '#64748b', margin: '0 0 0.5rem', lineHeight: 1.6 }}>
+            ขออภัย เกิดข้อผิดพลาดที่ไม่คาดคิด ลองรีเฟรชหรือเปิดหน้าใหม่
+          </p>
+          <p style={{ color: '#94a3b8', margin: '0 0 2rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
+            Sorry, an unexpected error occurred.
           </p>
           {error.digest && (
             <p
@@ -79,16 +97,16 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             onClick={reset}
             style={{
               padding: '0.75rem 1.5rem',
-              background: '#4f46e5',
+              background: '#0f172a',
               color: 'white',
               border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              fontWeight: 600,
+              borderRadius: '999px',
+              fontSize: '0.9rem',
+              fontWeight: 500,
               cursor: 'pointer',
             }}
           >
-            ลองใหม่ / Try Again
+            ลองใหม่
           </button>
         </div>
       </body>

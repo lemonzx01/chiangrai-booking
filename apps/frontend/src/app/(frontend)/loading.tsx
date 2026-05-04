@@ -8,15 +8,18 @@
  * ============================================================
  */
 
-import { Loader2 } from 'lucide-react'
-
+/**
+ * Frontend loading state. A spinning circle is generic; a thin
+ * pulsing rule reads more "we know what we're doing" without
+ * stealing attention from whatever's about to render.
+ */
 export default function FrontendLoading() {
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-24">
+    <div className="flex flex-1 items-center justify-center px-6 py-32">
       <div className="text-center">
-        <Loader2 className="mx-auto h-10 w-10 text-slate-900 animate-spin" />
-        <p className="mt-4 text-sm font-medium text-slate-600">
-          กำลังโหลด... / Loading...
+        <div className="h-px w-16 bg-slate-900 mx-auto mb-4 animate-pulse" />
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          กำลังโหลด
         </p>
       </div>
     </div>
