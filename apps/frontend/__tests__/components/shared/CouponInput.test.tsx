@@ -228,7 +228,13 @@ describe('CouponInput', () => {
   })
 
   it('reports an error message when the network call rejects', async () => {
-    mockedApiFetch.mockReturnValue(Promise.reject(new Error('network')))
+    // mockImplementation (not mockReturnValue with a pre-built Promise.reject)
+    // — pre-built rejected promises trip Node's unhandled-rejection detector
+    // before the component's await catches them. Lazy creation per call gives
+    // each Promise its own catch handler the moment it's awaited.
+    mockedApiFetch.mockImplementation(() =>
+      Promise.reject(new Error('network'))
+    )
     render(<CouponInput bookingType="HOTEL" totalPrice={1000} />)
     fireEvent.change(screen.getByPlaceholderText(/โค้ดคูปอง/), {
       target: { value: 'X' },
