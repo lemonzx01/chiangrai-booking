@@ -23,7 +23,7 @@
 'use client'
 
 import { useMemo, type ReactNode } from 'react'
-import { Star, X, RotateCcw } from 'lucide-react'
+import { Star, X, RotateCcw, Check } from 'lucide-react'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import BottomSheet from './BottomSheet'
 
@@ -188,19 +188,30 @@ function FilterContent({
         <>
           <SectionHeader title="ระดับดาว" />
           <div className="flex flex-wrap gap-1.5">
-            {[5, 4, 3, 2, 1].map((s) => (
-              <ToggleChip
-                key={s}
-                active={filters.minStar === s}
-                onClick={() =>
-                  patch({ minStar: filters.minStar === s ? null : s })
-                }
-              >
-                <span className="inline-flex items-center gap-1">
-                  {s}+ <Star size={12} className="fill-current" />
-                </span>
-              </ToggleChip>
-            ))}
+            {[5, 4, 3, 2, 1].map((s) => {
+              const active = filters.minStar === s
+              return (
+                <ToggleChip
+                  key={s}
+                  active={active}
+                  onClick={() =>
+                    patch({ minStar: active ? null : s })
+                  }
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {s}+
+                    <Star
+                      size={11}
+                      className={
+                        active
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'fill-amber-500 text-amber-500'
+                      }
+                    />
+                  </span>
+                </ToggleChip>
+              )
+            })}
           </div>
         </>
       )}
@@ -311,11 +322,17 @@ function FilterContent({
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="flex items-baseline justify-between mb-2">
-      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-        {title}
-      </h3>
-      {subtitle && <span className="text-[10px] text-slate-400">{subtitle}</span>}
+    <div className="flex items-baseline justify-between mb-3">
+      {/* Editorial section header — title-case, no uppercase, sits on
+          its own line. The previous "TINY UPPERCASE TRACKING-WIDER"
+          look reads as Stripe/SaaS-template; sentence case reads as
+          a real magazine. */}
+      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+      {subtitle && (
+        <span className="text-[11px] text-slate-400 uppercase tracking-wide">
+          {subtitle}
+        </span>
+      )}
     </div>
   )
 }
@@ -342,7 +359,9 @@ function NumberInput({
           const v = e.target.value === '' ? null : Number(e.target.value)
           onChange(v)
         }}
-        className="w-full px-2.5 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-indigo-400"
+        // Slate focus ring — stays in the editorial palette, not
+        // tailwind-default-indigo.
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-slate-500 transition-colors"
       />
     </label>
   )
@@ -357,14 +376,18 @@ function ToggleChip({
   onClick: () => void
   children: ReactNode
 }) {
+  // Active state: dark slate fill, white text. The previous
+  // saturated indigo-600 was the strongest "template" signal in
+  // the sidebar. Inactive: plain text + light border, hovers
+  // darken the border (no color shift).
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
         active
-          ? 'bg-indigo-600 text-white border border-indigo-600'
-          : 'bg-white text-slate-700 border border-slate-200 hover:border-indigo-300'
+          ? 'bg-slate-900 text-white border border-slate-900'
+          : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-400'
       }`}
     >
       {children}
@@ -381,15 +404,29 @@ function RadioRow({
   checked: boolean
   onChange: () => void
 }) {
+  // Editorial radio: visible-only-when-selected check-mark on the
+  // right side instead of the native blue radio circle. The label
+  // weight emphasizes the active state typographically; the
+  // check is just confirmation. The native input is hidden but
+  // keyboard-reachable for a11y.
   return (
-    <label className="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50">
+    <label className="flex items-center justify-between gap-2 px-2 py-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
       <input
         type="radio"
         checked={checked}
         onChange={onChange}
-        className="text-indigo-600 focus:ring-indigo-500"
+        className="sr-only"
       />
-      <span className="text-sm text-slate-700">{label}</span>
+      <span
+        className={`text-sm transition-colors ${
+          checked ? 'text-slate-900 font-semibold' : 'text-slate-600'
+        }`}
+      >
+        {label}
+      </span>
+      {checked && (
+        <Check size={14} className="text-slate-900 flex-shrink-0" />
+      )}
     </label>
   )
 }
@@ -414,11 +451,18 @@ function PriceRangeSlider({
   const minPct = ((minValue - min) / (max - min)) * 100
   const maxPct = ((maxValue - min) / (max - min)) * 100
 
+  // Slate palette — track is light gray with a darker selected
+  // segment, thumbs are white circles ringed in slate-900. The
+  // previous indigo-500 fill was the loudest spot of color in
+  // the entire sidebar.
+  const thumbStyles =
+    '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-900 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-slate-900'
+
   return (
-    <div className="relative h-7 select-none">
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 rounded-full" />
+    <div className="relative h-6 select-none">
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200" />
       <div
-        className="absolute top-1/2 -translate-y-1/2 h-1 bg-indigo-500 rounded-full"
+        className="absolute top-1/2 -translate-y-1/2 h-0.5 bg-slate-900"
         style={{ left: `${minPct}%`, width: `${Math.max(0, maxPct - minPct)}%` }}
       />
       <input
@@ -431,7 +475,7 @@ function PriceRangeSlider({
           const v = Math.min(Number(e.target.value), maxValue)
           onChange(v, maxValue)
         }}
-        className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-500"
+        className={`absolute inset-0 w-full appearance-none bg-transparent pointer-events-none ${thumbStyles}`}
       />
       <input
         type="range"
@@ -443,7 +487,7 @@ function PriceRangeSlider({
           const v = Math.max(Number(e.target.value), minValue)
           onChange(minValue, v)
         }}
-        className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-500"
+        className={`absolute inset-0 w-full appearance-none bg-transparent pointer-events-none ${thumbStyles}`}
       />
     </div>
   )

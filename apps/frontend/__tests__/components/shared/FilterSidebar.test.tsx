@@ -25,6 +25,7 @@ vi.mock('lucide-react', () => {
     Star: Icon('star'),
     X: Icon('x'),
     RotateCcw: Icon('rotate'),
+    Check: Icon('check'),
   }
 })
 
@@ -239,9 +240,10 @@ describe('FilterSidebar', () => {
     render(<Harness kind="hotel" />)
     fireEvent.click(screen.getByText(/^4\+/))
     // No way to peek at internal state directly; verify by chip
-    // remaining "active" — the styling diff is the indigo bg.
+    // remaining "active" — active state is bg-slate-900 (was
+    // indigo-600 in the AI-template days).
     const fourPlus = screen.getByText(/^4\+/)
-    expect(fourPlus.closest('button')?.className).toContain('bg-indigo-600')
+    expect(fourPlus.closest('button')?.className).toContain('bg-slate-900')
   })
 
   it('clicking it again toggles off', () => {
@@ -249,7 +251,7 @@ describe('FilterSidebar', () => {
     const fourPlus = screen.getByText(/^4\+/)
     fireEvent.click(fourPlus)
     fireEvent.click(fourPlus)
-    expect(fourPlus.closest('button')?.className).not.toContain('bg-indigo-600')
+    expect(fourPlus.closest('button')?.className).not.toContain('bg-slate-900')
   })
 
   it('reset link returns all filters to defaults', () => {
