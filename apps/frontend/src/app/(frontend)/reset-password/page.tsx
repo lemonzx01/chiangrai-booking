@@ -234,7 +234,7 @@ function ResetPasswordContent() {
       {/* ============================================================
           Reset Password Form Card
           ============================================================ */}
-      <div className="max-w-md mx-auto px-6 sm:px-8 -mt-8">
+      <div className="max-w-md mx-auto px-6 sm:px-8 mt-8">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Icon */}
           <div className="flex justify-center mb-6">

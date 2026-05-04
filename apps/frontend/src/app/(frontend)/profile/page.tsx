@@ -298,7 +298,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 -mt-8">
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 mt-8">
         {/* User Info Card with Avatar */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center gap-4">
