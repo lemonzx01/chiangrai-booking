@@ -160,10 +160,13 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
       <section className="relative min-h-screen flex items-center justify-center overflow-visible pt-24 pb-40">
         {/* ----------------------------------------------------------
             Background Image + Overlay
-            ---------------------------------------------------------- */}
+            ----------------------------------------------------------
+            Northern-Thailand-flavored shot: a winding mountain
+            road with rice terraces, evokes the actual product
+            (drive your own trip) rather than a generic beach. */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+            src="https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=2400&q=80"
             alt="Hero background"
             fill
             className="object-cover"
@@ -174,34 +177,38 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
         </div>
 
         {/* ----------------------------------------------------------
-            Hero Content
+            Hero Content — left-aligned editorial layout instead
+            of centered "landing page template"
             ---------------------------------------------------------- */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          {/* Title */}
-          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 animate-slide-up">
-            {t('home.hero.titleLine1')}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 w-full">
+          {/* Title — mixed weights + period for editorial rhythm */}
+          <h1 className="text-5xl md:text-6xl text-white leading-[1.05] mb-5 animate-slide-up max-w-3xl tracking-tight">
+            <span className="font-bold">{t('home.hero.titleLine1')}</span>
             <br />
-            {t('home.hero.titleHighlight')}
+            <span className="font-light italic text-white/85">
+              {t('home.hero.titleHighlight')}
+            </span>
           </h1>
 
+          {/* Thin accent rule — small typographic signature */}
+          <div className="h-px w-16 bg-white/40 mb-6 animate-slide-up" />
+
           {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-12 animate-slide-up">
+          <p className="text-lg md:text-xl text-white/80 max-w-xl mb-10 animate-slide-up font-light leading-relaxed">
             {t('home.hero.subtitle')}
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up mb-12">
-            {/* ปุ่มจองแพ็คเกจ */}
+          {/* Single CTA — stay simple */}
+          <div className="flex flex-col sm:flex-row gap-3 animate-slide-up mb-10">
             <Link
               href="/hotels"
-              className="px-8 py-4 bg-white text-indigo-600 rounded-xl font-semibold text-lg hover:bg-slate-50 transition-all"
+              className="inline-flex items-center justify-center px-7 py-3.5 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 transition-all"
             >
               {t('navbar.bookPackage')}
             </Link>
-            {/* ปุ่มเช่ารถ */}
             <Link
               href="/cars"
-              className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-xl font-semibold text-lg hover:bg-white/20 transition-all"
+              className="inline-flex items-center justify-center px-7 py-3.5 text-white border border-white/30 rounded-full font-semibold hover:bg-white/10 transition-all"
             >
               {t('navbar.cars')}
             </Link>
@@ -316,7 +323,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           {/* Section Header */}
           <Reveal>
             <div className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900">
+              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
                 {t('home.weeklyDeals.title')}
               </h2>
               {/* Link ดูทั้งหมด (Desktop) */}
@@ -401,7 +408,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             {/* Section Header */}
             <Reveal>
               <div className="flex items-center justify-between mb-12">
-                <h2 className="text-3xl md:text-4xl font-black text-slate-900">
+                <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
                   {t('navbar.cars')}
                 </h2>
                 {/* Link ดูทั้งหมด (Desktop) */}

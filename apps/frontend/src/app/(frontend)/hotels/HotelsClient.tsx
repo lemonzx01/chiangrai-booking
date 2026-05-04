@@ -179,13 +179,14 @@ export default function HotelsClient({
   return (
     <div className="min-h-screen pt-24 pb-12">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 py-12 sm:py-16">
+      <div className="bg-white border-b border-slate-200 py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-slate-900 mb-3 tracking-tight">
             {t('navbar.packages')}
           </h1>
-          <p className="text-base sm:text-xl text-slate-600 mb-6">
-            {t('hotels.subtitle') || 'คัดสรรแพ็คเกจที่พักพรีเมียมในราคาที่ดีที่สุด'}
+          <div className="h-px w-12 bg-slate-300 mb-4" />
+          <p className="text-base sm:text-lg text-slate-600 mb-6 max-w-xl font-light">
+            {t('hotels.subtitle') || 'ทุกแห่งเราไปจองด้วยตัวเอง ตอบกลับทุกข้อความ'}
           </p>
           {/* Search box on the gradient banner */}
           <div className="max-w-2xl">

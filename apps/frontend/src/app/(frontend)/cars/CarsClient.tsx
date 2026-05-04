@@ -168,13 +168,14 @@ export default function CarsClient({
 
   return (
     <div className="min-h-screen pt-24 pb-12">
-      <div className="bg-white border-b border-slate-200 py-12 sm:py-16">
+      <div className="bg-white border-b border-slate-200 py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-slate-900 mb-3 tracking-tight">
             {t('navbar.cars')}
           </h1>
-          <p className="text-base sm:text-xl text-slate-600 mb-6">
-            {t('cars.subtitle') || 'รถเช่าพรีเมียม คุณภาพคัดสรร พร้อมประกันครบ'}
+          <div className="h-px w-12 bg-slate-300 mb-4" />
+          <p className="text-base sm:text-lg text-slate-600 mb-6 max-w-xl font-light">
+            {t('cars.subtitle') || 'ประกันชั้น 1 ทุกคัน ส่งฟรีในเขตเมือง ไม่ต้องวางบัตรค้ำประกัน'}
           </p>
           <div className="max-w-2xl">
             <SearchAutocomplete

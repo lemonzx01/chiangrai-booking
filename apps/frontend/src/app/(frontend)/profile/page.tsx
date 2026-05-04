@@ -287,12 +287,13 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen pt-24 pb-12 bg-slate-50">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 py-16">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
+      <div className="bg-white border-b border-slate-200 py-12">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8">
+          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
             {lang === 'th' ? 'โปรไฟล์' : 'Profile'}
           </h1>
-          <p className="text-xl text-slate-600">
+          <div className="h-px w-12 bg-slate-300 mb-4" />
+          <p className="text-base text-slate-500 font-light">
             {lang === 'th' ? 'จัดการบัญชีและดูประวัติการจอง' : 'Manage your account and view booking history'}
           </p>
         </div>

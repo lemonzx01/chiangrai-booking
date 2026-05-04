@@ -315,12 +315,12 @@ function LoginContent() {
       {/* ============================================================
           Header Section - Gradient Background
           ============================================================ */}
-      <div className="bg-white border-b border-slate-200 py-16">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
+      <div className="bg-white border-b border-slate-200 py-12">
+        <div className="max-w-md mx-auto px-6 sm:px-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
             {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
           </h1>
-          <p className="text-xl text-slate-600">
+          <p className="text-base text-slate-500 font-light">
             {lang === 'th' ? 'เข้าสู่ระบบเพื่อดูประวัติการจอง' : 'Login to view your booking history'}
           </p>
         </div>

@@ -14,10 +14,10 @@
   },
   "home": {
     "hero": {
-      "badge": "Premium Car & Pool Villa Deals",
-      "titleLine1": "Self-drive trip",
-      "titleHighlight": "with our exclusive deals",
-      "subtitle": "Book premium cars with special villa packages you won't find anywhere else. Carefully selected for your best value."
+      "badge": "Car + stay. One booking.",
+      "titleLine1": "One car.",
+      "titleHighlight": "One stay.",
+      "subtitle": "Booked together. Inclusive price. Go anywhere."
     },
     "search": {
       "destination": "Destination",
@@ -29,10 +29,10 @@
       "button": "Search"
     },
     "weeklyDeals": {
-      "title": "Weekly Hot Deals",
-      "subtitle": "Handpicked premium car and villa packages at the best prices",
-      "viewAll": "View All Deals",
-      "packageStart": "Package Start"
+      "title": "This week's packages",
+      "subtitle": "Stay + car bundled into one booking. The price you see is the price you pay.",
+      "viewAll": "See all",
+      "packageStart": "From"
     }
   },
   "common": {
@@ -217,15 +217,15 @@
     "maxSeats": "Max {{count}} seats"
   },
   "cars": {
-    "subtitle": "Premium car rental with professional driver service",
+    "subtitle": "Every car fully insured. Free in-city delivery. No deposit card required.",
     "noResults": "No cars found matching your criteria"
   },
   "hotels": {
-    "subtitle": "Handpicked premium accommodation packages at the best prices",
+    "subtitle": "Every place we've stayed ourselves. We reply to every message.",
     "noResults": "No packages found matching your criteria"
   },
   "footer": {
-    "description": "Book premium car rental trips with exclusive deals you can't find anywhere else. We personally negotiate all accommodations.",
+    "description": "Cars and stays bundled into one trip. The price you see is the price you pay.",
     "becomePartner": "Become a Partner",
     "support": "Support",
     "partner": "Partner"
