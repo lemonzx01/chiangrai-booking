@@ -139,11 +139,11 @@ export default function CarCard({ car }: CarCardProps) {
   // Render
   // ----------------------------------------------------------
   return (
-    <Link href={`/cars/${car.id}`} className="block group focus-ring rounded-2xl">
-      <div className="card-premium bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        {/* ============================================================ */}
-        {/* ส่วนรูปภาพ                                                  */}
-        {/* ============================================================ */}
+    <Link href={`/cars/${car.id}`} className="block group focus-ring rounded-xl">
+      <div className="card-premium bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {/* Image — only the wishlist heart sits over it now.
+            The car-type label moved inline below as an eyebrow,
+            same pattern as HotelCard. */}
         <div className="relative h-56 overflow-hidden bg-slate-100">
           <Image
             src={car.images?.[0] || '/placeholder-car.jpg'}
@@ -154,63 +154,55 @@ export default function CarCard({ car }: CarCardProps) {
             placeholder="blur"
             blurDataURL={SHIMMER_DATA_URL}
           />
-
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
-
-          {/* Wishlist heart */}
           <WishlistButton kind="car" id={car.id} />
-
-          {/* Badge แสดงประเภทรถ (มุมบนขวา) */}
-          <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
-            {carType}
-          </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* ส่วนเนื้อหา */}
-        {/* ============================================================ */}
-        <div className="p-4 sm:p-5">
-          {/* ชื่อรถ */}
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 line-clamp-1">{name}</h3>
+        {/* Content — eyebrow (car type) → title → description →
+            included pills → metadata + price. */}
+        <div className="p-5">
+          {carType && (
+            <div className="text-xs text-slate-500 mb-2 uppercase tracking-wide">
+              {carType}
+            </div>
+          )}
 
-          {/* คำอธิบาย - จำกัด 2 บรรทัด */}
-          <p className="text-slate-500 text-xs sm:text-sm line-clamp-2 mb-3 sm:mb-4">{description}</p>
+          <h3 className="font-display text-lg font-medium text-slate-900 mb-2 line-clamp-1 tracking-tight">
+            {name}
+          </h3>
 
-          {/* ----------------------------------------------------------
-              รายการสิ่งที่รวมในราคา
-              - แสดงสูงสุด 3 รายการ
-              - แต่ละรายการมีไอคอน Check สีเขียว
-          ---------------------------------------------------------- */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {includes?.slice(0, 3).map((item, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1 text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded-full"
-              >
-                <Check size={12} className="text-green-500" />
-                {item}
-              </span>
-            ))}
-          </div>
+          <p className="text-slate-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+            {description}
+          </p>
 
-          {/* ----------------------------------------------------------
-              ส่วนล่าง: จำนวนผู้โดยสาร และ ราคา
-          ---------------------------------------------------------- */}
-          <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100">
-            {/* จำนวนผู้โดยสารสูงสุด */}
-            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-xs sm:text-sm">
-              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
+          {/* Included items — quieter pills (no colored check
+              icon, content-first). */}
+          {includes && includes.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {includes.slice(0, 3).map((item, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full"
+                >
+                  <Check size={10} className="text-slate-500" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-end justify-between pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+              <Users size={12} />
               <span>
                 {car.max_passengers} {t('common.passengers')}
               </span>
             </div>
 
-            {/* ราคาต่อวัน */}
             <div className="text-right">
-              <span className="text-base sm:text-lg font-bold text-indigo-600">
+              <span className="text-lg font-semibold text-slate-900 tracking-tight">
                 {formatCurrency(car.price_per_day)}
               </span>
-              <span className="text-slate-500 text-xs sm:text-sm">{t('common.perDay')}</span>
+              <span className="text-slate-400 text-xs ml-0.5">{t('common.perDay')}</span>
             </div>
           </div>
         </div>

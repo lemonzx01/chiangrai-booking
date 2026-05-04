@@ -193,24 +193,24 @@ body {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
   }
 
-  /* Premium card hover — subtle lift + ring glow + brighter shadow */
+  /* Editorial card hover — quiet. The previous "premium" card
+     translated -6px and added a strong colored shadow on hover,
+     which read as template/AI. Editorial UI prefers a quieter
+     signal: just darken the border. */
   .card-premium {
-    @apply transition-all duration-500 ease-out;
-    will-change: transform, box-shadow;
+    @apply transition-colors duration-200;
   }
   .card-premium:hover {
-    transform: translateY(-6px);
-    box-shadow:
-      0 20px 40px -16px rgba(15, 23, 42, 0.18),
-      0 8px 16px -8px rgba(79, 70, 229, 0.18);
+    border-color: theme('colors.slate.300');
   }
 
-  /* Smoother, longer image zoom on card hover */
+  /* Subtle image zoom on card hover — tighter and shorter than
+     before so it reads as polish, not "Squarespace template." */
   .img-zoom {
-    @apply transition-transform duration-700 ease-out;
+    @apply transition-transform duration-500 ease-out;
   }
   .group:hover .img-zoom {
-    transform: scale(1.08);
+    transform: scale(1.03);
   }
 
   /* Inline focus ring — for buttons inside dialogs / search dropdowns */

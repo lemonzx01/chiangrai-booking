@@ -343,44 +343,38 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           {/* Hotels Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {hotels.map((hotel) => (
-              <Link key={hotel.id} href={`/hotels/${hotel.id}`}>
-                <div className="group bg-white rounded-xl border-2 border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300">
-                  {/* รูปภาพ */}
+              <Link key={hotel.id} href={`/hotels/${hotel.id}`} className="group block">
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-colors duration-200 hover:border-slate-300">
                   <div className="relative h-52 overflow-hidden">
                     <Image
                       src={hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'}
                       alt={getField(hotel, 'name')}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
-                    {/* Star Rating Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white px-2.5 py-1 rounded-full shadow-sm">
-                      <Star size={13} className="text-yellow-500 fill-yellow-500" />
+                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 px-2 py-1 rounded-full">
+                      <Star size={11} className="text-amber-500 fill-amber-500" />
                       <span className="text-xs font-semibold text-slate-900">{hotel.star_rating}</span>
                     </div>
                   </div>
-                  {/* ข้อมูล */}
                   <div className="p-4">
-                    {/* ที่ตั้ง */}
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2">
-                      <MapPin size={12} />
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2 uppercase tracking-wide">
+                      <MapPin size={11} />
                       <span>{getField(hotel, 'location')}</span>
                     </div>
-                    {/* ชื่อ */}
-                    <h3 className="text-base font-bold text-slate-900 mb-3 line-clamp-1">
+                    <h3 className="font-display text-base font-medium text-slate-900 mb-3 line-clamp-1 tracking-tight">
                       {getField(hotel, 'name')}
                     </h3>
-                    {/* จำนวนผู้เข้าพัก และ ราคา */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-end justify-between">
                       <div className="flex items-center gap-1.5 text-slate-500 text-xs">
                         <Users size={12} />
                         <span>{hotel.max_guests} {t('common.guests')}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-bold text-indigo-600">
+                        <span className="text-base font-semibold text-slate-900 tracking-tight">
                           {formatCurrency(hotel.price_per_night)}
                         </span>
-                        <span className="text-slate-500 text-xs">{t('common.perNight')}</span>
+                        <span className="text-slate-400 text-xs ml-0.5">{t('common.perNight')}</span>
                       </div>
                     </div>
                   </div>
@@ -428,38 +422,33 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             {/* Cars Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {cars.map((car) => (
-                <Link key={car.id} href={`/cars/${car.id}`}>
-                  <div className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col md:flex-row">
-                    {/* รูปภาพ */}
+                <Link key={car.id} href={`/cars/${car.id}`} className="group block">
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-colors duration-200 hover:border-slate-300 flex flex-col md:flex-row">
                     <div className="relative h-40 md:h-auto md:w-5/12 overflow-hidden">
                       <Image
                         src={car.images?.[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70'}
                         alt={getField(car, 'name')}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     </div>
-                    {/* ข้อมูล */}
                     <div className="p-5 md:w-7/12 flex flex-col justify-center">
-                      {/* ประเภทรถ */}
-                      <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider mb-2">
+                      <span className="text-xs text-slate-500 uppercase tracking-wide mb-2">
                         {getField(car, 'car_type')}
                       </span>
-                      {/* ชื่อ */}
-                      <h3 className="text-lg font-bold text-slate-900 mb-4">
+                      <h3 className="font-display text-lg font-medium text-slate-900 mb-4 tracking-tight">
                         {getField(car, 'name')}
                       </h3>
-                      {/* จำนวนที่นั่ง และ ราคา */}
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-end justify-between">
                         <div className="flex items-center gap-1.5 text-slate-500 text-xs">
                           <Users size={12} />
                           <span>{car.max_passengers} {t('common.passengers')}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-lg font-bold text-indigo-600">
+                          <span className="text-lg font-semibold text-slate-900 tracking-tight">
                             {formatCurrency(car.price_per_day)}
                           </span>
-                          <span className="text-slate-500 text-xs">{t('common.perDay')}</span>
+                          <span className="text-slate-400 text-xs ml-0.5">{t('common.perDay')}</span>
                         </div>
                       </div>
                     </div>

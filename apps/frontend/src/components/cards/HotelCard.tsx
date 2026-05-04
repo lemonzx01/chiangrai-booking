@@ -137,13 +137,13 @@ export default function HotelCard({ hotel }: HotelCardProps) {
   // Render
   // ----------------------------------------------------------
   return (
-    <Link href={`/hotels/${hotel.id}`} className="block group focus-ring rounded-2xl">
-      <div className="card-premium bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        {/* ============================================================ */}
-        {/* ส่วนรูปภาพ                                                  */}
-        {/* ============================================================ */}
+    <Link href={`/hotels/${hotel.id}`} className="block group focus-ring rounded-xl">
+      <div className="card-premium bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {/* Image — only the wishlist heart and a quiet star pill
+            sit on top now. The colored room-type badge moved
+            inline below; that data point doesn't earn an
+            attention-grabbing position over the photo. */}
         <div className="relative h-56 overflow-hidden">
-          {/* รูปภาพโรงแรม - ใช้รูปแรกจาก array หรือ placeholder */}
           <Image
             src={hotel.images?.[0] || '/placeholder-hotel.jpg'}
             alt={name}
@@ -154,60 +154,57 @@ export default function HotelCard({ hotel }: HotelCardProps) {
             blurDataURL={SHIMMER_DATA_URL}
           />
 
-          {/* Subtle gradient at the bottom of the image — improves
-              legibility of any future overlay (price, "ลด N%" pill). */}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
-
-          {/* Wishlist heart — top-right, absolute-positioned over
-              the image. Stops click from following the parent Link. */}
           <WishlistButton kind="hotel" id={hotel.id} />
 
-          {/* Badge แสดงระดับดาว (มุมบนซ้าย) */}
-          <div className="absolute top-4 left-4 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-            <Star size={14} className="text-yellow-500 fill-yellow-500" />
-            <span className="text-sm font-bold text-slate-900">{hotel.star_rating}</span>
-          </div>
-
-          {/* Badge แสดงประเภทห้อง (มุมบนขวา) */}
-          <div className="absolute top-4 right-4 bg-indigo-600/95 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
-            {roomType}
+          {/* Quiet star pill — no shadow, slightly transparent so
+              the image still reads through. */}
+          <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 px-2 py-1 rounded-full">
+            <Star size={12} className="text-amber-500 fill-amber-500" />
+            <span className="text-xs font-semibold text-slate-900">{hotel.star_rating}</span>
           </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* ส่วนเนื้อหา */}
-        {/* ============================================================ */}
-        <div className="p-4 sm:p-5">
-          {/* ที่ตั้งโรงแรม พร้อมไอคอน MapPin */}
-          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-xs sm:text-sm mb-2">
-            <MapPin size={12} className="sm:w-[14px] sm:h-[14px]" />
+        {/* Content — typography-led hierarchy: location label
+            (eyebrow) → name (title) → description (body) →
+            metadata row. Price is a plain typographic element,
+            not a colored callout. */}
+        <div className="p-5">
+          {/* Eyebrow: location + room type, both as quiet labels */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-2 uppercase tracking-wide">
+            <MapPin size={11} />
             <span>{getField(hotel, 'location')}</span>
+            {roomType && (
+              <>
+                <span className="text-slate-300">·</span>
+                <span className="normal-case tracking-normal">{roomType}</span>
+              </>
+            )}
           </div>
 
-          {/* ชื่อโรงแรม */}
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 line-clamp-1">{name}</h3>
+          <h3 className="font-display text-lg font-medium text-slate-900 mb-2 line-clamp-1 tracking-tight">
+            {name}
+          </h3>
 
-          {/* คำอธิบาย - จำกัด 2 บรรทัด */}
-          <p className="text-slate-500 text-xs sm:text-sm line-clamp-2 mb-3 sm:mb-4">{description}</p>
+          <p className="text-slate-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+            {description}
+          </p>
 
-          {/* ----------------------------------------------------------
-              ส่วนล่าง: จำนวนผู้เข้าพัก และ ราคา
-          ---------------------------------------------------------- */}
-          <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100">
-            {/* จำนวนผู้เข้าพักสูงสุด */}
-            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 text-xs sm:text-sm">
-              <Users size={12} className="sm:w-[14px] sm:h-[14px]" />
+          <div className="flex items-end justify-between pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+              <Users size={12} />
               <span>
                 {hotel.max_guests} {t('common.guests')}
               </span>
             </div>
 
-            {/* ราคาต่อคืน */}
+            {/* Price — slate-900 not indigo. Per-night unit smaller
+                + lower-weight so the eye lands on the number
+                first, then the unit clarifies. */}
             <div className="text-right">
-              <span className="text-base sm:text-lg font-bold text-indigo-600">
+              <span className="text-lg font-semibold text-slate-900 tracking-tight">
                 {formatCurrency(hotel.price_per_night)}
               </span>
-              <span className="text-slate-500 text-xs sm:text-sm">{t('common.perNight')}</span>
+              <span className="text-slate-400 text-xs ml-0.5">{t('common.perNight')}</span>
             </div>
           </div>
         </div>
