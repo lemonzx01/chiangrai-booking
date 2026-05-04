@@ -186,24 +186,23 @@ describe('POST /api/auth/register', () => {
 // ---------------------------------------------------------------
 //
 // Independent unit covering the in-memory throttle that prevents
-// a single referrer from being inbox-bombed by signup spam. The
-// implementation is exported as `_shouldNotifyReferrerForTest`
-// from the route module specifically so this test can poke at it
-// without spinning up the full POST handler.
+// a single referrer from being inbox-bombed by signup spam. Lives
+// in lib/referrer-throttle.ts (route.ts can only export HTTP method
+// handlers — Next.js's checkFields validator rejects anything else).
 
-import { _shouldNotifyReferrerForTest } from '@/app/api/auth/register/route'
+import { shouldNotifyReferrer } from '@/lib/referrer-throttle'
 
 describe('shouldNotifyReferrer (per-referrer throttle)', () => {
   it('allows the first 5 calls and blocks the 6th within 24h', () => {
     const id = `ref-${Date.now()}`
-    expect(_shouldNotifyReferrerForTest(id)).toBe(true)
-    expect(_shouldNotifyReferrerForTest(id)).toBe(true)
-    expect(_shouldNotifyReferrerForTest(id)).toBe(true)
-    expect(_shouldNotifyReferrerForTest(id)).toBe(true)
-    expect(_shouldNotifyReferrerForTest(id)).toBe(true)
+    expect(shouldNotifyReferrer(id)).toBe(true)
+    expect(shouldNotifyReferrer(id)).toBe(true)
+    expect(shouldNotifyReferrer(id)).toBe(true)
+    expect(shouldNotifyReferrer(id)).toBe(true)
+    expect(shouldNotifyReferrer(id)).toBe(true)
     // 6th call → silent drop
-    expect(_shouldNotifyReferrerForTest(id)).toBe(false)
-    expect(_shouldNotifyReferrerForTest(id)).toBe(false)
+    expect(shouldNotifyReferrer(id)).toBe(false)
+    expect(shouldNotifyReferrer(id)).toBe(false)
   })
 
   it('counts each referrer independently', () => {
@@ -211,10 +210,10 @@ describe('shouldNotifyReferrer (per-referrer throttle)', () => {
     const b = `ref-b-${Date.now()}`
 
     // Burn through A's quota.
-    for (let i = 0; i < 5; i++) _shouldNotifyReferrerForTest(a)
-    expect(_shouldNotifyReferrerForTest(a)).toBe(false)
+    for (let i = 0; i < 5; i++) shouldNotifyReferrer(a)
+    expect(shouldNotifyReferrer(a)).toBe(false)
 
     // B is unaffected.
-    expect(_shouldNotifyReferrerForTest(b)).toBe(true)
+    expect(shouldNotifyReferrer(b)).toBe(true)
   })
 })

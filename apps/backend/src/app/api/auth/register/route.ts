@@ -68,6 +68,7 @@ import type { User } from '@chiangrai/shared/types'
 import { logger } from '../../../../lib/logger'
 import { resolveReferrer, recordReferral } from '../../../../lib/referral'
 import { rateLimitAsync } from '../../../../middleware/rate-limit'
+import { shouldNotifyReferrer } from '../../../../lib/referrer-throttle'
 
 // ============================================================
 // POST Handler - สมัครสมาชิก
@@ -377,58 +378,11 @@ export async function POST(request: Request) {
 // logged but never bubble — registration must not depend on
 // email delivery.
 //
-// Per-referrer throttle:
-//   The endpoint-level IP rate limit blocks bulk-signup attacks
-//   from one origin. But an attacker with a botnet could still
-//   spread signups across IPs. To prevent inbox flooding, we
-//   also cap notifications-per-referrer to 5 per 24h. Above that
-//   we silently drop additional sends (the referral itself is
-//   still recorded — the referrer just doesn't get an email
-//   storm). Stored in-memory, which means each serverless
-//   instance has its own counter; that's an acceptable upper
-//   bound for this kind of soft anti-abuse since cold starts
-//   are infrequent and the worst-case is a few extra emails.
-
-const REFERRER_NOTIFY_MAX = 5
-const REFERRER_NOTIFY_WINDOW_MS = 24 * 60 * 60 * 1000
-
-interface ReferrerNotifyEntry {
-  count: number
-  windowStart: number
-}
-
-const referrerNotifyMap = new Map<string, ReferrerNotifyEntry>()
-
-/**
- * Returns true if we should send a notification to this referrer
- * right now. Increments the counter as a side-effect when the
- * answer is true — caller doesn't need to remember to update.
- *
- * Exported for tests; the implementation is intentionally simple
- * (in-memory map, sliding window) and doesn't need a separate
- * library.
- */
-export function _shouldNotifyReferrerForTest(referrerId: string): boolean {
-  return shouldNotifyReferrer(referrerId)
-}
-
-function shouldNotifyReferrer(referrerId: string): boolean {
-  const now = Date.now()
-  const existing = referrerNotifyMap.get(referrerId)
-
-  // No entry, or the window has rolled over → fresh start.
-  if (!existing || now - existing.windowStart > REFERRER_NOTIFY_WINDOW_MS) {
-    referrerNotifyMap.set(referrerId, { count: 1, windowStart: now })
-    return true
-  }
-
-  if (existing.count >= REFERRER_NOTIFY_MAX) {
-    return false
-  }
-
-  existing.count++
-  return true
-}
+// The per-referrer notification throttle was extracted to
+// `lib/referrer-throttle.ts` because Next.js App Router only allows
+// HTTP-method exports (GET/POST/...) from a route module. Keeping the
+// helper inline triggered the `checkFields` route-shape validator at
+// build time. See that module for the throttle policy + test hooks.
 
 interface DispatchReferralSignupInput {
   /** Used as the throttle key — caller must always pass it. */
