@@ -24,8 +24,14 @@
 /** Type สำหรับ Next.js Metadata */
 import type { Metadata, Viewport } from 'next'
 
-/** Google Font - Plus Jakarta Sans */
-import { Plus_Jakarta_Sans } from 'next/font/google'
+/** Google Fonts — Plus Jakarta Sans for body, Fraunces for display.
+ *  Pairing rationale: Jakarta is a humanist sans that handles
+ *  Thai gracefully via the system fallback; Fraunces is a modern
+ *  variable serif with a softer-than-Playfair voice — used ONLY
+ *  on display headlines and italic accents so the brand reads
+ *  intentional rather than blog-template.
+ */
+import { Plus_Jakarta_Sans, Fraunces } from 'next/font/google'
 
 /** Global CSS styles */
 import './globals.css'
@@ -64,6 +70,21 @@ const font = Plus_Jakarta_Sans({
   // (Google fonts API). `true` lets next/font auto-balance the
   // fallback metrics so the swap doesn't shift layout.
   adjustFontFallback: true,
+})
+
+/**
+ * Display serif — Fraunces. Used only on h1/h2/italic accents
+ * via the `font-display` Tailwind class (configured in
+ * tailwind.config). Latin only — Thai text falls back to
+ * Jakarta which renders Thai correctly.
+ */
+const displayFont = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+  display: 'swap',
+  preload: false, // body font is critical, display can wait
 })
 
 // ============================================================
@@ -268,7 +289,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Body - พร้อม Font และ Background
           ============================================================ */}
       <body
-        className={`${font.variable} font-sans bg-[#fafbfc] text-slate-900 antialiased`}
+        className={`${font.variable} ${displayFont.variable} font-sans bg-[#fafbfc] text-slate-900 antialiased`}
         suppressHydrationWarning
       >
         {/* Structured data for Google — renders in <body>, which is

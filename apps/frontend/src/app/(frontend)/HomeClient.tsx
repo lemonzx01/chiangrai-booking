@@ -181,11 +181,14 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             of centered "landing page template"
             ---------------------------------------------------------- */}
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 w-full">
-          {/* Title — mixed weights + period for editorial rhythm */}
+          {/* Title — sans for line 1, italic serif for line 2.
+              The serif italic on line 2 is the single biggest
+              "this was designed by a human" signal on the page.
+              Falls back to system Thai serif for Thai locales. */}
           <h1 className="text-5xl md:text-6xl text-white leading-[1.05] mb-5 animate-slide-up max-w-3xl tracking-tight">
             <span className="font-bold">{t('home.hero.titleLine1')}</span>
             <br />
-            <span className="font-light italic text-white/85">
+            <span className="font-display font-light italic text-white/85">
               {t('home.hero.titleHighlight')}
             </span>
           </h1>
@@ -323,7 +326,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           {/* Section Header */}
           <Reveal>
             <div className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+              <h2 className="font-display text-3xl md:text-4xl font-medium text-slate-900 tracking-tight">
                 {t('home.weeklyDeals.title')}
               </h2>
               {/* Link ดูทั้งหมด (Desktop) */}
@@ -408,7 +411,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             {/* Section Header */}
             <Reveal>
               <div className="flex items-center justify-between mb-12">
-                <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
+                <h2 className="font-display text-3xl md:text-4xl font-medium text-slate-900 tracking-tight">
                   {t('navbar.cars')}
                 </h2>
                 {/* Link ดูทั้งหมด (Desktop) */}

@@ -181,7 +181,7 @@ export default function HotelsClient({
       {/* Header */}
       <div className="bg-white border-b border-slate-200 py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-slate-900 mb-3 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-medium text-slate-900 mb-3 tracking-tight">
             {t('navbar.packages')}
           </h1>
           <div className="h-px w-12 bg-slate-300 mb-4" />

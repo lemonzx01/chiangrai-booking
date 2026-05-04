@@ -104,7 +104,7 @@ export default function ContactPage() {
           ============================================================ */}
       <div className="bg-white border-b border-slate-200 py-12">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-3 tracking-tight">
             {t('contact.title')}
           </h1>
           <div className="h-px w-12 bg-slate-300 mb-4" />

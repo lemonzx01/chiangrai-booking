@@ -289,7 +289,7 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-white border-b border-slate-200 py-12">
         <div className="max-w-4xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-3 tracking-tight">
             {lang === 'th' ? 'โปรไฟล์' : 'Profile'}
           </h1>
           <div className="h-px w-12 bg-slate-300 mb-4" />
