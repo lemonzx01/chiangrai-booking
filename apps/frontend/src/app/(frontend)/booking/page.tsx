@@ -68,6 +68,7 @@ import { format } from 'date-fns'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import DateRangePicker from '@/components/ui/DateRangePicker'
+import LoyaltyPointsPreview from '@/components/shared/LoyaltyPointsPreview'
 
 /** Profile auto-fill hook */
 import useCurrentUser from '@/hooks/useCurrentUser'
@@ -908,6 +909,19 @@ function BookingContent() {
                             </span>
                           </div>
                         )}
+
+                        {/* Loyalty preview — last visible reminder
+                            of the reward before the user clicks
+                            through to Stripe. Always uses the
+                            THB total because that's what the
+                            backend awards on. Renders nothing when
+                            the booking is below the rate floor. */}
+                        <div className="mt-3 pt-3 border-t border-dashed border-slate-200 flex justify-end">
+                          <LoyaltyPointsPreview
+                            amountThb={totalPriceTHB}
+                            size="md"
+                          />
+                        </div>
                       </div>
                     </div>
                   ) : (
