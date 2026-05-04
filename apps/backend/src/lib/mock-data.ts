@@ -29,9 +29,56 @@ export const MOCK_USERS: User[] = [
     role: 'user',
     phone: '+66 81 234 5678',
     is_active: true,
+    // Phase-1 referral + loyalty seed: this user is the
+    // "main demo user" — has shared their code with 3 friends
+    // (see MOCK_REFERRALS) and earned points from 3 paid
+    // bookings. The counter (138) matches the ledger sum of
+    // 25 + 50 + 78 - 15 in MOCK_LOYALTY_LEDGER.
+    referral_code: 'ABCDEFGH',
+    loyalty_points: 138,
+    email_verified: true,
     created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
-  },
+  } as User,
+  // Three referees attributed to user-1's code. Created in the
+  // referral flow, so they all have email_verified=true and a
+  // user_token-able profile.
+  {
+    id: 'mock-user-2',
+    email: 'niran@example.com',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS',
+    name: 'Niran K.',
+    role: 'user',
+    phone: '+66 89 111 2222',
+    is_active: true,
+    email_verified: true,
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  } as User,
+  {
+    id: 'mock-user-3',
+    email: 'aor@example.com',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS',
+    name: 'อรณิชา ส.',
+    role: 'user',
+    phone: '+66 89 333 4444',
+    is_active: true,
+    email_verified: true,
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  } as User,
+  {
+    id: 'mock-user-4',
+    email: 'somchai@example.com',
+    password_hash: '$2b$10$zjdWZKUMHmolFwiAfWAz6uyHntIxMfgJCstmwHE56nJj31rQw/JWS',
+    name: 'สมชาย ใจดี',
+    role: 'user',
+    phone: '+66 89 555 6666',
+    is_active: true,
+    email_verified: false, // intentional — pending verify
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  } as User,
   // Partner โรงแรม
   {
     id: 'mock-partner-hotel-1',
@@ -453,7 +500,7 @@ export function getMockBookings(filters?: {
   }
 
   // Sort by created_at descending (newest first)
-  bookings.sort((a, b) => 
+  bookings.sort((a, b) =>
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   )
 
@@ -462,4 +509,478 @@ export function getMockBookings(filters?: {
 
   return bookings.slice(offset, offset + limit)
 }
+
+// ============================================================
+// Mock Data — peripheral tables for a populated demo
+// ============================================================
+//
+// Most of the admin pages and analytics widgets read from these
+// tables. Without seed data they render empty states forever in
+// mock mode, which makes evaluating the UX painful. Each block
+// below is a small, self-consistent set tuned so:
+//
+//   - dates/timestamps are anchored relative to NOW so the data
+//     always looks "recent" no matter when you boot
+//   - foreign-key-ish references (hotel_id, customer_email,
+//     user_id) line up with MOCK_HOTELS / MOCK_USERS / MOCK_CARS
+//     above, so joins on the mock client return real rows
+//   - a few rows are deliberately in mid-funnel states (review
+//     pending mod, referral pending, expired coupon) so the
+//     filtered-list views aren't all-green-paths
+
+const NOW = Date.now()
+const day = (n: number) => new Date(NOW + n * 24 * 60 * 60 * 1000).toISOString()
+const hour = (n: number) => new Date(NOW + n * 60 * 60 * 1000).toISOString()
+
+// --- Coupons -------------------------------------------------
+// Seven coupons covering the catalogue of states the admin UI
+// filters on: active percent, active fixed, low-min-spend gate,
+// expired, future-start, referral reward (email-bound), loyalty
+// redemption (email-bound). Two of them are bound to the demo
+// users so testing the redeem path "just works."
+export const MOCK_COUPONS = [
+  {
+    id: 'mock-coupon-welcome10',
+    code: 'WELCOME10',
+    description: 'ส่วนลดต้อนรับสมาชิกใหม่ 10%',
+    discount_type: 'PERCENT' as const,
+    discount_value: 10,
+    min_spend: 0,
+    max_discount: 500,
+    applies_to: 'ALL' as const,
+    starts_at: day(-30),
+    expires_at: day(60),
+    is_active: true,
+    bound_to_email: null,
+    source: null,
+    created_at: day(-30),
+    updated_at: day(-30),
+  },
+  {
+    id: 'mock-coupon-summer500',
+    code: 'SUMMER500',
+    description: 'ส่วนลด ฿500 สำหรับการจองโรงแรม',
+    discount_type: 'FIXED' as const,
+    discount_value: 500,
+    min_spend: 3000,
+    max_discount: null,
+    applies_to: 'HOTEL' as const,
+    starts_at: day(-14),
+    expires_at: day(45),
+    is_active: true,
+    bound_to_email: null,
+    source: null,
+    created_at: day(-14),
+    updated_at: day(-14),
+  },
+  {
+    id: 'mock-coupon-rentcar15',
+    code: 'RENTCAR15',
+    description: 'รถเช่าลด 15% — เฉพาะ booking รถ',
+    discount_type: 'PERCENT' as const,
+    discount_value: 15,
+    min_spend: 1500,
+    max_discount: 800,
+    applies_to: 'CAR' as const,
+    starts_at: day(-7),
+    expires_at: day(30),
+    is_active: true,
+    bound_to_email: null,
+    source: null,
+    created_at: day(-7),
+    updated_at: day(-7),
+  },
+  {
+    id: 'mock-coupon-songkran',
+    code: 'SONGKRAN24',
+    description: 'แคมเปญสงกรานต์ที่ผ่านมา (หมดอายุแล้ว)',
+    discount_type: 'PERCENT' as const,
+    discount_value: 20,
+    min_spend: 0,
+    max_discount: 1000,
+    applies_to: 'ALL' as const,
+    starts_at: day(-90),
+    expires_at: day(-30),
+    is_active: false,
+    bound_to_email: null,
+    source: null,
+    created_at: day(-100),
+    updated_at: day(-30),
+  },
+  {
+    id: 'mock-coupon-newyear',
+    code: 'NEWYEAR2027',
+    description: 'แคมเปญปีใหม่ — ยังไม่เริ่ม',
+    discount_type: 'PERCENT' as const,
+    discount_value: 25,
+    min_spend: 5000,
+    max_discount: 2000,
+    applies_to: 'ALL' as const,
+    starts_at: day(60),
+    expires_at: day(120),
+    is_active: true,
+    bound_to_email: null,
+    source: null,
+    created_at: day(-1),
+    updated_at: day(-1),
+  },
+  // Email-bound: mock referral reward sitting in user@example.com's wallet
+  {
+    id: 'mock-coupon-gift-ref',
+    code: 'GIFT-NIRAN-A1B2',
+    description: 'Welcome gift — thanks for trying us out',
+    discount_type: 'PERCENT' as const,
+    discount_value: 10,
+    min_spend: 0,
+    max_discount: 500,
+    applies_to: 'ALL' as const,
+    starts_at: day(-3),
+    expires_at: day(87),
+    is_active: true,
+    bound_to_email: 'user@example.com',
+    source: 'referral_referee',
+    created_at: day(-3),
+    updated_at: day(-3),
+  },
+  // Email-bound: mock loyalty redemption sitting in user@example.com's wallet
+  {
+    id: 'mock-coupon-redeem-loyalty',
+    code: 'REDEEM-XK3PQR94',
+    description: 'Loyalty redemption — ฿100 off',
+    discount_type: 'FIXED' as const,
+    discount_value: 100,
+    min_spend: 0,
+    max_discount: null,
+    applies_to: 'ALL' as const,
+    starts_at: day(-1),
+    expires_at: day(89),
+    is_active: true,
+    bound_to_email: 'user@example.com',
+    source: 'loyalty_redeem',
+    created_at: day(-1),
+    updated_at: day(-1),
+  },
+]
+
+// --- Reviews -------------------------------------------------
+// Four approved + two pending so the moderation UI has both an
+// "approved" tab AND a meaningful "pending" tab to triage. Each
+// review references one of the seeded hotels or cars so the
+// public detail-page reviews-section has content too.
+export const MOCK_REVIEWS = [
+  {
+    id: 'mock-review-1',
+    hotel_id: MOCK_HOTELS[0].id,
+    car_id: null,
+    customer_name: 'สมชาย ใจดี',
+    customer_email: 'somchai@example.com',
+    rating: 5,
+    comment: 'ห้องสะอาด พนักงานน่ารัก วิวทะเลสวยมาก แนะนำเลย',
+    is_approved: true,
+    spam_score: 0,
+    created_at: day(-12),
+    updated_at: day(-12),
+  },
+  {
+    id: 'mock-review-2',
+    hotel_id: MOCK_HOTELS[0].id,
+    car_id: null,
+    customer_name: 'Niran K.',
+    customer_email: 'niran@example.com',
+    rating: 4,
+    comment: 'Pool villa was great but breakfast options could be more varied.',
+    is_approved: true,
+    spam_score: 5,
+    created_at: day(-8),
+    updated_at: day(-8),
+  },
+  {
+    id: 'mock-review-3',
+    hotel_id: MOCK_HOTELS[1].id,
+    car_id: null,
+    customer_name: 'อรณิชา ส.',
+    customer_email: 'aor@example.com',
+    rating: 5,
+    comment: 'รีสอร์ทบรรยากาศดีมาก ขับ SUV ขึ้นดอยสนุกสุดๆ ไกด์ก็เป็นกันเอง',
+    is_approved: true,
+    spam_score: 2,
+    created_at: day(-5),
+    updated_at: day(-5),
+  },
+  {
+    id: 'mock-review-4',
+    hotel_id: null,
+    car_id: MOCK_CARS[0].id,
+    customer_name: 'Mark T.',
+    customer_email: 'mark@example.com',
+    rating: 5,
+    comment: 'Convertible was immaculate. Pickup at the airport was painless.',
+    is_approved: true,
+    spam_score: 0,
+    created_at: day(-3),
+    updated_at: day(-3),
+  },
+  {
+    id: 'mock-review-5-pending',
+    hotel_id: MOCK_HOTELS[2].id,
+    car_id: null,
+    customer_name: 'Anonymous',
+    customer_email: 'spam@bot.tld',
+    rating: 1,
+    comment: 'Buy crypto now!!! Click http://scam.example/win $$$',
+    is_approved: false,
+    spam_score: 95,
+    created_at: hour(-3),
+    updated_at: hour(-3),
+  },
+  {
+    id: 'mock-review-6-pending',
+    hotel_id: null,
+    car_id: MOCK_CARS[0].id,
+    customer_name: 'พี่หนุ่ม',
+    customer_email: 'pn@example.com',
+    rating: 4,
+    comment: 'รถสวย แต่ส่งช้านิดนึง ครั้งหน้าอยากให้ตรงเวลามากกว่านี้',
+    is_approved: false,
+    spam_score: 8,
+    created_at: hour(-1),
+    updated_at: hour(-1),
+  },
+]
+
+// --- Partners ------------------------------------------------
+// Two partners: one who owns a hotel, one who owns the car. The
+// owner_ids on hotel-1 and car-1 above are stamped "mock-partner-..."
+// to match. partners is a row in the users table with role='partner'
+// per migration 0007 — for the mock client it lives in its own
+// `partners` array, but we mirror minimal fields here.
+export const MOCK_PARTNERS = [
+  {
+    id: 'mock-partner-hotel-1',
+    name: 'Phuket Ocean Drive Co., Ltd',
+    email: 'partner-phuket@example.com',
+    phone: '076-555-0101',
+    business_type: 'HOTEL' as const,
+    stripe_account_id: null,
+    stripe_onboarding_complete: false,
+    is_active: true,
+    created_at: day(-180),
+    updated_at: day(-30),
+  },
+  {
+    id: 'mock-partner-car-1',
+    name: 'Chiang Rai Premium Cars',
+    email: 'partner-cars@example.com',
+    phone: '053-555-0202',
+    business_type: 'CAR' as const,
+    stripe_account_id: 'acct_mock_partner_car_1',
+    stripe_onboarding_complete: true,
+    is_active: true,
+    created_at: day(-120),
+    updated_at: day(-7),
+  },
+]
+
+// --- Admin notifications ------------------------------------
+// Mix of unread + read, varied severity, so the bell badge in
+// the sidebar shows a count and the inbox has filterable rows.
+export const MOCK_ADMIN_NOTIFICATIONS = [
+  {
+    id: 'mock-notif-1',
+    type: 'BOOKING',
+    title: 'การจองใหม่',
+    message: 'ลูกค้า สมชาย ใจดี จองแพ็คเกจภูเก็ต ฿38,700',
+    link: '/admin/bookings',
+    is_read: false,
+    created_at: hour(-2),
+  },
+  {
+    id: 'mock-notif-2',
+    type: 'REVIEW',
+    title: 'รีวิวรอตรวจสอบ',
+    message: 'มีรีวิวใหม่ที่ระบบสงสัยว่าเป็น spam (score 95)',
+    link: '/admin/reviews?status=pending',
+    is_read: false,
+    created_at: hour(-3),
+  },
+  {
+    id: 'mock-notif-3',
+    type: 'PARTNER',
+    title: 'พาร์ทเนอร์ใหม่ลงทะเบียน',
+    message: 'Chiang Rai Premium Cars ส่งเอกสารยืนยันแล้ว — รอตรวจสอบ',
+    link: '/admin/partners',
+    is_read: true,
+    created_at: day(-7),
+  },
+  {
+    id: 'mock-notif-4',
+    type: 'CANCELLATION',
+    title: 'ยกเลิกการจอง',
+    message: 'Booking TE26-AB12 ถูกยกเลิก — refund 100% (฿8,900)',
+    link: '/admin/bookings',
+    is_read: true,
+    created_at: day(-2),
+  },
+]
+
+// --- Referrals ----------------------------------------------
+// One pending, one qualified, one rewarded — gives the admin
+// /admin/referrals page a row in each filter chip and the
+// dashboard analytics widget a non-zero conversion rate.
+export const MOCK_REFERRALS = [
+  {
+    id: 'mock-ref-1',
+    referrer_id: 'mock-user-1',
+    referee_id: 'mock-user-2',
+    referral_code: 'ABCDEFGH',
+    status: 'rewarded',
+    qualified_at: day(-5),
+    rewarded_at: day(-5),
+    referrer_coupon_code: 'GIFT-OWNER-X1Y2',
+    referee_coupon_code: 'GIFT-NIRAN-A1B2',
+    created_at: day(-10),
+  },
+  {
+    id: 'mock-ref-2',
+    referrer_id: 'mock-user-1',
+    referee_id: 'mock-user-3',
+    referral_code: 'ABCDEFGH',
+    status: 'qualified',
+    qualified_at: day(-1),
+    rewarded_at: null,
+    referrer_coupon_code: null,
+    referee_coupon_code: null,
+    created_at: day(-3),
+  },
+  {
+    id: 'mock-ref-3',
+    referrer_id: 'mock-user-1',
+    referee_id: 'mock-user-4',
+    referral_code: 'ABCDEFGH',
+    status: 'pending',
+    qualified_at: null,
+    rewarded_at: null,
+    referrer_coupon_code: null,
+    referee_coupon_code: null,
+    created_at: day(-1),
+  },
+]
+
+// --- Loyalty ledger -----------------------------------------
+// The demo user (user@example.com / mock-user-1) has earned and
+// spent some points. Counter on users.loyalty_points should sum
+// to match — set in the user row itself (138 = 25+50+78-15).
+export const MOCK_LOYALTY_LEDGER = [
+  {
+    id: 'mock-loy-1',
+    user_id: 'mock-user-1',
+    delta: 25,
+    kind: 'earn',
+    source_type: 'booking',
+    source_id: 'mock-booking-1',
+    reason: 'จองสำเร็จ TE25-AAA1 (฿2,500)',
+    created_at: day(-30),
+  },
+  {
+    id: 'mock-loy-2',
+    user_id: 'mock-user-1',
+    delta: 50,
+    kind: 'earn',
+    source_type: 'booking',
+    source_id: 'mock-booking-2',
+    reason: 'จองสำเร็จ TE25-BBB2 (฿5,000)',
+    created_at: day(-20),
+  },
+  {
+    id: 'mock-loy-3',
+    user_id: 'mock-user-1',
+    delta: 78,
+    kind: 'earn',
+    source_type: 'booking',
+    source_id: 'mock-booking-3',
+    reason: 'จองสำเร็จ TE25-CCC3 (฿7,800)',
+    created_at: day(-10),
+  },
+  {
+    id: 'mock-loy-4',
+    user_id: 'mock-user-1',
+    delta: -15,
+    kind: 'redeem',
+    source_type: 'coupon',
+    source_id: 'REDEEM-XK3PQR94',
+    reason: 'แลกแต้มเป็นคูปอง ฿100 off (รหัส REDEEM-XK3PQR94)',
+    created_at: day(-1),
+  },
+]
+
+// --- User wishlist ------------------------------------------
+// The demo user has a few saved listings so /wishlist shows real
+// content when they log in.
+export const MOCK_WISHLIST = [
+  {
+    user_id: 'mock-user-1',
+    kind: 'hotel',
+    id: MOCK_HOTELS[1].id,
+    added_at: day(-5),
+  },
+  {
+    user_id: 'mock-user-1',
+    kind: 'hotel',
+    id: MOCK_HOTELS[2].id,
+    added_at: day(-2),
+  },
+  {
+    user_id: 'mock-user-1',
+    kind: 'car',
+    id: MOCK_CARS[0].id,
+    added_at: day(-1),
+  },
+]
+
+// --- Admin audit log ----------------------------------------
+// Recent admin actions so the audit-log query has rows. Rotates
+// through the action verbs we use (booking.refund, hotel.delete,
+// referral.void, coupon.create) so any "filter by action" query
+// produces results.
+export const MOCK_ADMIN_AUDIT_LOG = [
+  {
+    id: 'mock-audit-1',
+    actor_id: 'mock-admin-1',
+    actor_email: 'admin@gotjourneythailand.com',
+    action: 'booking.refund',
+    resource_type: 'booking',
+    resource_id: 'TE26-AB12',
+    metadata: { amount: 8900, reason: 'ลูกค้าขอยกเลิก' },
+    ip_address: '127.0.0.1',
+    user_agent: 'Mozilla/5.0',
+    request_id: 'mock-req-001',
+    created_at: day(-2),
+  },
+  {
+    id: 'mock-audit-2',
+    actor_id: 'mock-admin-1',
+    actor_email: 'admin@gotjourneythailand.com',
+    action: 'coupon.create',
+    resource_type: 'coupon',
+    resource_id: 'mock-coupon-summer500',
+    metadata: { code: 'SUMMER500', discount_type: 'FIXED', discount_value: 500 },
+    ip_address: '127.0.0.1',
+    user_agent: 'Mozilla/5.0',
+    request_id: 'mock-req-002',
+    created_at: day(-14),
+  },
+  {
+    id: 'mock-audit-3',
+    actor_id: 'mock-admin-1',
+    actor_email: 'admin@gotjourneythailand.com',
+    action: 'review.approve',
+    resource_type: 'review',
+    resource_id: 'mock-review-3',
+    metadata: { rating: 5 },
+    ip_address: '127.0.0.1',
+    user_agent: 'Mozilla/5.0',
+    request_id: 'mock-req-003',
+    created_at: day(-5),
+  },
+]
 
