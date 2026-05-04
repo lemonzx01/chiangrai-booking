@@ -325,7 +325,7 @@ const DateRangePicker = ({
                       className={`
                         relative w-full ${isMobile ? 'h-12' : 'h-14'} flex items-center justify-center rounded-lg transition-all z-10
                         ${!isCurrentMonth ? 'text-slate-300 cursor-default' : ''}
-                        ${isStart || isEnd ? 'bg-indigo-600 text-white shadow-lg font-bold' : ''}
+                        ${isStart || isEnd ? 'bg-slate-900 text-white shadow-lg font-bold' : ''}
                         ${inRange && !isStart && !isEnd ? 'bg-emerald-50 text-slate-700' : ''}
                         ${!isStart && !isEnd && !inRange && isCurrentMonth && !isDisabled ? 'hover:bg-slate-50 text-slate-700' : ''}
                         ${isDisabled ? 'text-slate-300 cursor-not-allowed' : ''}
@@ -424,7 +424,7 @@ const DateRangePicker = ({
                       <p className="text-xs text-slate-500 mb-1">
                         {lang === 'th' ? 'วันเช็คอิน' : 'Check-in'}
                       </p>
-                      <p className={`text-base font-bold ${tempStartDate ? 'text-indigo-600' : 'text-slate-400'}`}>
+                      <p className={`text-base font-bold ${tempStartDate ? 'text-slate-900' : 'text-slate-400'}`}>
                         {tempStartDate
                           ? format(tempStartDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
                           : '—'
@@ -435,7 +435,7 @@ const DateRangePicker = ({
                       <p className="text-xs text-slate-500 mb-1">
                         {lang === 'th' ? 'วันเช็คเอาท์' : 'Check-out'}
                       </p>
-                      <p className={`text-base font-bold ${tempEndDate ? 'text-indigo-600' : 'text-slate-400'}`}>
+                      <p className={`text-base font-bold ${tempEndDate ? 'text-slate-900' : 'text-slate-400'}`}>
                         {tempEndDate
                           ? format(tempEndDate, lang === 'th' ? 'EEE, d MMM' : 'EEE, MMM d')
                           : '—'
@@ -447,7 +447,7 @@ const DateRangePicker = ({
                         <p className="text-xs text-slate-500 mb-1">
                           {lang === 'th' ? 'จำนวนคืน' : 'Nights'}
                         </p>
-                        <p className="text-base font-bold text-indigo-600">
+                        <p className="text-base font-bold text-slate-900">
                           {differenceInDays(tempEndDate, tempStartDate)} {lang === 'th' ? 'คืน' : 'nights'}
                         </p>
                       </div>
@@ -459,7 +459,7 @@ const DateRangePicker = ({
                     type="button"
                     onClick={handleConfirm}
                     disabled={!tempStartDate || !tempEndDate}
-                    className="px-8 py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg"
+                    className="px-8 py-3 text-base font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg"
                   >
                     {lang === 'th' ? 'เสร็จสิ้น' : 'Done'}
                   </button>
@@ -475,7 +475,7 @@ const DateRangePicker = ({
                     <p className="text-xs text-slate-500 mb-1">
                       {lang === 'th' ? 'จำนวนคืน' : 'Nights'}
                     </p>
-                    <p className="text-lg font-bold text-indigo-600">
+                    <p className="text-lg font-bold text-slate-900">
                       {differenceInDays(tempEndDate, tempStartDate)} {lang === 'th' ? 'คืน' : 'nights'}
                     </p>
                   </div>
@@ -484,7 +484,7 @@ const DateRangePicker = ({
                   type="button"
                   onClick={handleConfirm}
                   disabled={!tempStartDate || !tempEndDate}
-                  className="w-full py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
+                  className="w-full py-3 text-base font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
                 >
                   {lang === 'th' ? 'เสร็จสิ้น' : 'Done'}
                 </button>

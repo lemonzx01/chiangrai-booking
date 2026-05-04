@@ -54,7 +54,7 @@ function VerifyEmailContent() {
     return (
       <div className="min-h-screen pt-24 pb-12 bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-slate-900 mx-auto mb-4" />
           <p className="text-slate-600">
             {lang === 'th' ? 'กำลังยืนยันอีเมล...' : 'Verifying email...'}
           </p>
@@ -120,7 +120,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <VerifyEmailContent />

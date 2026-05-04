@@ -144,7 +144,7 @@ export default function CustomSelect({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full -left-12 mt-3 bg-white rounded-xl z-50 w-[240px] border-2 border-indigo-500 shadow-2xl overflow-hidden animate-scale-up">
+        <div className="absolute top-full -left-12 mt-3 bg-white rounded-xl z-50 w-[240px] border-2 border-slate-900 shadow-2xl overflow-hidden animate-scale-up">
           <div className="p-2">
             <div className="flex flex-col gap-1">
               {/* แสดงตัวเลือกทั้งหมด */}
@@ -158,7 +158,7 @@ export default function CustomSelect({
                   }}
                   className={`flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-all ${
                     value === option.value
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-slate-900 text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -166,7 +166,7 @@ export default function CustomSelect({
                   <MapPin
                     size={16}
                     className={`flex-shrink-0 ${
-                      value === option.value ? 'text-white' : 'text-indigo-600'
+                      value === option.value ? 'text-white' : 'text-slate-900'
                     }`}
                   />
                   {/* ข้อความตัวเลือก */}

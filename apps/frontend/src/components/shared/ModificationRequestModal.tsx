@@ -119,7 +119,7 @@ export default function ModificationRequestModal({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <CalendarClock size={18} className="text-indigo-600" />
+            <CalendarClock size={18} className="text-slate-900" />
             <h2 className="text-lg font-bold text-slate-900">
               ขอเลื่อนวันจอง
             </h2>
@@ -161,7 +161,7 @@ export default function ModificationRequestModal({
                 required
                 disabled={loading}
                 min={new Date().toISOString().slice(0, 10)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
               />
             </div>
             <div>
@@ -175,7 +175,7 @@ export default function ModificationRequestModal({
                 required
                 disabled={loading}
                 min={checkIn}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
               />
             </div>
           </div>
@@ -192,14 +192,14 @@ export default function ModificationRequestModal({
               rows={3}
               maxLength={500}
               placeholder="เช่น เครื่องบินเลื่อน, มีงานด่วน, ฯลฯ"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm resize-none"
             />
             <div className="text-[11px] text-slate-400 text-right mt-1">
               {reason.length}/500
             </div>
           </div>
 
-          <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs text-indigo-800">
+          <div className="rounded-lg bg-indigo-50 border border-slate-200 px-3 py-2 text-xs text-indigo-800">
             <strong>หมายเหตุ:</strong> ระบบจะส่งคำขอไปยังทีมงาน — ไม่ใช่การยืนยันทันที
             ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมงเพื่อยืนยันราคาและดำเนินการต่อไป
           </div>
@@ -225,7 +225,7 @@ export default function ModificationRequestModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

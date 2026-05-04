@@ -73,21 +73,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Styles (กำหนด Styles)
     // ----------------------------------------------------------
 
-    /** สไตล์พื้นฐานสำหรับทุกปุ่ม */
-    const baseStyles = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation min-h-[44px] sm:min-h-0'
+    /** สไตล์พื้นฐานสำหรับทุกปุ่ม. font-medium (was font-bold) +
+     *  rounded-lg (was rounded-xl) for a calmer, more editorial
+     *  shape. Removed `shadow-lg` — saturated colored shadow on
+     *  every button was the loudest "AI template" signal. */
+    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation min-h-[44px] sm:min-h-0'
 
-    /** สไตล์ตามรูปแบบ (variant) */
+    /** สไตล์ตามรูปแบบ (variant). Slate-900 for primary (was
+     *  saturated indigo-600); editorial sites use a near-black
+     *  for the most-actionable button and reserve color for
+     *  warnings only. */
     const variants = {
-      /** ปุ่มหลัก - สีม่วงเข้มพร้อมเงา */
-      primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100',
-      /** ปุ่มรอง - สีเทาอ่อน */
+      primary: 'bg-slate-900 text-white hover:bg-slate-800',
       secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-      /** ปุ่มขอบ - มีเฉพาะขอบ */
-      outline: 'border-2 border-slate-200 text-slate-700 hover:border-indigo-600 hover:text-indigo-600',
-      /** ปุ่มโปร่งใส - ไม่มีพื้นหลัง */
+      outline: 'border border-slate-300 text-slate-900 hover:border-slate-900 hover:bg-slate-50',
       ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-      /** ปุ่มอันตราย - สีแดงพร้อมเงา */
-      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100',
+      danger: 'bg-red-600 text-white hover:bg-red-700',
     }
 
     /** ขนาดปุ่มตาม size prop */

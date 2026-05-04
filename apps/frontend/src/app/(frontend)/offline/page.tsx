@@ -46,7 +46,7 @@ export default function OfflinePage() {
           <ReloadButtonClient />
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-700"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:border-slate-300 hover:text-slate-900"
           >
             <Compass size={14} />
             กลับหน้าแรก

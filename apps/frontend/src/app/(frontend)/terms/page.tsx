@@ -186,7 +186,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 mb-6"
+          className="inline-flex items-center gap-2 text-sm text-slate-900 hover:text-slate-900 mb-6"
         >
           <ArrowLeft size={16} />
           กลับสู่หน้าหลัก / Back to home
@@ -194,8 +194,8 @@ export default function TermsPage() {
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-10">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-100 rounded-xl">
-              <ScrollText className="text-indigo-600" size={24} />
+            <div className="p-2 bg-slate-100 rounded-xl">
+              <ScrollText className="text-slate-900" size={24} />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
               ข้อกำหนดและเงื่อนไข / Terms of Service
@@ -231,7 +231,7 @@ export default function TermsPage() {
           <div className="mt-12 pt-6 border-t border-slate-200 text-xs text-slate-500 space-y-1">
             <p>
               ดูเพิ่มเติม:{' '}
-              <Link href="/privacy" className="text-indigo-600 hover:underline">
+              <Link href="/privacy" className="text-slate-900 hover:underline">
                 นโยบายความเป็นส่วนตัว (Privacy Policy)
               </Link>
             </p>

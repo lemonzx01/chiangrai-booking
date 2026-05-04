@@ -333,8 +333,8 @@ function LoginContent() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-              <LogIn className="w-8 h-8 text-indigo-600" />
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+              <LogIn className="w-8 h-8 text-slate-900" />
             </div>
           </div>
 
@@ -389,7 +389,7 @@ function LoginContent() {
             <div className="text-right">
               <Link
                 href="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm text-slate-900 hover:text-slate-900 font-medium"
               >
                 {lang === 'th' ? 'ลืมรหัสผ่าน?' : 'Forgot password?'}
               </Link>
@@ -433,7 +433,7 @@ function LoginContent() {
             {/* Link ไปหน้า Register */}
             <p className="text-slate-500">
               {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
-              <Link href="/register" className="text-indigo-600 font-semibold hover:underline">
+              <Link href="/register" className="text-slate-900 font-semibold hover:underline">
                 {lang === 'th' ? 'สมัครสมาชิก' : 'Register'}
               </Link>
             </p>
@@ -462,7 +462,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <LoginContent />

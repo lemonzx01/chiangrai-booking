@@ -111,14 +111,14 @@ export default function WishlistPage() {
             <div className="flex flex-wrap gap-3 justify-center">
               <Link
                 href="/hotels"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
               >
                 <Compass size={16} />
                 ดูที่พัก
               </Link>
               <Link
                 href="/cars"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold hover:border-indigo-300"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold hover:border-slate-300"
               >
                 ดูรถเช่า
                 <ArrowRight size={16} />
@@ -209,7 +209,7 @@ function WishlistCard({
           </h3>
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             <span className="text-xs text-slate-400">เริ่มต้น</span>
-            <span className="text-base font-black text-indigo-600">
+            <span className="text-base font-black text-slate-900">
               {formatCurrency(item.price)}
               <span className="text-xs font-normal text-slate-500 ml-1">
                 / {item.kind === 'hotel' ? 'คืน' : 'วัน'}

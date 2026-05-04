@@ -377,7 +377,7 @@ function BookingContent() {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
         <p className="text-sm text-slate-400">{t('booking.loadingData')}</p>
       </div>
     )
@@ -415,7 +415,7 @@ function BookingContent() {
         {/* Back Button */}
         <Link
           href={type === 'HOTEL' ? `/hotels/${id}` : `/cars/${id}`}
-          className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6 transition-colors group"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-6 transition-colors group"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm font-medium">{t('common.back')}</span>
@@ -423,7 +423,7 @@ function BookingContent() {
 
         {/* Title Area */}
         <div className="flex items-center gap-3 mb-2">
-          <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
+          <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">
             {type === 'HOTEL' ? <Building2 size={14} /> : <CarIcon size={14} />}
             {type === 'HOTEL' ? t('booking.hotelBooking') : t('booking.carRental')}
           </span>
@@ -434,8 +434,8 @@ function BookingContent() {
         {/* Step Progress Indicator */}
         <div className="flex items-center justify-center gap-0 mb-8 sm:mb-10">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-indigo-200">1</div>
-            <span className="ml-2 text-sm font-semibold text-indigo-600 hidden sm:inline">{t('booking.stepBookingInfo')}</span>
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-sm font-bold shadow-lg ">1</div>
+            <span className="ml-2 text-sm font-semibold text-slate-900 hidden sm:inline">{t('booking.stepBookingInfo')}</span>
           </div>
           <div className="w-12 sm:w-20 h-0.5 bg-slate-200 mx-2 sm:mx-3" />
           <div className="flex items-center">
@@ -458,7 +458,7 @@ function BookingContent() {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 animate-slide-up" style={{ opacity: 0 }}>
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <Calendar size={18} className="text-indigo-600" />
+                    <Calendar size={18} className="text-slate-900" />
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-slate-900">{t('booking.dateSection')}</h2>
@@ -472,7 +472,7 @@ function BookingContent() {
                   minDate={new Date()}
                   placeholder={t('booking.selectDates')}
                 >
-                  <div className="border border-slate-200 rounded-xl hover:border-indigo-300 transition-colors overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl hover:border-slate-300 transition-colors overflow-hidden">
                     <div className="grid grid-cols-2 divide-x divide-slate-200">
                       {/* Check-in display */}
                       <div className="px-4 py-3">
@@ -544,7 +544,7 @@ function BookingContent() {
                         key={roomType.id}
                         className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                           selectedRoomTypeId === roomType.id
-                            ? 'border-indigo-500 bg-indigo-50/50 shadow-sm'
+                            ? 'border-slate-900 bg-slate-50 shadow-sm'
                             : 'border-slate-200 hover:border-slate-300 bg-white'
                         }`}
                       >
@@ -557,10 +557,10 @@ function BookingContent() {
                           className="sr-only"
                         />
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          selectedRoomTypeId === roomType.id ? 'border-indigo-600' : 'border-slate-300'
+                          selectedRoomTypeId === roomType.id ? 'border-slate-900' : 'border-slate-300'
                         }`}>
                           {selectedRoomTypeId === roomType.id && (
-                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-slate-900" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -570,7 +570,7 @@ function BookingContent() {
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="font-bold text-indigo-600 text-sm">
+                          <p className="font-bold text-slate-900 text-sm">
                             {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}
                           </p>
                           <p className="text-xs text-slate-400">{t('booking.perNight')}</p>
@@ -596,9 +596,9 @@ function BookingContent() {
                   <button
                     type="button"
                     onClick={() => setCurrencyOpen(!currencyOpen)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border ${currencyOpen ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-200 hover:border-slate-300'} bg-white transition-all duration-200`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border ${currencyOpen ? 'border-slate-500 ring-2 ring-slate-200' : 'border-slate-200 hover:border-slate-300'} bg-white transition-all duration-200`}
                   >
-                    <span className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm flex-shrink-0">
+                    <span className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-slate-900 font-bold text-sm flex-shrink-0">
                       {getCurrencyInfo(currency).symbol}
                     </span>
                     <span className="flex-1 text-left text-slate-900 font-medium">{getCurrencyInfo(currency).label}</span>
@@ -616,13 +616,13 @@ function BookingContent() {
                             onClick={() => { setCurrency(option.value as Currency); setCurrencyOpen(false) }}
                             className={`w-full flex items-center gap-3 px-4 py-3 transition-colors duration-150 ${isSelected ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
                           >
-                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${isSelected ? 'bg-slate-100 text-slate-900' : 'bg-slate-100 text-slate-500'}`}>
                               {option.symbol}
                             </span>
-                            <span className={`flex-1 text-left text-sm font-medium ${isSelected ? 'text-indigo-700' : 'text-slate-700'}`}>
+                            <span className={`flex-1 text-left text-sm font-medium ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
                               {option.label}
                             </span>
-                            {isSelected && <Check size={16} className="text-indigo-600 flex-shrink-0" />}
+                            {isSelected && <Check size={16} className="text-slate-900 flex-shrink-0" />}
                           </button>
                         )
                       })}
@@ -662,7 +662,7 @@ function BookingContent() {
                         type="button"
                         onClick={() => setFormData({ ...formData, number_of_guests: Math.max(1, formData.number_of_guests - 1) })}
                         disabled={formData.number_of_guests <= 1}
-                        className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Minus size={18} />
                       </button>
@@ -673,7 +673,7 @@ function BookingContent() {
                         type="button"
                         onClick={() => setFormData({ ...formData, number_of_guests: Math.min(maxGuests, formData.number_of_guests + 1) })}
                         disabled={formData.number_of_guests >= maxGuests}
-                        className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus size={18} />
                       </button>
@@ -726,7 +726,7 @@ function BookingContent() {
                       onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })}
                       placeholder={t('booking.specialRequestsPlaceholder')}
                       rows={3}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 bg-white text-sm sm:text-base text-slate-900 placeholder:text-slate-400 resize-none"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:border-slate-900 hover:border-slate-300 transition-all duration-200 bg-white text-sm sm:text-base text-slate-900 placeholder:text-slate-400 resize-none"
                     />
                   </div>
                 </div>
@@ -745,7 +745,7 @@ function BookingContent() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-200 transition-shadow"
+                  className="w-full shadow-lg  hover:shadow-xl hover: transition-shadow"
                   loading={submitting}
                   disabled={submitting || (availability !== null && !availability.available)}
                 >
@@ -808,8 +808,8 @@ function BookingContent() {
                   {/* Selected Room Type */}
                   {type === 'HOTEL' && selectedRoomTypeId && roomTypes.length > 0 && (
                     <div className="flex items-center gap-2 bg-indigo-50 rounded-lg px-3 py-2">
-                      <Bed size={14} className="text-indigo-600 flex-shrink-0" />
-                      <span className="text-indigo-700 font-medium text-xs">
+                      <Bed size={14} className="text-slate-900 flex-shrink-0" />
+                      <span className="text-slate-900 font-medium text-xs">
                         {roomTypes.find(rt => rt.id === selectedRoomTypeId)?.name_th || 'Standard'}
                       </span>
                     </div>
@@ -898,7 +898,7 @@ function BookingContent() {
                       <div className="border-t border-slate-200 pt-3 mt-1">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-slate-900">{t('booking.totalPrice')}</span>
-                          <span className="font-black text-xl text-indigo-600">
+                          <span className="font-black text-xl text-slate-900">
                             {formatCurrencyWithType(totalPrice, currency)}
                           </span>
                         </div>
@@ -957,7 +957,7 @@ export default function BookingPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <BookingContent />

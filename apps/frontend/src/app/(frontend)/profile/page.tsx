@@ -259,7 +259,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-12 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     )
   }
@@ -304,7 +304,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center gap-4">
             {/* Avatar with initials */}
-            <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+            <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center text-white text-xl font-bold">
               {getInitials(profile?.name || '')}
             </div>
 
@@ -365,7 +365,7 @@ export default function ProfilePage() {
         {/* Profile Edit Form */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center gap-3 mb-6">
-            <User className="w-6 h-6 text-indigo-600" />
+            <User className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
               {lang === 'th' ? 'ข้อมูลส่วนตัว' : 'Personal Information'}
             </h2>
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                 placeholder={lang === 'th' ? 'กรอกชื่อ' : 'Enter your name'}
               />
             </div>
@@ -417,7 +417,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={editPhone}
                 onChange={(e) => setEditPhone(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                 placeholder={lang === 'th' ? 'เช่น 081-234-5678' : 'e.g. 081-234-5678'}
               />
             </div>
@@ -453,7 +453,7 @@ export default function ProfilePage() {
               className="flex items-center justify-between w-full"
             >
               <div className="flex items-center gap-3">
-                <Lock className="w-6 h-6 text-indigo-600" />
+                <Lock className="w-6 h-6 text-slate-900" />
                 <h2 className="text-xl font-bold text-slate-900">
                   {lang === 'th' ? 'เปลี่ยนรหัสผ่าน' : 'Change Password'}
                 </h2>
@@ -517,7 +517,7 @@ export default function ProfilePage() {
         {/* Account Info */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-6 h-6 text-indigo-600" />
+            <Shield className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
               {lang === 'th' ? 'ข้อมูลบัญชี' : 'Account Info'}
             </h2>
@@ -564,7 +564,7 @@ export default function ProfilePage() {
         {/* Bookings Section */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
           <div className="flex items-center gap-3 mb-6">
-            <BookOpen className="w-6 h-6 text-indigo-600" />
+            <BookOpen className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
               {lang === 'th' ? 'ประวัติการจอง' : 'Booking History'}
             </h2>
@@ -585,14 +585,14 @@ export default function ProfilePage() {
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="border border-slate-200 rounded-xl p-4 hover:border-indigo-200 transition-colors"
+                  className="border border-slate-200 rounded-xl p-4 hover:border-slate-200 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {booking.booking_type === 'CAR' ? (
-                        <Car className="w-5 h-5 text-indigo-600" />
+                        <Car className="w-5 h-5 text-slate-900" />
                       ) : (
-                        <Building2 className="w-5 h-5 text-indigo-600" />
+                        <Building2 className="w-5 h-5 text-slate-900" />
                       )}
                       <span className="font-semibold text-slate-900">
                         {booking.booking_code}
@@ -621,7 +621,7 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                    <span className="text-lg font-bold text-indigo-600">
+                    <span className="text-lg font-bold text-slate-900">
                       {formatCurrency(booking.total_price)}
                     </span>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -629,7 +629,7 @@ export default function ProfilePage() {
                         <>
                           <button
                             onClick={() => setModifyingBooking(booking)}
-                            className="px-3 py-1.5 text-xs font-medium text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg hover:bg-indigo-50 transition-colors"
                           >
                             {lang === 'th' ? 'ขอเลื่อนวัน' : 'Reschedule'}
                           </button>

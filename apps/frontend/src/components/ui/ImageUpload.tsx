@@ -198,7 +198,7 @@ export default function ImageUpload({
             <img
               src={preview}
               alt="Preview"
-              className="w-full h-48 object-cover rounded-xl border-2 border-indigo-200"
+              className="w-full h-48 object-cover rounded-xl border-2 border-slate-200"
             />
             {/* Loading overlay */}
             {uploading && (

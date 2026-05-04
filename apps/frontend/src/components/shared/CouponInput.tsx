@@ -125,7 +125,7 @@ export default function CouponInput({
       ? 'border-emerald-300 focus-within:border-emerald-400'
       : status === 'invalid'
         ? 'border-red-300 focus-within:border-red-400'
-        : 'border-slate-200 focus-within:border-indigo-400'
+        : 'border-slate-200 focus-within:border-slate-500'
 
   return (
     <div className="space-y-2">

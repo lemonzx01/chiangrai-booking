@@ -227,7 +227,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     Destination Field - เลือกจังหวัด
                     ============================================================ */}
                 <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors overflow-visible relative z-30 lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group rounded-t-2xl lg:rounded-tr-none lg:rounded-bl-2xl">
-                  <MapPin className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
+                  <MapPin className="text-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="overflow-visible flex-1 lg:min-w-[140px]">
                     <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.destination')}
@@ -250,7 +250,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     Date Range Field - เลือกวันที่
                     ============================================================ */}
                 <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-b lg:border-b-0 border-slate-200 cursor-pointer group overflow-visible">
-                  <Calendar className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
+                  <Calendar className="text-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="flex-1 lg:min-w-[180px] overflow-visible">
                     <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {lang === 'th' ? 'วันเข้าพัก - คืนห้อง' : 'Check-in - Check-out'}
@@ -273,7 +273,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     Guests Field - จำนวนผู้เข้าพัก
                     ============================================================ */}
                 <div className="flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors lg:border-r border-b lg:border-b-0 border-slate-200 group">
-                  <Users className="text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
+                  <Users className="text-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform" size={22} />
                   <div className="flex-1 lg:min-w-[120px]">
                     <label className="block text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
                       {t('home.search.guests')}
@@ -282,7 +282,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                       {/* ปุ่มลด */}
                       <button
                         onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed font-bold"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed font-bold"
                         disabled={guests <= 1}
                       >
                         <Minus size={16} />
@@ -294,7 +294,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                       {/* ปุ่มเพิ่ม */}
                       <button
                         onClick={() => setGuests(guests + 1)}
-                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-600 transition-all active:scale-90 flex items-center justify-center font-bold"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center font-bold"
                       >
                         <Plus size={16} />
                       </button>
@@ -307,7 +307,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     ============================================================ */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-indigo-600 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-indigo-700 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[60px] sm:min-h-[70px]"
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-slate-900 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-slate-800 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[60px] sm:min-h-[70px]"
                 >
                   <Search size={20} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('home.search.button')}</span>
@@ -332,7 +332,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
               {/* Link ดูทั้งหมด (Desktop) */}
               <Link
                 href="/hotels"
-                className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
+                className="hidden sm:flex items-center gap-2 text-slate-900 font-semibold hover:gap-3 transition-all"
               >
                 {t('home.weeklyDeals.viewAll')}
                 <ArrowRight size={18} />
@@ -387,7 +387,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           <div className="sm:hidden mt-8 text-center">
             <Link
               href="/hotels"
-              className="inline-flex items-center gap-2 text-indigo-600 font-bold"
+              className="inline-flex items-center gap-2 text-slate-900 font-bold"
             >
               {t('home.weeklyDeals.viewAll')}
               <ArrowRight size={18} />
@@ -411,7 +411,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                 {/* Link ดูทั้งหมด (Desktop) */}
                 <Link
                   href="/cars"
-                  className="hidden sm:flex items-center gap-2 text-indigo-600 font-semibold hover:gap-3 transition-all"
+                  className="hidden sm:flex items-center gap-2 text-slate-900 font-semibold hover:gap-3 transition-all"
                 >
                   {t('home.weeklyDeals.viewAll')}
                   <ArrowRight size={18} />

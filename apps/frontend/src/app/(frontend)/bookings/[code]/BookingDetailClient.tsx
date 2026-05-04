@@ -224,7 +224,7 @@ export default function BookingDetailClient({
             <button
               type="button"
               onClick={() => setNeedsEmail(true)}
-              className="text-sm text-indigo-600 font-semibold hover:underline"
+              className="text-sm text-slate-900 font-semibold hover:underline"
             >
               ค้นหาด้วยอีเมล
             </button>
@@ -273,9 +273,9 @@ export default function BookingDetailClient({
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
                 {booking.booking_type === 'CAR' ? (
-                  <CarIcon className="text-indigo-600" size={20} />
+                  <CarIcon className="text-slate-900" size={20} />
                 ) : (
-                  <Building2 className="text-indigo-600" size={20} />
+                  <Building2 className="text-slate-900" size={20} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -323,7 +323,7 @@ export default function BookingDetailClient({
               <CreditCard size={16} />
               ยอดรวม
             </div>
-            <div className="text-xl sm:text-2xl font-black text-indigo-600">
+            <div className="text-xl sm:text-2xl font-black text-slate-900">
               {formatCurrency(booking.total_price)}
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function BookingDetailClient({
               <button
                 type="button"
                 onClick={() => setShowReschedule(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-indigo-200 bg-white text-sm font-semibold text-indigo-700 hover:bg-indigo-50"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-900 hover:bg-indigo-50"
               >
                 <CalendarClock size={16} />
                 ขอเลื่อนวัน
@@ -562,7 +562,7 @@ function LookupForm({
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
         <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
-          <Search className="text-indigo-600" size={20} />
+          <Search className="text-slate-900" size={20} />
         </div>
         <h1 className="text-lg sm:text-xl font-bold text-slate-900 text-center">
           ค้นหาการจอง
@@ -588,17 +588,17 @@ function LookupForm({
             placeholder="email@example.com"
             required
             autoComplete="email"
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-400"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-500"
           />
           <button
             type="submit"
-            className="w-full px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
+            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
           >
             ดูรายละเอียดการจอง
           </button>
         </form>
         <p className="text-[11px] text-slate-400 mt-4 text-center">
-          ยังหาการจองไม่เจอ? <Link href="/contact" className="text-indigo-600 hover:underline">ติดต่อทีมงาน</Link>
+          ยังหาการจองไม่เจอ? <Link href="/contact" className="text-slate-900 hover:underline">ติดต่อทีมงาน</Link>
         </p>
       </div>
     </div>

@@ -203,7 +203,7 @@ function ResetPasswordContent() {
     return (
       <div className="min-h-screen pt-24 pb-12 bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-slate-900 mx-auto mb-4" />
           <p className="text-slate-600">
             {lang === 'th' ? 'กำลังตรวจสอบ...' : 'Verifying...'}
           </p>
@@ -238,8 +238,8 @@ function ResetPasswordContent() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-              <Key className="w-8 h-8 text-indigo-600" />
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+              <Key className="w-8 h-8 text-slate-900" />
             </div>
           </div>
 
@@ -310,7 +310,7 @@ function ResetPasswordContent() {
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 hover:underline"
+              className="inline-flex items-center gap-2 text-slate-900 font-semibold hover:text-slate-900 hover:underline"
             >
               <ArrowLeft size={16} />
               {lang === 'th' ? 'กลับไปหน้าเข้าสู่ระบบ' : 'Back to login'}
@@ -339,7 +339,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <ResetPasswordContent />

@@ -148,8 +148,8 @@ export default function ForgotPasswordPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-              <Mail className="w-8 h-8 text-indigo-600" />
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+              <Mail className="w-8 h-8 text-slate-900" />
             </div>
           </div>
 
@@ -209,7 +209,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 hover:underline"
+              className="inline-flex items-center gap-2 text-slate-900 font-semibold hover:text-slate-900 hover:underline"
             >
               <ArrowLeft size={16} />
               {lang === 'th' ? 'กลับไปหน้าเข้าสู่ระบบ' : 'Back to login'}
@@ -220,7 +220,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-4 text-center">
             <p className="text-slate-500 text-sm">
               {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
-              <Link href="/register" className="text-indigo-600 font-semibold hover:underline">
+              <Link href="/register" className="text-slate-900 font-semibold hover:underline">
                 {lang === 'th' ? 'สมัครสมาชิก' : 'Register'}
               </Link>
             </p>

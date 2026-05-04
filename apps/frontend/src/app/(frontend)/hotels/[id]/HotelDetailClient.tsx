@@ -176,7 +176,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             ============================================================ */}
         <Link
           href="/hotels"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-4 sm:mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 sm:mb-6 transition-colors"
         >
           <ArrowLeft size={20} />
           <span className="font-medium">{t('common.back')}</span>
@@ -210,7 +210,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
               </div>
 
               {/* Room Type Badge */}
-              <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+              <span className="text-sm font-medium text-slate-900 bg-indigo-50 px-3 py-1.5 rounded-full">
                 {roomType}
               </span>
             </div>
@@ -268,7 +268,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                   {roomTypes.map((roomType) => (
                     <div
                       key={roomType.id}
-                      className="bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-300 transition-colors"
+                      className="bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -281,7 +281,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-black text-indigo-600">
+                          <p className="text-xl font-black text-slate-900">
                             {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}
                           </p>
                           <p className="text-xs text-slate-500 mb-1">/ คืน</p>
@@ -313,7 +313,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 {/* ราคาต่อคืน */}
                 <div>
                   <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
-                  <p className="text-2xl sm:text-3xl font-black text-indigo-600">
+                  <p className="text-2xl sm:text-3xl font-black text-slate-900">
                     {formatCurrency(hotel.price_per_night)}
                     <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
                   </p>

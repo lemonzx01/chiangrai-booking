@@ -278,7 +278,7 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
                     ? 'เล่าประสบการณ์ของคุณ เช่น การบริการ ความสะอาด หรือความคุ้มค่า'
                     : 'Share your experience, service quality, cleanliness, or value'
                 }
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 outline-none transition-colors"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 outline-none transition-colors"
               />
             </div>
 

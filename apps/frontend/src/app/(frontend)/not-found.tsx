@@ -12,9 +12,9 @@ export default function FrontendNotFound() {
     <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="max-w-md w-full text-center">
         <div className="mx-auto h-20 w-20 rounded-full bg-indigo-50 flex items-center justify-center mb-6">
-          <Compass className="h-10 w-10 text-indigo-600" />
+          <Compass className="h-10 w-10 text-slate-900" />
         </div>
-        <p className="text-7xl font-extrabold text-indigo-600 mb-2">404</p>
+        <p className="text-7xl font-extrabold text-slate-900 mb-2">404</p>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
           ไม่พบหน้าที่คุณค้นหา
         </h1>
@@ -26,7 +26,7 @@ export default function FrontendNotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition"
         >
           <Home className="h-4 w-4" />
           กลับหน้าแรก / Back to Home

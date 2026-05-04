@@ -91,10 +91,10 @@ export default function TrustSignals({ variant = 'compact' }: TrustSignalsProps)
         <div
           key={titleTh}
           role="listitem"
-          className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 hover:border-indigo-100 transition-colors"
+          className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 hover:border-slate-200 transition-colors"
         >
           <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center mb-3">
-            <Icon size={20} className="text-indigo-600" />
+            <Icon size={20} className="text-slate-900" />
           </div>
           <div className="text-sm font-bold text-slate-900">{titleTh}</div>
           <div className="text-[11px] text-slate-400 mb-1.5 italic">{titleEn}</div>

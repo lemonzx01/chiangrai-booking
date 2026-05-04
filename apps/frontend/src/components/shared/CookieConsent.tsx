@@ -104,7 +104,7 @@ export default function CookieConsent() {
               คุกกี้จำเป็น (login, CSRF) ทำงานตลอด ส่วนคุกกี้วิเคราะห์จะเริ่มทำงานก็ต่อเมื่อท่านยอมรับ
               <br className="hidden sm:block" />
               Essential cookies (login, CSRF) are always active. Analytics cookies only run after you accept.{' '}
-              <Link href="/privacy" className="text-indigo-600 hover:underline">
+              <Link href="/privacy" className="text-slate-900 hover:underline">
                 อ่านนโยบายความเป็นส่วนตัว
               </Link>
             </p>
@@ -113,7 +113,7 @@ export default function CookieConsent() {
               <button
                 type="button"
                 onClick={accept}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-indigo-700"
+                className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-slate-800"
               >
                 ยอมรับ / Accept
               </button>

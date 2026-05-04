@@ -284,7 +284,7 @@ export default function Navbar() {
               <div
                 className={`p-2 rounded-xl transition-all duration-300 ${
                   activeLightMode
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                    ? 'bg-slate-900 text-white shadow-lg '
                     : 'bg-white/10 text-white backdrop-blur-lg border border-white/20'
                 }`}
               >
@@ -296,7 +296,7 @@ export default function Navbar() {
                 }`}
               >
                 Got Journey
-                <span className={activeLightMode ? 'text-indigo-600' : 'text-indigo-400'}>
+                <span className={activeLightMode ? 'text-slate-900' : 'text-indigo-400'}>
                   {' '}Thailand
                 </span>
               </span>
@@ -312,10 +312,10 @@ export default function Navbar() {
                   className={`px-3 xl:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${
                     pathname === item.path
                       ? activeLightMode
-                        ? 'text-indigo-600 bg-indigo-50/80'
+                        ? 'text-slate-900 bg-indigo-50/80'
                         : 'text-white bg-white/20'
                       : activeLightMode
-                      ? 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -441,7 +441,7 @@ export default function Navbar() {
               <Link
                 key={item.key}
                 href={item.path}
-                className="text-base font-bold text-slate-900 hover:text-indigo-600 transition-colors min-h-[44px] py-3 px-2 rounded-lg hover:bg-slate-50 flex items-center"
+                className="text-base font-bold text-slate-900 hover:text-slate-900 transition-colors min-h-[44px] py-3 px-2 rounded-lg hover:bg-slate-50 flex items-center"
               >
                 {getLabel(item.key)}
               </Link>
@@ -461,7 +461,7 @@ export default function Navbar() {
             {/* ปุ่มจองแพ็คเกจ */}
             <Link
               href="/hotels"
-              className="mx-2 mt-2 bg-indigo-600 text-white min-h-[44px] py-3 rounded-lg font-bold text-base text-center shadow-md active:scale-95 transition-all flex items-center justify-center"
+              className="mx-2 mt-2 bg-slate-900 text-white min-h-[44px] py-3 rounded-lg font-bold text-base text-center shadow-md active:scale-95 transition-all flex items-center justify-center"
             >
               {getLabel('bookPackage')}
             </Link>
@@ -472,8 +472,8 @@ export default function Navbar() {
                 <div className="space-y-2 px-2">
                   {/* ข้อมูลผู้ใช้ */}
                   <div className="flex items-center gap-2 py-2">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User size={16} className="text-indigo-600" />
+                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User size={16} className="text-slate-900" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-sm text-slate-900 truncate">{user.name}</p>
@@ -507,7 +507,7 @@ export default function Navbar() {
                   {/* ปุ่มสมัครสมาชิก */}
                   <Link
                     href="/register"
-                    className="block text-center min-h-[44px] py-2.5 bg-indigo-100 text-indigo-700 rounded-lg font-semibold text-sm flex items-center justify-center"
+                    className="block text-center min-h-[44px] py-2.5 bg-slate-100 text-slate-900 rounded-lg font-semibold text-sm flex items-center justify-center"
                   >
                     {mounted ? t('navbar.register') : 'สมัครสมาชิก'}
                   </Link>

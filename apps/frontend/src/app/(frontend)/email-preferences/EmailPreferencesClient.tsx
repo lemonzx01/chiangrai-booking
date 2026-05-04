@@ -89,7 +89,7 @@ export default function EmailPreferencesClient({
           <div className="flex justify-center gap-2">
             <Link
               href="/contact"
-              className="text-sm font-semibold text-indigo-600 hover:underline"
+              className="text-sm font-semibold text-slate-900 hover:underline"
             >
               ติดต่อทีมงาน
             </Link>
@@ -123,7 +123,7 @@ export default function EmailPreferencesClient({
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900 hover:underline"
           >
             กลับหน้าแรก
             <ArrowRight size={14} />
@@ -138,7 +138,7 @@ export default function EmailPreferencesClient({
     <div className="max-w-md mx-auto px-4">
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-2">
-          <Mail size={18} className="text-indigo-600" />
+          <Mail size={18} className="text-slate-900" />
           <h1 className="text-lg font-bold text-slate-900">การรับอีเมล</h1>
         </div>
         <p className="text-sm text-slate-500 mb-5">
@@ -164,7 +164,7 @@ export default function EmailPreferencesClient({
                 rows={3}
                 maxLength={500}
                 placeholder="เช่น ได้รับอีเมลบ่อยเกินไป, เนื้อหาไม่ตรงความสนใจ..."
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-400 resize-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-500 resize-none"
               />
             </div>
 
@@ -215,7 +215,7 @@ export default function EmailPreferencesClient({
               type="button"
               onClick={() => updatePreference(false)}
               disabled={busy}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 disabled:opacity-60"
             >
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               กลับมารับอีเมลอีกครั้ง

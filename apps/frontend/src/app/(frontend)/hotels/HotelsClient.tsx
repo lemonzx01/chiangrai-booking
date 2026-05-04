@@ -220,7 +220,7 @@ export default function HotelsClient({
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-slate-600 font-medium">
                 {t('common.found')}{' '}
-                <span className="text-indigo-600 font-semibold">{visible.length}</span>{' '}
+                <span className="text-slate-900 font-semibold">{visible.length}</span>{' '}
                 {t('common.packages')}
               </p>
               <MobileFilterTrigger
@@ -247,7 +247,7 @@ export default function HotelsClient({
                 <button
                   type="button"
                   onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="mt-3 text-sm text-indigo-600 font-semibold hover:underline"
+                  className="mt-3 text-sm text-slate-900 font-semibold hover:underline"
                 >
                   ล้างตัวกรองทั้งหมด
                 </button>

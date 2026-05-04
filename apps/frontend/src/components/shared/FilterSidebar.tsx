@@ -103,7 +103,7 @@ export function FilterSidebarSheet(props: FilterSidebarProps & {
         <button
           type="button"
           onClick={onClose}
-          className="w-full px-4 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700"
+          className="w-full px-4 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
         >
           ดูผลลัพธ์{typeof resultCount === 'number' ? ` (${resultCount})` : ''}
         </button>
@@ -129,11 +129,11 @@ export function MobileFilterTrigger({
     <button
       type="button"
       onClick={onClick}
-      className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold hover:border-indigo-300"
+      className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold hover:border-slate-300"
     >
       ตัวกรอง
       {activeCount > 0 && (
-        <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold">
+        <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-slate-900 text-white text-[10px] font-bold">
           {activeCount}
         </span>
       )}
@@ -540,7 +540,7 @@ export function ActiveFilterChips({
                   : '',
             })
           }
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-slate-200 text-xs font-semibold text-slate-900 hover:bg-slate-100"
         >
           {c.label}
           <X size={12} />

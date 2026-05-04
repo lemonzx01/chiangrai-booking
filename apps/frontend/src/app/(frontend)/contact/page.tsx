@@ -169,7 +169,7 @@ export default function ContactPage() {
                     placeholder={t('contact.form.messagePlaceholder')}
                     rows={5}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
                   />
                 </div>
                 {/* ปุ่มส่ง */}
@@ -190,7 +190,7 @@ export default function ContactPage() {
                 {/* ที่อยู่ */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-indigo-600" />
+                    <MapPin className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">{t('contact.info.address')}</h3>
@@ -201,7 +201,7 @@ export default function ContactPage() {
                 {/* โทรศัพท์ */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-indigo-600" />
+                    <Phone className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">{t('contact.info.phone')}</h3>
@@ -212,7 +212,7 @@ export default function ContactPage() {
                 {/* อีเมล */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-indigo-600" />
+                    <Mail className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">{t('contact.info.email')}</h3>
@@ -223,7 +223,7 @@ export default function ContactPage() {
                 {/* เวลาทำการ */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-6 h-6 text-indigo-600" />
+                    <Clock className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">{t('contact.info.hours')}</h3>

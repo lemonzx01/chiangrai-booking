@@ -66,7 +66,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
         {/* Back link */}
         <Link
           href="/cars"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-4 sm:mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 sm:mb-6 transition-colors"
         >
           <ArrowLeft size={20} />
           <span className="font-medium">{t('common.back')}</span>
@@ -85,7 +85,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
 
           {/* Detail column */}
           <div>
-            <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
+            <span className="text-sm font-bold text-slate-900 bg-indigo-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
               {carType}
             </span>
 
@@ -130,7 +130,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
                 <p className="text-slate-500 text-xs sm:text-sm mb-1">
                   {t('car.pricePerDay') || 'ราคาต่อวัน'}
                 </p>
-                <p className="text-2xl sm:text-3xl font-black text-indigo-600">
+                <p className="text-2xl sm:text-3xl font-black text-slate-900">
                   {formatCurrency(car.price_per_day)}
                   <span className="text-base sm:text-lg font-normal text-slate-500">
                     {t('common.perDay')}

@@ -100,7 +100,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               // สไตล์พื้นฐาน
               'w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-white text-sm sm:text-base text-slate-900 placeholder:text-slate-400',
               // สไตล์ focus และ hover
-              'focus:border-indigo-500 hover:border-slate-300 transition-all duration-200',
+              'focus:border-slate-900 hover:border-slate-300 transition-all duration-200',
               // เพิ่ม padding ขวาถ้าเป็น password (สำหรับปุ่มตา)
               isPassword && 'pr-10 sm:pr-12',
               // สไตล์ error

@@ -29,7 +29,10 @@ describe('Button', () => {
   it('should apply primary variant classes by default', () => {
     render(<Button>Primary</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('bg-indigo-600')
+    // Primary is now slate-900 (was indigo-600 in the AI-template
+    // days). Editorial sites use a near-black for the most-
+    // actionable button and reserve color for warnings only.
+    expect(btn.className).toContain('bg-slate-900')
   })
 
   it('should apply danger variant classes', () => {
@@ -41,7 +44,9 @@ describe('Button', () => {
   it('should apply outline variant classes', () => {
     render(<Button variant="outline">Outline</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('border-2')
+    // Outline now uses single-pixel border (was border-2) for a
+    // calmer look. The class is just `border` in tailwind.
+    expect(btn.className).toContain('border-slate-300')
   })
 
   it('should call onClick handler', () => {

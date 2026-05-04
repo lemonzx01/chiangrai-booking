@@ -92,7 +92,7 @@ export default function RecentlyViewed({
           <Link
             key={`${item.kind}-${item.id}`}
             href={`/${item.kind}s/${item.id}`}
-            className="group flex-shrink-0 w-44 sm:w-52 rounded-2xl border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-md transition-all overflow-hidden"
+            className="group flex-shrink-0 w-44 sm:w-52 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-all overflow-hidden"
           >
             <div className="relative h-28 sm:h-32 bg-slate-100 overflow-hidden">
               {item.image ? (
@@ -117,7 +117,7 @@ export default function RecentlyViewed({
               <div className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
                 {item.name}
               </div>
-              <div className="mt-1 text-xs text-indigo-600 font-bold">
+              <div className="mt-1 text-xs text-slate-900 font-bold">
                 {formatCurrency(item.price)}
                 <span className="text-slate-400 font-normal ml-1">
                   / {item.kind === 'hotel' ? 'คืน' : 'วัน'}

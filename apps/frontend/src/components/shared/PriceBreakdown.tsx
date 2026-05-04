@@ -98,7 +98,7 @@ export default function PriceBreakdown({
       <div className="border-t border-slate-200 pt-3 mt-1">
         <div className="flex items-center justify-between">
           <span className="font-bold text-slate-900">{totalLabel}</span>
-          <span className="font-black text-xl text-indigo-600">
+          <span className="font-black text-xl text-slate-900">
             {formatCurrency(total)}
           </span>
         </div>

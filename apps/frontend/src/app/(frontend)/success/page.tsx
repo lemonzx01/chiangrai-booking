@@ -127,7 +127,7 @@ function SuccessContent() {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     )
   }
@@ -175,7 +175,7 @@ function SuccessContent() {
           {/* รหัสการจอง */}
           <div className="text-center mb-6">
             <p className="text-sm text-slate-500 mb-2">{t('success.bookingCode')}</p>
-            <p className="text-3xl font-black text-indigo-600">{booking.booking_code}</p>
+            <p className="text-3xl font-black text-slate-900">{booking.booking_code}</p>
           </div>
 
           {/* รายละเอียด */}
@@ -209,7 +209,7 @@ function SuccessContent() {
             {/* ราคารวม */}
             <div className="flex justify-between pt-4 border-t border-slate-100">
               <span className="font-bold text-slate-900">ราคารวม</span>
-              <span className="font-bold text-xl text-indigo-600">
+              <span className="font-bold text-xl text-slate-900">
                 {formatCurrency(booking.total_price)}
               </span>
             </div>
@@ -224,7 +224,7 @@ function SuccessContent() {
           <a
             href={`/api/bookings/${booking.booking_code}/invoice${email ? `?email=${encodeURIComponent(email)}` : ''}`}
             download
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-slate-900 text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-colors"
           >
             <Download className="w-5 h-5" />
             {t('success.downloadInvoice') || 'ดาวน์โหลดใบเสร็จ'}
@@ -257,7 +257,7 @@ export default function SuccessPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <SuccessContent />

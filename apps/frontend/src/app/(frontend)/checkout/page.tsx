@@ -308,7 +308,7 @@ function CheckoutContent() {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     )
   }
@@ -407,14 +407,14 @@ function CheckoutContent() {
         <div className="mb-8">
           <Link
             href={`/booking?type=${booking.booking_type}&id=${booking.hotel_id || booking.car_id}`}
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-4 transition-colors text-sm"
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-4 transition-colors text-sm"
           >
             <ArrowLeft size={16} />
             <span>{t('common.back')}</span>
           </Link>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
               <Lock size={20} className="text-white" />
             </div>
             <div>
@@ -439,7 +439,7 @@ function CheckoutContent() {
             {/* Payment Methods Section */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 sm:p-6">
               <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <CreditCard size={18} className="text-indigo-600" />
+                <CreditCard size={18} className="text-slate-900" />
                 {t('checkout.paymentMethods') || 'เลือกวิธีการชำระเงิน'}
               </h2>
 
@@ -450,14 +450,14 @@ function CheckoutContent() {
                   onClick={() => setSelectedMethod('card')}
                   className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                     selectedMethod === 'card'
-                      ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                      ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    selectedMethod === 'card' ? 'bg-indigo-100' : 'bg-slate-100'
+                    selectedMethod === 'card' ? 'bg-slate-100' : 'bg-slate-100'
                   }`}>
-                    <CreditCard size={20} className={selectedMethod === 'card' ? 'text-indigo-600' : 'text-slate-500'} />
+                    <CreditCard size={20} className={selectedMethod === 'card' ? 'text-slate-900' : 'text-slate-500'} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-900">{t('checkout.creditCard') || 'บัตรเครดิต / เดบิต'}</p>
@@ -465,7 +465,7 @@ function CheckoutContent() {
                   </div>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                     selectedMethod === 'card'
-                      ? 'border-indigo-600 bg-indigo-600'
+                      ? 'border-slate-900 bg-slate-900'
                       : 'border-slate-300'
                   }`}>
                     {selectedMethod === 'card' && <Check size={12} className="text-white" />}
@@ -478,7 +478,7 @@ function CheckoutContent() {
                   onClick={() => setSelectedMethod('paypal')}
                   className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                     selectedMethod === 'paypal'
-                      ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                      ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
@@ -493,7 +493,7 @@ function CheckoutContent() {
                   </div>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                     selectedMethod === 'paypal'
-                      ? 'border-indigo-600 bg-indigo-600'
+                      ? 'border-slate-900 bg-slate-900'
                       : 'border-slate-300'
                   }`}>
                     {selectedMethod === 'paypal' && <Check size={12} className="text-white" />}
@@ -507,7 +507,7 @@ function CheckoutContent() {
                     onClick={() => setSelectedMethod('promptpay')}
                     className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                       selectedMethod === 'promptpay'
-                        ? 'border-indigo-500 bg-indigo-50/60 shadow-sm shadow-indigo-100'
+                        ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
                         : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
                   >
@@ -522,7 +522,7 @@ function CheckoutContent() {
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                       selectedMethod === 'promptpay'
-                        ? 'border-indigo-600 bg-indigo-600'
+                        ? 'border-slate-900 bg-slate-900'
                         : 'border-slate-300'
                     }`}>
                       {selectedMethod === 'promptpay' && <Check size={12} className="text-white" />}
@@ -611,7 +611,7 @@ function CheckoutContent() {
               type="button"
               onClick={handlePayNow}
               disabled={processing}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-indigo-200 flex items-center justify-center gap-3 text-base"
+              className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg  flex items-center justify-center gap-3 text-base"
             >
               {processing ? (
                 <>
@@ -659,7 +659,7 @@ function CheckoutContent() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4">
-                  <span className="inline-block bg-white/90 backdrop-blur-sm text-xs font-semibold text-indigo-700 px-2.5 py-1 rounded-full mb-1.5">
+                  <span className="inline-block bg-white/90 backdrop-blur-sm text-xs font-semibold text-slate-900 px-2.5 py-1 rounded-full mb-1.5">
                     {booking.booking_type === 'HOTEL'
                       ? (t('common.hotel') || 'โรงแรม')
                       : (t('common.car') || 'รถเช่า')}
@@ -719,7 +719,7 @@ function CheckoutContent() {
                 {/* ราคารวม */}
                 <div className="mt-4 pt-4 border-t-2 border-slate-900 flex justify-between items-center">
                   <span className="font-bold text-slate-900">{t('booking.totalPrice') || 'ยอดชำระ'}</span>
-                  <span className="font-black text-2xl text-indigo-600">
+                  <span className="font-black text-2xl text-slate-900">
                     {formatCurrencyWithType(payableAmount, currency)}
                   </span>
                 </div>
@@ -749,7 +749,7 @@ export default function CheckoutPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     }>
       <CheckoutContent />

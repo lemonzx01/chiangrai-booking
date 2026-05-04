@@ -186,9 +186,9 @@ const variantStyles: Record<ToastVariant, { bg: string; icon: React.ReactNode; i
     iconCls: 'text-amber-600',
   },
   info: {
-    bg: 'bg-indigo-50 border-indigo-200',
+    bg: 'bg-indigo-50 border-slate-200',
     icon: <Info size={18} />,
-    iconCls: 'text-indigo-600',
+    iconCls: 'text-slate-900',
   },
 }
 

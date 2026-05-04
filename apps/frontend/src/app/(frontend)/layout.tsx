@@ -85,7 +85,7 @@ export default function FrontendLayout({
           <SkipLink />
 
         {/* Container หลัก - min-h-screen ให้ความสูงเต็มจอ */}
-        <div className="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white bg-[#fafbfc]">
+        <div className="min-h-screen flex flex-col selection:bg-slate-900 selection:text-white bg-[#fafbfc]">
           {/* Navbar - แถบเมนูด้านบน */}
           <Navbar />
 

@@ -167,7 +167,7 @@ export default function SearchAutocomplete({
           placeholder={placeholder}
           autoComplete="off"
           spellCheck={false}
-          className={`w-full bg-white border border-slate-200 ${inputCls} focus:outline-none focus:border-indigo-400`}
+          className={`w-full bg-white border border-slate-200 ${inputCls} focus:outline-none focus:border-slate-500`}
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
@@ -229,7 +229,7 @@ export default function SearchAutocomplete({
                       )}
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <div className="text-xs font-bold text-indigo-600">
+                      <div className="text-xs font-bold text-slate-900">
                         {formatCurrency(r.price)}
                       </div>
                       <div className="text-[10px] text-slate-400">

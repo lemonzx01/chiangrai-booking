@@ -106,11 +106,11 @@ export default function LanguageSwitcher({ light = true }: Props) {
 
   /** สไตล์สำหรับปุ่มที่ไม่ active */
   const baseInactive = light
-    ? 'text-slate-500 hover:text-indigo-600'
+    ? 'text-slate-500 hover:text-slate-900'
     : 'text-white/80 hover:text-white'
 
   /** สไตล์สำหรับปุ่มที่ active */
-  const activeClass = light ? 'text-indigo-600 font-bold' : 'text-white font-bold'
+  const activeClass = light ? 'text-slate-900 font-bold' : 'text-white font-bold'
 
   // ----------------------------------------------------------
   // Render

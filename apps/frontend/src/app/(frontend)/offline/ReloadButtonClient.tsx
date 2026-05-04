@@ -12,7 +12,7 @@ export default function ReloadButtonClient() {
     <button
       type="button"
       onClick={() => window.location.reload()}
-      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
+      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
     >
       <RefreshCw size={14} />
       ลองใหม่

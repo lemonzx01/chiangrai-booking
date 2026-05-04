@@ -68,7 +68,7 @@ export default function StickyBookBar({
                   {formatCurrency(originalPrice)}
                 </span>
               )}
-              <span className="text-lg font-black text-indigo-600">
+              <span className="text-lg font-black text-slate-900">
                 {formatCurrency(price)}
               </span>
               <span className="text-xs text-slate-500">{unit}</span>
@@ -78,7 +78,7 @@ export default function StickyBookBar({
           <button
             type="button"
             onClick={onBookClick}
-            className="px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-transform shadow-md"
+            className="px-5 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-95 transition-transform shadow-md"
           >
             {ctaLabel}
           </button>
@@ -103,13 +103,13 @@ export default function StickyBookBar({
                 {formatCurrency(originalPrice)}
               </span>
             )}
-            <span className="text-xl font-black text-indigo-600">{formatCurrency(price)}</span>
+            <span className="text-xl font-black text-slate-900">{formatCurrency(price)}</span>
             <span className="text-xs text-slate-500 ml-1">{unit}</span>
           </div>
           <button
             type="button"
             onClick={onBookClick}
-            className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors shadow-md"
+            className="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-colors shadow-md"
           >
             {ctaLabel}
           </button>
