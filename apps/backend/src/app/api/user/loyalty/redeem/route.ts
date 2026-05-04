@@ -26,8 +26,17 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '../../../../../lib/authz'
 import { redeemPointsForCoupon } from '../../../../../lib/loyalty'
 import { logger } from '../../../../../lib/logger'
+import { rateLimitAsync } from '../../../../../middleware/rate-limit'
 
 export async function POST(request: Request) {
+  // Rate limit BEFORE auth — keeps an unauthenticated attacker
+  // from probing the endpoint by spamming bad cookies. The cap
+  // is per-IP (see RATE_LIMIT_CONFIG) so a real user with a
+  // stable address gets a generous quota; bots scaled across
+  // a few IPs still hit it quickly.
+  const limitResponse = await rateLimitAsync(request, '/api/user/loyalty/redeem')
+  if (limitResponse) return limitResponse
+
   const auth = await requireUser()
   if (!auth.ok) return auth.response
 

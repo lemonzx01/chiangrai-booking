@@ -94,6 +94,15 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 20,
     windowMs: 15 * 60 * 1000, // 15 minutes
   },
+  // Loyalty redeem - the endpoint runs an atomic decrement +
+  // coupon insert. Without a cap a malicious script could spam
+  // it to either probe the race-lost path or just churn the DB.
+  // 10/hr/IP is plenty for a real human (you'd never redeem
+  // more than once or twice in a session) but kills automation.
+  '/api/user/loyalty/redeem': {
+    maxRequests: 10,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests

@@ -360,3 +360,60 @@ describe('redeemPointsForCoupon', () => {
     expect(ledgerInserts).toBe(1)
   })
 })
+
+// ---------------------------------------------------------------
+// Rate limit on the redeem endpoint
+// ---------------------------------------------------------------
+//
+// Just confirms the route is wired to rateLimitAsync. The full
+// 429-after-N-calls behavior is exercised by the rate-limit
+// middleware's own tests; here we only verify the endpoint
+// participates in the policy at all.
+
+describe('POST /api/user/loyalty/redeem rate limiting', () => {
+  it('rejects the 11th rapid call from the same IP with 429', async () => {
+    // Bypass auth — we want to test rate limit specifically, and
+    // it should fire BEFORE auth so unauthenticated probes also
+    // count against the quota.
+    vi.doMock('@/lib/authz', () => ({
+      requireUser: async () => ({
+        ok: true,
+        user: { id: 'u1', email: 'u@x.com', role: 'user' },
+      }),
+    }))
+    // Bypass actual redemption — we don't care if it would succeed.
+    vi.doMock('@/lib/loyalty', () => ({
+      redeemPointsForCoupon: async () => ({
+        ok: false,
+        reason: 'invalid_tier' as const,
+      }),
+    }))
+
+    const { POST } = await import('@/app/api/user/loyalty/redeem/route')
+    const PINNED_IP = '198.51.100.7'
+
+    const req = () =>
+      new Request('http://localhost:3001/api/user/loyalty/redeem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': PINNED_IP,
+        },
+        body: JSON.stringify({ points: 100 }),
+      })
+
+    // First 10 should NOT be rate-limited (they'll pass through
+    // and get 400 invalid_tier from the mocked lib).
+    for (let i = 0; i < 10; i++) {
+      const res = await POST(req())
+      expect(res.status).not.toBe(429)
+    }
+
+    // 11th from same IP within the hour-long window → 429.
+    const blocked = await POST(req())
+    expect(blocked.status).toBe(429)
+
+    vi.doUnmock('@/lib/authz')
+    vi.doUnmock('@/lib/loyalty')
+  })
+})
