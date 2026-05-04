@@ -191,11 +191,11 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             {/* Logo Icon */}
-            <div className="p-3 bg-indigo-600 rounded-xl">
+            <div className="p-3 bg-slate-900 rounded-xl">
               <Compass size={28} className="text-white" />
             </div>
             {/* Brand Name */}
-            <span className="text-3xl font-black text-white">Got Journey Thailand</span>
+            <span className="text-3xl font-semibold text-white">Got Journey Thailand</span>
           </div>
           <p className="text-slate-400">Admin Dashboard</p>
         </div>
@@ -238,7 +238,7 @@ export default function AdminLoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-slate-400 focus:ring-2 cursor-pointer"
                 />
                 <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
                   จดจำอีเมล

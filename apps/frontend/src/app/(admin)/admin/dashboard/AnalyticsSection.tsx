@@ -110,8 +110,8 @@ function SignupTrendCard({
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-indigo-100 rounded-lg">
-            <TrendingUp size={18} className="text-indigo-600" />
+          <div className="p-2 bg-slate-100 rounded-lg">
+            <TrendingUp size={18} className="text-slate-900" />
           </div>
           <h3 className="font-bold text-slate-900">สมัครสมาชิก 30 วัน</h3>
         </div>
@@ -134,7 +134,7 @@ function SignupTrendCard({
           return (
             <div
               key={d.date}
-              className="flex-1 bg-gradient-to-t from-indigo-200 to-indigo-500 rounded-t hover:from-indigo-300 hover:to-indigo-600 transition-colors relative group"
+              className="flex-1 bg-gradient-to-t from-indigo-200 to-indigo-500 rounded-t hover:from-indigo-300 hover:to-slate-900 transition-colors relative group"
               style={{ height: `${Math.max(heightPct, 4)}%` }}
               title={`${d.date}: ${d.count} signup${d.count === 1 ? '' : 's'}`}
             >
@@ -193,7 +193,7 @@ function ReferralFunnelCard({
   const toneStyles = {
     slate: 'bg-slate-50 text-slate-700',
     amber: 'bg-amber-50 text-amber-700',
-    indigo: 'bg-indigo-50 text-indigo-700',
+    indigo: 'bg-slate-100 text-slate-900',
     emerald: 'bg-emerald-50 text-emerald-700',
     red: 'bg-red-50 text-red-700',
   }
@@ -359,7 +359,7 @@ function CouponBreakdownCard({
               title={`Admin: ${coupons.bySource.admin}`}
             />
             <div
-              className="bg-indigo-500"
+              className="bg-slate-700"
               style={{ width: `${referrerPct}%` }}
               title={`Referrer rewards: ${coupons.bySource.referralReferrer}`}
             />
@@ -376,7 +376,7 @@ function CouponBreakdownCard({
               value={coupons.bySource.admin}
             />
             <LegendItem
-              color="bg-indigo-500"
+              color="bg-slate-700"
               label="Referrer rewards"
               value={coupons.bySource.referralReferrer}
             />

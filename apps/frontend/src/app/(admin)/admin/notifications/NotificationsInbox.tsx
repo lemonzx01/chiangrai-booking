@@ -290,13 +290,13 @@ export default function NotificationsInbox({ initial }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             ทั้งหมด
           </p>
-          <p className="mt-1 text-2xl font-black text-slate-900">{notifications.length}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">{notifications.length}</p>
         </div>
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+        <div className="rounded-xl border border-slate-200 bg-slate-100 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">
             ยังไม่ได้อ่าน
           </p>
-          <p className="mt-1 text-2xl font-black text-indigo-900">{unread}</p>
+          <p className="mt-1 text-2xl font-semibold text-indigo-900">{unread}</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3">
           <div>
@@ -388,7 +388,7 @@ export default function NotificationsInbox({ initial }: Props) {
         <div
           role="toolbar"
           aria-label="การดำเนินการกับรายการที่เลือก"
-          className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 flex flex-wrap items-center gap-2"
+          className="rounded-xl border border-slate-200 bg-slate-100 p-3 flex flex-wrap items-center gap-2"
         >
           <span className="text-sm font-bold text-indigo-900">
             เลือก {selected.size} รายการ
@@ -397,7 +397,7 @@ export default function NotificationsInbox({ initial }: Props) {
             <button
               type="button"
               onClick={selectAllVisible}
-              className="text-xs font-semibold text-indigo-700 hover:text-indigo-900"
+              className="text-xs font-semibold text-slate-900 hover:text-indigo-900"
             >
               เลือกทั้งหมดในรายการ
             </button>
@@ -468,10 +468,10 @@ export default function NotificationsInbox({ initial }: Props) {
                 key={notification.id}
                 className={`rounded-xl border px-4 py-3 transition-colors ${
                   checked
-                    ? 'border-indigo-400 bg-indigo-50 ring-1 ring-indigo-200'
+                    ? 'border-indigo-400 bg-slate-100 ring-1 ring-indigo-200'
                     : notification.is_read
                       ? 'border-slate-200 bg-white'
-                      : 'border-indigo-200 bg-indigo-50/40'
+                      : 'border-slate-200 bg-slate-100/40'
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -481,10 +481,10 @@ export default function NotificationsInbox({ initial }: Props) {
                     onClick={() => toggleOne(notification.id)}
                     aria-pressed={checked}
                     aria-label="เลือก"
-                    className="mt-0.5 flex-shrink-0 text-slate-400 hover:text-indigo-600"
+                    className="mt-0.5 flex-shrink-0 text-slate-400 hover:text-slate-900"
                   >
                     {checked ? (
-                      <CheckSquare size={18} className="text-indigo-600" />
+                      <CheckSquare size={18} className="text-slate-900" />
                     ) : (
                       <Square size={18} />
                     )}
@@ -523,7 +523,7 @@ export default function NotificationsInbox({ initial }: Props) {
                     {notification.link && (
                       <Link
                         href={notification.link}
-                        className="mt-2 inline-block text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                        className="mt-2 inline-block text-xs font-semibold text-slate-900 hover:text-indigo-800"
                       >
                         ดูรายละเอียด →
                       </Link>

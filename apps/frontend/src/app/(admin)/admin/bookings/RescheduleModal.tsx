@@ -149,7 +149,7 @@ export default function RescheduleModal({
                 onChange={(e) => setCheckIn(e.target.value)}
                 required
                 disabled={loading}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
               />
             </div>
             <div>
@@ -163,7 +163,7 @@ export default function RescheduleModal({
                 required
                 disabled={loading}
                 min={checkIn}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function RescheduleModal({
               disabled={loading}
               rows={2}
               placeholder="เช่น ลูกค้าขอเลื่อนเนื่องจากติดธุระ"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm resize-none"
             />
           </div>
 
@@ -217,7 +217,7 @@ export default function RescheduleModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

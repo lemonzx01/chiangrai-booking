@@ -170,7 +170,7 @@ export default async function AdminBookingsPage() {
               <ExportCsvButton endpoint="/api/admin/bookings/export" />
               <Link
                 href="/admin/bookings/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
               >
                 <Plus size={16} />
                 เพิ่มการจอง (Manual)

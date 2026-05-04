@@ -181,7 +181,7 @@ export default function CouponsManager({
       <div className="flex justify-end mb-4">
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors"
         >
           <Plus size={20} />
           เพิ่มคูปอง
@@ -212,7 +212,7 @@ export default function CouponsManager({
               ) : (
                 coupons.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono font-semibold text-indigo-700">
+                    <td className="px-4 py-3 font-mono font-semibold text-slate-900">
                       {c.code}
                       {c.description && (
                         <div className="text-xs text-slate-400 font-sans font-normal mt-1">
@@ -311,7 +311,7 @@ export default function CouponsManager({
                   }
                   required
                   placeholder="SUMMER2026"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                 />
               </div>
 
@@ -326,7 +326,7 @@ export default function CouponsManager({
                     setForm({ ...form, description: e.target.value })
                   }
                   placeholder="ส่วนลดต้อนรับฤดูร้อน"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function CouponsManager({
                         discount_type: e.target.value as 'PERCENT' | 'FIXED',
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   >
                     <option value="PERCENT">เปอร์เซ็นต์ (%)</option>
                     <option value="FIXED">จำนวนเงิน (฿)</option>
@@ -363,7 +363,7 @@ export default function CouponsManager({
                       setForm({ ...form, discount_value: e.target.value })
                     }
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -381,7 +381,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, min_spend: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   />
                 </div>
 
@@ -398,7 +398,7 @@ export default function CouponsManager({
                       setForm({ ...form, max_discount: e.target.value })
                     }
                     placeholder="ไม่จำกัด"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function CouponsManager({
                       applies_to: e.target.value as 'ALL' | 'HOTEL' | 'CAR',
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                 >
                   <option value="ALL">ทุกประเภท</option>
                   <option value="HOTEL">โรงแรมเท่านั้น</option>
@@ -434,7 +434,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, starts_at: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   />
                 </div>
 
@@ -448,7 +448,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, expires_at: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -460,7 +460,7 @@ export default function CouponsManager({
                   onChange={(e) =>
                     setForm({ ...form, is_active: e.target.checked })
                   }
-                  className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  className="h-4 w-4 text-slate-900 rounded border-slate-300 focus:ring-slate-400"
                 />
                 <span className="text-sm font-medium text-slate-700">
                   เปิดใช้งานคูปองนี้
@@ -484,7 +484,7 @@ export default function CouponsManager({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-60"
+                  className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 disabled:opacity-60"
                 >
                   {submitting ? 'กำลังบันทึก...' : editing ? 'บันทึก' : 'สร้างคูปอง'}
                 </button>

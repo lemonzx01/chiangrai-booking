@@ -189,7 +189,7 @@ export default function EditRoomTypePage() {
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
                   />
                   <span className="text-sm font-medium text-slate-700">เปิดใช้งาน</span>
                 </label>

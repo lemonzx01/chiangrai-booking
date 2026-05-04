@@ -293,7 +293,7 @@ export default async function DashboardPage() {
             {/* ปุ่มเพิ่มโรงแรม */}
             <Link
               href="/admin/hotels"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors text-sm sm:text-base"
             >
               <Plus size={18} />
               เพิ่มโรงแรม
@@ -328,18 +328,18 @@ export default async function DashboardPage() {
                 stat.title.includes('รถ') ? '/admin/cars' :
                 '/admin/bookings'
               }
-              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all cursor-pointer group"
             >
               {/* Card Header - Icon และ Arrow */}
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-xl ${stat.color} group-hover:scale-110 transition-transform`}>
                   <stat.icon size={24} className="text-white" />
                 </div>
-                <ArrowRight size={18} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                <ArrowRight size={18} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
               </div>
               {/* Card Content - Title และ Value */}
               <p className="text-slate-500 text-sm mb-1">{stat.title}</p>
-              <p className="text-2xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{stat.value}</p>
+              <p className="text-2xl font-bold text-slate-900 group-hover:text-slate-900 transition-colors">{stat.value}</p>
             </Link>
           ))}
         </div>
@@ -359,7 +359,7 @@ export default async function DashboardPage() {
             {/* Link ไปหน้ารายการการจองทั้งหมด */}
             <Link
               href="/admin/bookings"
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              className="text-sm text-slate-900 hover:text-slate-900 font-medium flex items-center gap-1"
             >
               ดูทั้งหมด
               <ArrowRight size={14} />
@@ -383,10 +383,10 @@ export default async function DashboardPage() {
               {/* Table Body */}
               <tbody className="divide-y divide-slate-100">
                 {recentBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-indigo-50/50 transition-colors">
+                  <tr key={booking.id} className="hover:bg-slate-100/50 transition-colors">
                     {/* รหัสการจอง */}
                     <td className="px-6 py-4 text-sm font-medium">
-                      <Link href="/admin/bookings" className="text-indigo-600 hover:text-indigo-700">
+                      <Link href="/admin/bookings" className="text-slate-900 hover:text-slate-900">
                         {booking.booking_code}
                       </Link>
                     </td>

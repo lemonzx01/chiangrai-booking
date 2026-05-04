@@ -380,7 +380,7 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                  className="w-5 h-5 text-slate-900 border-slate-300 rounded focus:ring-slate-400"
                 />
                 <label htmlFor="is_active" className="text-sm font-medium text-slate-700">
                   เปิดใช้งาน

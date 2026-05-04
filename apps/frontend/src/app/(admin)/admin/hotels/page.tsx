@@ -118,7 +118,7 @@ export default async function AdminHotelsPage() {
           {/* ปุ่มเพิ่มโรงแรม */}
           <Link
             href="/admin/hotels/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors text-sm sm:text-base w-full sm:w-auto"
           >
             <Plus size={20} />
             เพิ่มโรงแรม

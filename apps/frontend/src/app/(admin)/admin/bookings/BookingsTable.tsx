@@ -51,7 +51,7 @@ interface BookingsTableProps {
 }
 
 const statusOptions = [
-  { value: 'ALL', label: 'สถานะทั้งหมด', dot: 'bg-indigo-500' },
+  { value: 'ALL', label: 'สถานะทั้งหมด', dot: 'bg-slate-700' },
   { value: 'PENDING', label: 'รอดำเนินการ', dot: 'bg-yellow-500' },
   { value: 'CONFIRMED', label: 'ยืนยันแล้ว', dot: 'bg-blue-500' },
   { value: 'PAID', label: 'ชำระเงินแล้ว', dot: 'bg-green-500' },
@@ -176,7 +176,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
               placeholder="ค้นหารหัสจอง, ชื่อลูกค้า, อีเมล..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
             />
           </div>
           <div ref={filterRef} className="relative">
@@ -185,7 +185,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
               onClick={() => setFilterOpen(!filterOpen)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm hover:border-slate-300 transition-colors bg-white min-w-[160px]"
             >
-              <span className={`w-2 h-2 rounded-full ${statusOptions.find(o => o.value === filterStatus)?.dot || 'bg-indigo-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${statusOptions.find(o => o.value === filterStatus)?.dot || 'bg-slate-700'}`} />
               <span className="flex-1 text-left font-medium text-slate-700">
                 {statusOptions.find(o => o.value === filterStatus)?.label || 'สถานะทั้งหมด'}
               </span>
@@ -199,7 +199,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                     type="button"
                     onClick={() => { handleFilter(opt.value); setFilterOpen(false) }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                      filterStatus === opt.value ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-700'
+                      filterStatus === opt.value ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-700'
                     }`}
                   >
                     <span className={`w-2.5 h-2.5 rounded-full ${opt.dot}`} />
@@ -236,7 +236,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
             <tbody className="divide-y divide-slate-100">
               {paginated.map((booking) => (
                 <tr key={booking.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium text-indigo-600">
+                  <td className="px-6 py-4 text-sm font-medium text-slate-900">
                     {booking.booking_code}
                   </td>
                   <td className="px-6 py-4">
@@ -269,7 +269,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                           <button
                             type="button"
                             onClick={() => setRescheduleTarget(booking)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors"
                             title="เลื่อนวันการจอง"
                           >
                             <CalendarClock size={12} />
@@ -351,7 +351,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                 key={p}
                 onClick={() => setPage(p)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  p === safeCurrentPage ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'
+                  p === safeCurrentPage ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
                 }`}
               >
                 {p}

@@ -153,7 +153,7 @@ export default function ReviewsModerator({
             disabled={loading}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === tab.key
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-slate-900 text-white'
                 : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
             }`}
           >

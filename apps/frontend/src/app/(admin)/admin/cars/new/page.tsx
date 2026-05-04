@@ -149,7 +149,7 @@ export default function NewCarPage() {
         <div className="mb-8">
           <Link
             href="/admin/cars"
-            className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
           >
             <ArrowLeft size={18} />
             กลับไปหน้ารายการ
@@ -209,7 +209,7 @@ export default function NewCarPage() {
                   <textarea
                     value={formData.description_th}
                     onChange={(e) => setFormData({ ...formData, description_th: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -220,7 +220,7 @@ export default function NewCarPage() {
                   <textarea
                     value={formData.description_en}
                     onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -309,7 +309,7 @@ export default function NewCarPage() {
                       onChange={(e) => setNewIncludeTh(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInclude('th'))}
                       placeholder="เพิ่มรายการ"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addInclude('th')} size="sm">
                       <Plus size={16} />
@@ -319,7 +319,7 @@ export default function NewCarPage() {
                     {formData.includes_th.map((include, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-900 rounded-lg text-sm"
                       >
                         {include}
                         <button
@@ -344,7 +344,7 @@ export default function NewCarPage() {
                       onChange={(e) => setNewIncludeEn(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInclude('en'))}
                       placeholder="Add item"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addInclude('en')} size="sm">
                       <Plus size={16} />
@@ -354,7 +354,7 @@ export default function NewCarPage() {
                     {formData.includes_en.map((include, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-900 rounded-lg text-sm"
                       >
                         {include}
                         <button
@@ -396,7 +396,7 @@ export default function NewCarPage() {
                   onChange={(e) => setNewImage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
                   placeholder="หรือใส่ URL รูปภาพ"
-                  className="flex-1 px-4 py-2 rounded-xl border-2 border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-indigo-300 transition-all duration-200"
+                  className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
                 />
                 <Button type="button" onClick={addImage} size="sm">
                   <Plus size={16} />
@@ -434,7 +434,7 @@ export default function NewCarPage() {
                   type="checkbox"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-slate-400"
                 />
                 <span className="text-sm font-semibold text-slate-700">เปิดใช้งาน</span>
               </label>

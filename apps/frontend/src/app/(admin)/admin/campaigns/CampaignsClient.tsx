@@ -220,7 +220,7 @@ export default function CampaignsClient({
       {/* Composer (3/5) */}
       <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
-          <Mail size={16} className="text-indigo-600" />
+          <Mail size={16} className="text-slate-900" />
           <h2 className="text-sm font-bold text-slate-900">เขียนแคมเปญ</h2>
         </div>
 
@@ -234,7 +234,7 @@ export default function CampaignsClient({
             onChange={(e) => setSubject(e.target.value)}
             maxLength={150}
             placeholder="เช่น โปรโมชันเดือนเมษา ลด 20%"
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-400"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-500"
           />
         </div>
 
@@ -248,7 +248,7 @@ export default function CampaignsClient({
             onChange={(e) => setPreheader(e.target.value)}
             maxLength={200}
             placeholder="โปรพิเศษเฉพาะลูกค้าเก่า..."
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-400"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-500"
           />
         </div>
 
@@ -262,7 +262,7 @@ export default function CampaignsClient({
                 key={opt.value}
                 className={`flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors ${
                   cohort === opt.value
-                    ? 'border-indigo-300 bg-indigo-50'
+                    ? 'border-slate-300 bg-slate-100'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
@@ -309,7 +309,7 @@ export default function CampaignsClient({
               onChange={(e) => setCustomEmails(e.target.value)}
               rows={4}
               placeholder="a@example.com&#10;b@example.com"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:border-indigo-400"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:border-slate-500"
             />
           </div>
         )}
@@ -323,7 +323,7 @@ export default function CampaignsClient({
             onChange={(e) => setBody(e.target.value)}
             rows={8}
             maxLength={20_000}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-400 resize-none"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-500 resize-none"
           />
           <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
             <strong>Markdown-lite:</strong> <code>**bold**</code>,{' '}
@@ -363,7 +363,7 @@ export default function CampaignsClient({
         {previewResult && (
           <div
             role="status"
-            className="rounded-xl bg-indigo-50 border border-indigo-100 p-4 text-sm"
+            className="rounded-xl bg-slate-100 border border-slate-200 p-4 text-sm"
           >
             <div className="flex items-center gap-2 text-indigo-800 font-bold mb-1">
               <Users size={14} />
@@ -411,7 +411,7 @@ export default function CampaignsClient({
             type="button"
             onClick={handleSend}
             disabled={!previewResult || sending}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 disabled:opacity-60"
           >
             {sending ? (
               <Loader2 size={14} className="animate-spin" />
@@ -478,7 +478,7 @@ function StatusPill({ status }: { status: CampaignRow['status'] }) {
           bg: 'bg-emerald-50',
         }
       case 'sending':
-        return { icon: Loader2, color: 'text-indigo-700', bg: 'bg-indigo-50' }
+        return { icon: Loader2, color: 'text-slate-900', bg: 'bg-slate-100' }
       case 'partial':
         return { icon: AlertCircle, color: 'text-amber-700', bg: 'bg-amber-50' }
       case 'failed':

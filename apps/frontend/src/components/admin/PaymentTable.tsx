@@ -35,7 +35,7 @@ interface PaymentTableProps {
 }
 
 const statusFilterOptions = [
-  { value: 'ALL', label: 'สถานะทั้งหมด', dot: 'bg-indigo-500' },
+  { value: 'ALL', label: 'สถานะทั้งหมด', dot: 'bg-slate-700' },
   { value: 'PENDING', label: 'รอดำเนินการ', dot: 'bg-yellow-500' },
   { value: 'SUCCEEDED', label: 'สำเร็จ', dot: 'bg-green-500' },
   { value: 'FAILED', label: 'ล้มเหลว', dot: 'bg-red-500' },
@@ -106,7 +106,7 @@ export default function PaymentTable({ payments, onStatusChange }: PaymentTableP
               placeholder="ค้นหารหัสจอง, ชื่อลูกค้า..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
             />
           </div>
           <SelectDropdown
@@ -210,7 +210,7 @@ export default function PaymentTable({ payments, onStatusChange }: PaymentTableP
                 key={p}
                 onClick={() => setPage(p)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  p === safeCurrentPage ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'
+                  p === safeCurrentPage ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
                 }`}
               >
                 {p}

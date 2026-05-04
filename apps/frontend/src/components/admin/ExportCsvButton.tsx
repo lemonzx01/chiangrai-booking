@@ -82,7 +82,7 @@ export default function ExportCsvButton({
       type="button"
       onClick={handleClick}
       disabled={busy}
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-60"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
     >
       {busy ? (
         <Loader2 size={14} className="animate-spin" />

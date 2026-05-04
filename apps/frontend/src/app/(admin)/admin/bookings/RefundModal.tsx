@@ -113,7 +113,7 @@ export default function RefundModal({
           </div>
           <div className="text-sm text-slate-600">
             คืนเงินได้สูงสุด:{' '}
-            <span className="font-bold text-indigo-600">{formatCurrency(maxRefundable)}</span>
+            <span className="font-bold text-slate-900">{formatCurrency(maxRefundable)}</span>
           </div>
 
           <div>
@@ -129,7 +129,7 @@ export default function RefundModal({
               onChange={(e) => setAmount(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
             />
             <div className="mt-1 flex gap-2 flex-wrap">
               <button
@@ -167,7 +167,7 @@ export default function RefundModal({
               disabled={loading}
               rows={3}
               placeholder="เช่น ลูกค้าขอยกเลิกเนื่องจากอากาศไม่ดี"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm resize-none"
             />
           </div>
 
@@ -177,7 +177,7 @@ export default function RefundModal({
               checked={cancelBooking}
               onChange={(e) => setCancelBooking(e.target.checked)}
               disabled={loading}
-              className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
             />
             <span className="text-sm text-slate-700">
               ยกเลิกการจองด้วย
