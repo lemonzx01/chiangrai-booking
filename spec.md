@@ -214,6 +214,7 @@ Sequential, numbered. Run them in order — `RUN_ALL_MIGRATIONS.sql` is convenie
 | 0022 | Referrals (track who referred whom) |
 | 0023 | Referral rewards (coupons.bound_to_email + source) |
 | 0024 | Loyalty points (counter on users + ledger) |
+| 0025 | Loyalty tiers (lifetime_earned counter for tier eligibility) |
 
 ---
 
@@ -296,23 +297,35 @@ Sharing UX: `/register?ref=CODE` has its own `generateMetadata` that points the 
 
 Admin: `/admin/referrals` lists with status filter; `POST /api/admin/referrals/[id]/void` flips to voided + writes an audit row. Voiding does NOT deactivate already-issued coupons (separate concern).
 
-### 7.4 Loyalty points (migration 0024)
+### 7.4 Loyalty (migrations 0024 + 0025)
 
-Earn rule: 1 point per `LOYALTY_RATE_THB_PER_POINT` THB (default 100). Awarded by the Stripe webhook the moment a booking flips to PAID. Idempotent at the DB layer — partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` rejects duplicate earns from webhook retries.
+**Earn** rule: `floor(amount/rate) × tier.multiplier` points. Base rate is `LOYALTY_RATE_THB_PER_POINT` THB (default 100). Awarded by the Stripe webhook the moment a booking flips to PAID. Idempotent at the DB layer — partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` rejects duplicate earns from webhook retries.
+
+**Tier** system: three tiers gated by lifetime-earned, each with an earn-rate multiplier:
+
+  Bronze   0+ lifetime    1.00× earn rate
+  Silver   500+           1.25×
+  Gold     2000+          1.50×
+
+Tier table lives in code constants (`LOYALTY_TIERS` in `lib/loyalty.ts`), not the DB — three rows that change rarely; a join would be over-engineering. Higher tiers earn faster, so the program rewards loyalty by getting MORE generous over time.
 
 Storage splits by purpose:
-- `users.loyalty_points` — denormalized counter, fast O(1) read for the profile widget
-- `loyalty_ledger` — signed-delta rows, one per change. `kind ∈ {earn, redeem, void, adjust}`. Source of truth for audit and (eventually) tier rebuilds.
+- `users.loyalty_points` — spendable balance. Goes up on earn, down on redeem.
+- `users.loyalty_lifetime_earned` — tier-eligibility counter. Goes up on earn ONLY. Redeem doesn't reduce it (the whole point — Gold stays Gold even after spending).
+- `loyalty_ledger` — signed-delta rows, one per change. `kind ∈ {earn, redeem, void, adjust}`. Source of truth for audit + (eventually) tier rebuilds.
 
-Both written atomically by `awardPointsForBooking` / `redeemPointsForCoupon`; the counter is the cache, the ledger is correctness.
+All three are kept consistent by the lib helpers (`awardPointsForBooking`, `redeemPointsForCoupon`, `loyalty/[userId]/adjust`).
 
-Redemption (phase 1.5): three fixed tiers in code constants — 100/300/500 pts → ฿100/350/600 off, all email-bound. Higher tiers give better value-per-point to encourage saving.
+**Redemption** (phase 1.5): three fixed redeem tiers in code constants — 100/300/500 pts → ฿100/350/600 off, all email-bound. Higher tiers give better value-per-point to encourage saving.
+
+**Manual adjust** (phase 2): `POST /api/admin/loyalty/[userId]/adjust` for CS overrides. Positive delta bumps both balance + lifetime (treats it as a bonus that counts toward tier). Negative delta is balance-only (lifetime is sticky — undoing a fraudulent earn including its lifetime contribution requires a separate void path). Capped at ±100,000 with required reason; audit-logged.
 
 Frontend surfaces:
-- `<LoyaltyCard>` on `/profile` — balance hero + redemption tiers + recent activity
-- `<LoyaltyPointsPreview>` on hotel/car detail pages — "+N แต้ม" badge near each price (uses shared `pointsForAmountAtDefaultRate` so backend and frontend stay in sync without a config endpoint)
+- `<LoyaltyCard>` on `/profile` — balance hero, tier badge ("Bronze · ×1"), progress bar to next tier, redemption tiers, recent activity
+- `<LoyaltyPointsPreview>` on hotel/car detail pages — "+N แต้ม" badge near each price (uses base rate, not the user's tier multiplier — preview is conservative)
+- `/admin/loyalty` — top earners leaderboard (sorted by lifetime), search by name/email, manual adjust modal
 
-Out of scope for phase 1: tier system (Bronze/Silver/Gold), birthday bonuses, point expiry, point gifts. The ledger schema is shaped to support them when they ship.
+Out of scope: birthday bonuses, point expiry, point gifts, per-promotion tier overrides (e.g. 2x weekend). The ledger + counter schema is shaped to support them when they ship.
 
 ---
 

@@ -69,8 +69,8 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | GET | `/api/user/wishlist` | Cross-device wishlist (hotels + cars). |
 | POST / DELETE | `/api/user/wishlist` | Add / remove. Body: `{kind:'hotel'\|'car', id}`. |
 | GET | `/api/user/referrals` | Caller's referral code, share URL, funnel counts, masked invitee list. Lazy-creates code on first call. |
-| GET | `/api/user/loyalty` | `{ points, recent[10], redeemTiers[] }`. Powers the LoyaltyCard on /profile. Tiers are exposed so the UI doesn't hard-code them. |
-| POST | `/api/user/loyalty/redeem` | Body: `{ points }`. Trades points for an email-bound coupon at one of the fixed tiers (100/300/500). Atomic at the DB layer. Returns `{ ok, couponCode, pointsRemaining, valueThb, expiresAt }`. Status: 400 invalid_tier, 402 insufficient_points, 409 race_lost. |
+| GET | `/api/user/loyalty` | `{ points, tier: { current, next, lifetimeEarned, pointsToNext }, recent[10], redeemTiers[] }`. Powers the LoyaltyCard on /profile. The `tier` block drives the badge + progress bar. |
+| POST | `/api/user/loyalty/redeem` | Body: `{ points }`. Trades points for an email-bound coupon at one of the fixed tiers (100/300/500). Atomic at the DB layer. Returns `{ ok, couponCode, pointsRemaining, valueThb, expiresAt }`. Status: 400 invalid_tier, 402 insufficient_points, 409 race_lost. Rate-limited 10/hr/IP. |
 
 ## Partner (`partner_token`; admin also passes)
 
@@ -106,6 +106,8 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | GET / POST | `/api/admin/campaigns` | Email campaign list / send. POST validates cohort + drops unsubscribed addresses + audits. |
 | GET | `/api/admin/referrals` | List with optional `?status=pending\|qualified\|rewarded\|voided`. Newest 100, both sides joined. |
 | POST | `/api/admin/referrals/[id]/void` | Mark referral voided (audit-logged). Body: `{reason?}`. Does NOT deactivate already-issued coupons — that's a separate coupon-admin action. |
+| GET | `/api/admin/loyalty` | Top earners. Returns `{ users[] }` sorted by lifetime DESC, capped at 100. Each row carries the computed tier so client doesn't recompute thresholds. |
+| POST | `/api/admin/loyalty/[userId]/adjust` | Body: `{ delta, reason }`. Manual credit/debit. Positive delta also bumps lifetime (counts toward tier); negative delta is balance-only. Audit-logged with previous + new balance + target email. Capped at ±100,000. |
 | POST / DELETE | `/api/hotels`, `/api/hotels/[id]` | CRUD with audit on delete. |
 | POST / DELETE | `/api/cars`, `/api/cars/[id]` | Same. |
 | POST / DELETE | `/api/partners`, `/api/partners/[id]` | Same. |
@@ -124,16 +126,18 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 
 ## Loyalty program
 
-Phase 1 (migration 0024). Two rules:
+Phases 1+2 (migrations 0024 + 0025). Three rules:
 
-- **Earn** — Stripe webhook awards 1 point per ฿100 spent when a booking flips to PAID. Tunable via `LOYALTY_RATE_THB_PER_POINT` env (default 100). Idempotent at the DB layer via a partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` — a webhook retry storm can't double-credit.
-- **Redeem** — three fixed tiers (100/300/500 pts → ฿100/350/600 off). Higher tiers give better value-per-point, encouraging saving. Issued coupons reuse `coupons.bound_to_email` so they're scoped to the redeemer.
+- **Earn** — Stripe webhook awards `floor(amount/rate) × tier.multiplier` points when a booking flips to PAID. Base rate tunable via `LOYALTY_RATE_THB_PER_POINT` env (default 100). Idempotent at the DB layer via a partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` — a webhook retry storm can't double-credit.
+- **Redeem** — three fixed redeem tiers (100/300/500 pts → ฿100/350/600 off). Higher tiers give better value-per-point, encouraging saving. Issued coupons reuse `coupons.bound_to_email` so they're scoped to the redeemer.
+- **Tier** — three loyalty tiers gated by lifetime-earned (`users.loyalty_lifetime_earned`): Bronze (0+, 1.0×), Silver (500+, 1.25×), Gold (2000+, 1.5×). Lifetime never decreases — redeem only touches the spendable balance. Manual `adjust` from admin with positive delta bumps lifetime; negative delta is balance-only.
 
-State splits by purpose: `users.loyalty_points` is the denormalized counter for fast reads; `loyalty_ledger` is the source-of-truth audit trail (`kind ∈ {earn, redeem, void, adjust}`). Award and redeem helpers write both atomically.
+State splits by purpose: `users.loyalty_points` is the spendable balance; `users.loyalty_lifetime_earned` is the tier-eligibility counter; `loyalty_ledger` is the source-of-truth audit trail (`kind ∈ {earn, redeem, void, adjust}`). All three are kept consistent by the lib helpers.
 
 Frontend surfaces:
-- `/profile` LoyaltyCard — balance, recent activity, redemption tiers
-- Hotel/car detail pages — `<LoyaltyPointsPreview>` badge near each price showing "+N แต้ม" you'd earn
+- `/profile` LoyaltyCard — balance, tier badge with multiplier, progress bar to next tier, redemption tiers, recent activity
+- Hotel/car detail pages — `<LoyaltyPointsPreview>` badge near each price showing "+N แต้ม" you'd earn (uses base rate, not tier multiplier — preview is conservative)
+- `/admin/loyalty` — top earners leaderboard sorted by lifetime, with manual ± adjust modal
 
 ## Audit log
 

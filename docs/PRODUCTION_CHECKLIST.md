@@ -71,7 +71,8 @@
 - [ ] Migrations ทั้งหมดถูก apply ตามลำดับ — ตรวจไฟล์ล่าสุดใน `supabase/migrations/` ตรงกับ DB
   - 0015 admin_notifications, 0016 availability_blocks, 0017 admin_audit_log
   - 0018 email_campaigns, 0019 email_unsubscribes, 0020 reviews_spam_score
-  - 0021 user_wishlist, 0022 referrals, 0023 referral_rewards, 0024 loyalty_points
+  - 0021 user_wishlist, 0022 referrals, 0023 referral_rewards
+  - 0024 loyalty_points, 0025 loyalty_tiers
 - [ ] มี **admin user อย่างน้อย 1 คน** ใน `admins` table
 - [ ] ลบ seed data ที่เป็น "test" / "demo" ออกหมดแล้ว
 - [ ] ตรวจ foreign keys มี `ON DELETE` policy ที่ถูกต้อง (CASCADE หรือ SET NULL)
