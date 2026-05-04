@@ -37,6 +37,7 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | POST | `/api/email-preferences` | Toggle subscription. Body: `{token, unsubscribed, reason?}`. |
 | POST | `/api/contact` | Contact form submission. |
 | POST | `/api/webhook/stripe` | Stripe webhook (verified via signature). Idempotent — duplicate events return 200 `{duplicate:true}`. |
+| GET | `/api/og/referral?code=ABCDEFGH` | Dynamic 1200×630 PNG (next/og + Satori, edge runtime) used as the link-preview image when a `/register?ref=CODE` URL is shared on LINE / Facebook / X. Renders the discount % from `REFERRAL_REWARD_PERCENT` env. Cache: 1-year immutable. |
 
 ## Booking flow
 
@@ -68,6 +69,8 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 | GET | `/api/user/wishlist` | Cross-device wishlist (hotels + cars). |
 | POST / DELETE | `/api/user/wishlist` | Add / remove. Body: `{kind:'hotel'\|'car', id}`. |
 | GET | `/api/user/referrals` | Caller's referral code, share URL, funnel counts, masked invitee list. Lazy-creates code on first call. |
+| GET | `/api/user/loyalty` | `{ points, recent[10], redeemTiers[] }`. Powers the LoyaltyCard on /profile. Tiers are exposed so the UI doesn't hard-code them. |
+| POST | `/api/user/loyalty/redeem` | Body: `{ points }`. Trades points for an email-bound coupon at one of the fixed tiers (100/300/500). Atomic at the DB layer. Returns `{ ok, couponCode, pointsRemaining, valueThb, expiresAt }`. Status: 400 invalid_tier, 402 insufficient_points, 409 race_lost. |
 
 ## Partner (`partner_token`; admin also passes)
 
@@ -118,6 +121,19 @@ Catalog of every backend route in `apps/backend/src/app/api/`. Source-of-truth i
 
 - `withPublicCache(res)`: `s-maxage=60, stale-while-revalidate=300, public`. Applied to `/api/hotels` and `/api/cars` for unauthenticated callers — Vercel's edge serves bytes without invoking a function.
 - `withPrivateNoStore(res)`: `private, no-store, max-age=0`. Defensive on auth-bearing endpoints (admin/partner queries, user-specific data) so any cache layer is forced to skip them.
+
+## Loyalty program
+
+Phase 1 (migration 0024). Two rules:
+
+- **Earn** — Stripe webhook awards 1 point per ฿100 spent when a booking flips to PAID. Tunable via `LOYALTY_RATE_THB_PER_POINT` env (default 100). Idempotent at the DB layer via a partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` — a webhook retry storm can't double-credit.
+- **Redeem** — three fixed tiers (100/300/500 pts → ฿100/350/600 off). Higher tiers give better value-per-point, encouraging saving. Issued coupons reuse `coupons.bound_to_email` so they're scoped to the redeemer.
+
+State splits by purpose: `users.loyalty_points` is the denormalized counter for fast reads; `loyalty_ledger` is the source-of-truth audit trail (`kind ∈ {earn, redeem, void, adjust}`). Award and redeem helpers write both atomically.
+
+Frontend surfaces:
+- `/profile` LoyaltyCard — balance, recent activity, redemption tiers
+- Hotel/car detail pages — `<LoyaltyPointsPreview>` badge near each price showing "+N แต้ม" you'd earn
 
 ## Audit log
 

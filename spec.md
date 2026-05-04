@@ -206,6 +206,14 @@ Sequential, numbered. Run them in order — `RUN_ALL_MIGRATIONS.sql` is convenie
 | 0014 | Reviews moderation |
 | 0015 | Admin notifications |
 | 0016 | Availability blocks (partner blockout calendar) |
+| 0017 | Admin audit log (append-only paper trail) |
+| 0018 | Email campaigns (marketing) |
+| 0019 | Email unsubscribes (signed token, per-channel) |
+| 0020 | Reviews spam_score (auto-moderation hint) |
+| 0021 | User wishlist (cross-device persistence) |
+| 0022 | Referrals (track who referred whom) |
+| 0023 | Referral rewards (coupons.bound_to_email + source) |
+| 0024 | Loyalty points (counter on users + ledger) |
 
 ---
 
@@ -275,6 +283,36 @@ Admin override: `POST /api/admin/bookings/[code]/refund` accepts an explicit `am
 ### 7.2 Manual booking (admin off-platform)
 
 `POST /api/admin/bookings` lets admins log a booking that was paid via cash / bank transfer / LINE Pay. Bypasses Stripe; inserts a synthetic `payments` row with `stripe_checkout_session_id = "manual:<method>:<ref>"` so we can trace origin. Still passes through the atomic RPC unless `force=true` is sent (emergency override).
+
+### 7.3 Referral program (migrations 0022 + 0023)
+
+Each registered user gets a lazy-generated 8-char code (`users.referral_code`). Sharing `?ref=CODE` to `/register` attributes the new signup; first-attribution-wins via `UNIQUE (referee_id)` on `referrals`.
+
+Two side-effect emails fire on signup-with-ref:
+1. **Signup notification** — to the referrer, sent inline by the register endpoint (per-referrer throttle: 5/24h to prevent inbox bombs)
+2. **Reward issuance** — when the referee makes their first PAID booking, the Stripe webhook calls `qualifyAndIssueRewards`, which atomically claims `referrals.status: pending → qualified → rewarded`, inserts two email-bound coupons (`source='referral_referrer'` / `'referral_referee'`), and sends a reward email to each side.
+
+Sharing UX: `/register?ref=CODE` has its own `generateMetadata` that points the OG image at `/api/og/referral?code=CODE` — a dynamic `next/og` route that renders a branded link preview. Pulls the discount % from `REFERRAL_REWARD_PERCENT` env so changing the program economics auto-updates the social card.
+
+Admin: `/admin/referrals` lists with status filter; `POST /api/admin/referrals/[id]/void` flips to voided + writes an audit row. Voiding does NOT deactivate already-issued coupons (separate concern).
+
+### 7.4 Loyalty points (migration 0024)
+
+Earn rule: 1 point per `LOYALTY_RATE_THB_PER_POINT` THB (default 100). Awarded by the Stripe webhook the moment a booking flips to PAID. Idempotent at the DB layer — partial UNIQUE index on `loyalty_ledger(source_id) WHERE kind='earn' AND source_type='booking'` rejects duplicate earns from webhook retries.
+
+Storage splits by purpose:
+- `users.loyalty_points` — denormalized counter, fast O(1) read for the profile widget
+- `loyalty_ledger` — signed-delta rows, one per change. `kind ∈ {earn, redeem, void, adjust}`. Source of truth for audit and (eventually) tier rebuilds.
+
+Both written atomically by `awardPointsForBooking` / `redeemPointsForCoupon`; the counter is the cache, the ledger is correctness.
+
+Redemption (phase 1.5): three fixed tiers in code constants — 100/300/500 pts → ฿100/350/600 off, all email-bound. Higher tiers give better value-per-point to encourage saving.
+
+Frontend surfaces:
+- `<LoyaltyCard>` on `/profile` — balance hero + redemption tiers + recent activity
+- `<LoyaltyPointsPreview>` on hotel/car detail pages — "+N แต้ม" badge near each price (uses shared `pointsForAmountAtDefaultRate` so backend and frontend stay in sync without a config endpoint)
+
+Out of scope for phase 1: tier system (Bronze/Silver/Gold), birthday bonuses, point expiry, point gifts. The ledger schema is shaped to support them when they ship.
 
 ---
 

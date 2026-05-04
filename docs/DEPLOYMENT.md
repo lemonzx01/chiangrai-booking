@@ -119,6 +119,21 @@
 > — แค่อัปเดต env แล้ว Vercel จะ pick up อัตโนมัติ
 >
 > คูปองที่ออกไปแล้ว **ไม่ retroactive** — ค่าใหม่ใช้กับคูปองรอบถัดไปเท่านั้น
+>
+> `REFERRAL_REWARD_PERCENT` + `REFERRAL_REWARD_MAX_THB` ยังถูกอ่านโดย
+> `/api/og/referral` — เปลี่ยน env แล้ว social card preview จะอัปเดตด้วย
+
+#### ⭐ Loyalty Program (Optional — มีค่า default)
+
+| Key | Default | คำอธิบาย |
+|-----|---------|----------|
+| `LOYALTY_RATE_THB_PER_POINT` | `100` | THB ต่อ 1 แต้ม (ค่าน้อยลง = แต้มเยอะขึ้น) |
+
+> ปรับ rate ได้ทุกเมื่อ — ค่าใหม่ใช้กับ booking ที่จ่ายหลังจากนั้น
+> ส่วน booking เก่ายังนับด้วย rate ตอนที่ award (ledger บันทึกผลแล้ว)
+>
+> Redemption tiers (100/300/500 pts) อยู่ใน code constants —
+> ปรับได้ที่ `apps/backend/src/lib/loyalty.ts` `REDEEM_TIERS`
 
 ### 1.3 Deploy Backend
 ```bash

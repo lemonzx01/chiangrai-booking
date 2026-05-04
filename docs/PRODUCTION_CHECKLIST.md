@@ -71,7 +71,7 @@
 - [ ] Migrations ทั้งหมดถูก apply ตามลำดับ — ตรวจไฟล์ล่าสุดใน `supabase/migrations/` ตรงกับ DB
   - 0015 admin_notifications, 0016 availability_blocks, 0017 admin_audit_log
   - 0018 email_campaigns, 0019 email_unsubscribes, 0020 reviews_spam_score
-  - 0021 user_wishlist, 0022 referrals, 0023 referral_rewards
+  - 0021 user_wishlist, 0022 referrals, 0023 referral_rewards, 0024 loyalty_points
 - [ ] มี **admin user อย่างน้อย 1 คน** ใน `admins` table
 - [ ] ลบ seed data ที่เป็น "test" / "demo" ออกหมดแล้ว
 - [ ] ตรวจ foreign keys มี `ON DELETE` policy ที่ถูกต้อง (CASCADE หรือ SET NULL)
@@ -186,6 +186,34 @@
 - [ ] Slack/Discord webhook alert เมื่อ downtime
 - [ ] Sentry / Rollbar รับ error events
 - [ ] Log aggregator (Axiom / Datadog) รับ `stdout` ทุก function
+
+---
+
+## ⭐ Loyalty Program
+
+- [ ] Decide on the earning rate — default is 1 point per ฿100.
+      Override via `LOYALTY_RATE_THB_PER_POINT` env BEFORE first
+      paying customer (changing it later still works but means
+      early customers are on a different rate than later ones —
+      OK if intentional).
+- [ ] Decide on redemption tiers. Defaults are 100/300/500 pts →
+      ฿100/350/600 off, all bound to email, 90-day expiry. To
+      change: edit `apps/backend/src/lib/loyalty.ts` `REDEEM_TIERS`
+      and redeploy. There's no DB-driven config (yet).
+- [ ] Manually test the full loop in staging:
+  - [ ] User books and pays (mock or real Stripe)
+  - [ ] Webhook flips booking → PAID
+  - [ ] User's `loyalty_points` increments by `floor(price/rate)`
+  - [ ] Ledger row appears with kind='earn', source_type='booking'
+  - [ ] LoyaltyCard on /profile shows the new balance + history
+  - [ ] User redeems 100 pts → coupon code generated +
+        balance drops by 100 + ledger row with kind='redeem'
+  - [ ] User C cannot apply User B's redeemed coupon (bound_to_email)
+  - [ ] Re-firing the SAME `checkout.session.completed` event
+        does NOT double-credit (idempotency check)
+- [ ] Hotel/car detail pages show "+N แต้ม" badge near each price
+- [ ] Confirm guests (no account) don't earn — only registered
+      users with a matching `customer_email`
 
 ---
 
