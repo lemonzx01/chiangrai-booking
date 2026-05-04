@@ -135,7 +135,7 @@ export default function PwaInstallPrompt() {
             <p className="font-bold">ติดตั้งเป็นแอป</p>
             <p className="text-slate-300 text-xs mt-0.5">
               แตะ <Share2 size={11} className="inline text-indigo-300" />{' '}
-              ด้านล่าง แล้วเลือก "Add to Home Screen"
+              ด้านล่าง แล้วเลือก &ldquo;Add to Home Screen&rdquo;
             </p>
           </div>
           <button

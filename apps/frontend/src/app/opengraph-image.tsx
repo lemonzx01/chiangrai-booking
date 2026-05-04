@@ -18,6 +18,10 @@
 
 import { ImageResponse } from 'next/og'
 
+// Edge runtime — see icon.tsx for the rationale (Windows-only @vercel/og
+// fileURLToPath bug during static prerender).
+export const runtime = 'edge'
+
 export const alt = 'Got Journey Thailand — premium travel booking'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'

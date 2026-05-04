@@ -408,7 +408,7 @@ export default function BookingDetailClient({
                   className="text-emerald-500 mt-0.5 flex-shrink-0"
                 />
                 <span>
-                  เปลี่ยนแปลงได้ทาง LINE หรือกดปุ่ม "ขอเลื่อนวัน" ด้านบน
+                  เปลี่ยนแปลงได้ทาง LINE หรือกดปุ่ม &ldquo;ขอเลื่อนวัน&rdquo; ด้านบน
                 </span>
               </li>
             </ul>

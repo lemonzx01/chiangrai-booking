@@ -214,7 +214,7 @@ export default function AnalyticsClient({
               {stats.upcoming.next7Days} ลูกค้าจะเช็คอินใน 7 วันข้างหน้า
             </p>
             <p className="text-xs text-slate-600 mt-0.5">
-              เตรียมที่พัก / รถ ให้พร้อม และตรวจสอบรายชื่อในหน้า "การจอง"
+              เตรียมที่พัก / รถ ให้พร้อม และตรวจสอบรายชื่อในหน้า &ldquo;การจอง&rdquo;
             </p>
           </div>
         </div>

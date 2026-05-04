@@ -14,6 +14,12 @@
 
 import { ImageResponse } from 'next/og'
 
+// Edge runtime sidesteps a Windows-only bug in @vercel/og where the
+// static prerender path calls fileURLToPath on a malformed URL during
+// `next build`. On Vercel (Linux) the bug doesn't trigger; running
+// edge here makes both environments behave the same way.
+export const runtime = 'edge'
+
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
 

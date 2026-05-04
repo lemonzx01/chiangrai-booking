@@ -13,6 +13,10 @@
 
 import { ImageResponse } from 'next/og'
 
+// Edge runtime — see icon.tsx for the rationale (Windows-only @vercel/og
+// fileURLToPath bug during static prerender).
+export const runtime = 'edge'
+
 export const size = { width: 180, height: 180 }
 export const contentType = 'image/png'
 
