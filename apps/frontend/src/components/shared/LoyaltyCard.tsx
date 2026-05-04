@@ -50,8 +50,23 @@ interface RedeemTier {
   label: string
 }
 
+interface LoyaltyTierLevel {
+  level: 'bronze' | 'silver' | 'gold'
+  name: string
+  minLifetime: number
+  multiplier: number
+}
+
+interface LoyaltyTierProgress {
+  current: LoyaltyTierLevel
+  next: LoyaltyTierLevel | null
+  lifetimeEarned: number
+  pointsToNext: number | null
+}
+
 interface LoyaltyOverview {
   points: number
+  tier: LoyaltyTierProgress
   recent: LoyaltyEntry[]
   redeemTiers: RedeemTier[]
 }
@@ -231,9 +246,11 @@ export default function LoyaltyCard() {
           : 'Earn points on every booking — perks coming soon'}
       </p>
 
-      {/* Hero number — the headline of the card */}
+      {/* Hero number + tier badge — the headline of the card.
+          Tier badge sits where the Award icon used to; it's
+          functional info now, not just decoration. */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-5">
-        <div className="flex items-end justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-amber-700 mb-1">
               {lang === 'th' ? 'ยอดแต้มปัจจุบัน' : 'Current balance'}
@@ -247,8 +264,53 @@ export default function LoyaltyCard() {
               </span>
             </div>
           </div>
-          <Award className="w-12 h-12 text-amber-400 opacity-60" />
+          {data.tier && <TierBadge tier={data.tier.current} />}
         </div>
+
+        {/* Tier progress — only when there's a next tier to chase.
+            Bar uses the tier's accent color. Caption tells the
+            user exactly how many more points to the next tier. */}
+        {data.tier && data.tier.next && data.tier.pointsToNext != null && (
+          <div className="mt-4">
+            <div className="flex items-baseline justify-between text-xs mb-1.5">
+              <span className="text-amber-700 font-medium">
+                {lang === 'th' ? 'อีก' : ''}{' '}
+                <span className="font-semibold text-slate-900">
+                  {data.tier.pointsToNext.toLocaleString()}
+                </span>{' '}
+                {lang === 'th'
+                  ? `แต้ม จะเลื่อนเป็น ${data.tier.next.name}`
+                  : `pts to ${data.tier.next.name}`}
+              </span>
+              <span className="text-amber-600">
+                ×{data.tier.next.multiplier}
+              </span>
+            </div>
+            <div className="h-1 bg-amber-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-500 transition-all duration-500"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      4,
+                      (data.tier.lifetimeEarned /
+                        data.tier.next.minLifetime) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {data.tier && data.tier.next == null && (
+          <p className="mt-3 text-xs text-amber-700">
+            {lang === 'th'
+              ? `ระดับสูงสุดแล้ว — รับ ×${data.tier.current.multiplier} ทุกการจอง`
+              : `Top tier reached — ×${data.tier.current.multiplier} on every booking`}
+          </p>
+        )}
       </div>
 
       {/* Just-issued coupon — shown after a successful redeem.
@@ -400,4 +462,29 @@ function labelKind(
     adjust: { th: 'ปรับยอด', en: 'Adjusted' },
   }
   return map[kind][lang]
+}
+
+/**
+ * Tier badge — small, content-first. Each tier gets a quiet
+ * accent color (not gradients): bronze=amber-700, silver=
+ * slate-500, gold=yellow-700. Multiplier suffix tells the user
+ * what their current earn rate is at a glance.
+ */
+function TierBadge({ tier }: { tier: LoyaltyTierLevel }) {
+  const styles: Record<LoyaltyTierLevel['level'], string> = {
+    bronze: 'bg-amber-100 text-amber-800 border-amber-300',
+    silver: 'bg-slate-100 text-slate-700 border-slate-300',
+    gold: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  }
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${styles[tier.level]}`}
+      title={`Loyalty tier — ${tier.multiplier}× earn rate`}
+    >
+      <Award size={12} />
+      <span className="uppercase tracking-wide">{tier.name}</span>
+      <span className="opacity-70">·</span>
+      <span>×{tier.multiplier}</span>
+    </div>
+  )
 }

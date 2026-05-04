@@ -34,8 +34,16 @@ export const MOCK_USERS: User[] = [
     // (see MOCK_REFERRALS) and earned points from 3 paid
     // bookings. The counter (138) matches the ledger sum of
     // 25 + 50 + 78 - 15 in MOCK_LOYALTY_LEDGER.
+    //
+    // Phase-2 tier seed: lifetime_earned (153) = sum of the 3
+    // earn entries in MOCK_LOYALTY_LEDGER (25 + 50 + 78). The
+    // -15 redeem doesn't reduce lifetime — that's the whole
+    // point of the separate counter. Demo user is currently
+    // Bronze, ~347 pts away from Silver — close enough to
+    // see the progress bar fill meaningfully on /profile.
     referral_code: 'ABCDEFGH',
     loyalty_points: 138,
+    loyalty_lifetime_earned: 153,
     email_verified: true,
     created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),

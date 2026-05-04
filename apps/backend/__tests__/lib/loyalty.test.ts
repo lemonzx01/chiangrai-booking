@@ -24,6 +24,9 @@ import {
   awardPointsForBooking,
   redeemPointsForCoupon,
   REDEEM_TIERS,
+  LOYALTY_TIERS,
+  getTier,
+  getNextTier,
 } from '@/lib/loyalty'
 
 beforeEach(() => {
@@ -152,32 +155,33 @@ describe('awardPointsForBooking', () => {
     })
   })
 
-  it('returns awarded=true with the right point amount on a fresh insert', async () => {
+  it('returns awarded=true with bronze multiplier on a fresh insert', async () => {
+    // Bronze user (lifetime 0) → 1.0× multiplier on the
+    // base 15 points = 15 final points.
     fromMock.mockImplementation((table: string) => {
       if (table === 'users') {
-        // Two interactions: 1) lookup by email, 2) update counter
-        let callCount = 0
         return {
           select: () => ({
             ilike: () => ({
               maybeSingle: async () => ({
-                data: { id: 'u1', email: 'u@x.com' },
+                data: {
+                  id: 'u1',
+                  email: 'u@x.com',
+                  loyalty_lifetime_earned: 0,
+                },
                 error: null,
               }),
             }),
-            // Counter read for the fallback path
+            // Counter read for the read-modify-write update
             eq: () => ({
               maybeSingle: async () => ({
-                data: { loyalty_points: 0 },
+                data: { loyalty_points: 0, loyalty_lifetime_earned: 0 },
                 error: null,
               }),
             }),
           }),
           update: () => ({
-            eq: async () => {
-              callCount++
-              return { error: null }
-            },
+            eq: async () => ({ error: null }),
           }),
         }
       }
@@ -197,6 +201,137 @@ describe('awardPointsForBooking', () => {
     })
     expect(result.awarded).toBe(true)
     expect(result.points).toBe(15)
+  })
+
+  it('applies the silver tier multiplier (1.25×) when lifetime ≥ 500', async () => {
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            ilike: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  id: 'u1',
+                  email: 'u@x.com',
+                  loyalty_lifetime_earned: 600, // Silver
+                },
+                error: null,
+              }),
+            }),
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { loyalty_points: 100, loyalty_lifetime_earned: 600 },
+                error: null,
+              }),
+            }),
+          }),
+          update: () => ({ eq: async () => ({ error: null }) }),
+        }
+      }
+      if (table === 'loyalty_ledger') {
+        return { insert: async () => ({ error: null }) }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await awardPointsForBooking({
+      customerEmail: 'u@x.com',
+      bookingId: 'b2',
+      amountThb: 1500, // base 15 pts × 1.25 = 18.75 → rounded to 19
+    })
+    expect(result.awarded).toBe(true)
+    expect(result.points).toBe(19)
+  })
+
+  it('applies the gold tier multiplier (1.5×) when lifetime ≥ 2000', async () => {
+    fromMock.mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          select: () => ({
+            ilike: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  id: 'u1',
+                  email: 'u@x.com',
+                  loyalty_lifetime_earned: 2500, // Gold
+                },
+                error: null,
+              }),
+            }),
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { loyalty_points: 200, loyalty_lifetime_earned: 2500 },
+                error: null,
+              }),
+            }),
+          }),
+          update: () => ({ eq: async () => ({ error: null }) }),
+        }
+      }
+      if (table === 'loyalty_ledger') {
+        return { insert: async () => ({ error: null }) }
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+
+    const result = await awardPointsForBooking({
+      customerEmail: 'u@x.com',
+      bookingId: 'b3',
+      amountThb: 2000, // base 20 pts × 1.5 = 30
+    })
+    expect(result.awarded).toBe(true)
+    expect(result.points).toBe(30)
+  })
+})
+
+describe('getTier', () => {
+  it('returns bronze at 0 lifetime', () => {
+    expect(getTier(0).level).toBe('bronze')
+  })
+
+  it('stays bronze just below the silver threshold', () => {
+    expect(getTier(499).level).toBe('bronze')
+  })
+
+  it('crosses to silver at exactly 500', () => {
+    expect(getTier(500).level).toBe('silver')
+  })
+
+  it('crosses to gold at exactly 2000', () => {
+    expect(getTier(2000).level).toBe('gold')
+  })
+
+  it('caps at gold for arbitrarily high lifetime', () => {
+    expect(getTier(100000).level).toBe('gold')
+  })
+
+  it('handles negative / NaN / Infinity gracefully (defaults to bronze)', () => {
+    // All three are "invalid input" and we collapse to the safe
+    // default rather than guessing what was meant.
+    expect(getTier(-100).level).toBe('bronze')
+    expect(getTier(NaN).level).toBe('bronze')
+    expect(getTier(Infinity).level).toBe('bronze')
+  })
+
+  it('multipliers go up monotonically', () => {
+    const muls = LOYALTY_TIERS.map((t) => t.multiplier)
+    for (let i = 1; i < muls.length; i++) {
+      expect(muls[i]).toBeGreaterThan(muls[i - 1])
+    }
+  })
+})
+
+describe('getNextTier', () => {
+  it('returns silver from bronze', () => {
+    expect(getNextTier('bronze')?.level).toBe('silver')
+  })
+
+  it('returns gold from silver', () => {
+    expect(getNextTier('silver')?.level).toBe('gold')
+  })
+
+  it('returns null at the top tier', () => {
+    expect(getNextTier('gold')).toBeNull()
   })
 })
 

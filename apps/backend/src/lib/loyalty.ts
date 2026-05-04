@@ -45,6 +45,68 @@ import { LOYALTY_DEFAULT_RATE_THB_PER_POINT } from '@chiangrai/shared/constants'
 // directly.
 const DEFAULT_RATE_THB_PER_POINT = LOYALTY_DEFAULT_RATE_THB_PER_POINT
 
+// ---------------------------------------------------------------
+// Tier system (phase 2)
+// ---------------------------------------------------------------
+//
+// Three tiers gated by lifetime-earned points. Each tier ALSO
+// multiplies the base earn rate, so a Gold user accumulating
+// is steeper — the program rewards loyalty by getting more
+// generous over time, not just less.
+//
+// Why constants in code (not a DB table):
+//   - Three rows that change rarely. A DB table would be over-
+//     engineering — every read costs a join.
+//   - Adjusting thresholds during early-stage iteration: edit
+//     one file, redeploy. No migration needed.
+//   - When/if we want per-promotion overrides (a 2x weekend),
+//     we'll add a "tier_override" config table separately.
+
+export interface LoyaltyTier {
+  /** Stable internal id — used in API responses and analytics. */
+  level: 'bronze' | 'silver' | 'gold'
+  /** Display name (Latin only — UI translates to Thai itself). */
+  name: string
+  /** Lifetime-earned threshold. */
+  minLifetime: number
+  /** Earn-rate multiplier applied at this tier. */
+  multiplier: number
+}
+
+export const LOYALTY_TIERS: readonly LoyaltyTier[] = [
+  { level: 'bronze', name: 'Bronze', minLifetime: 0, multiplier: 1.0 },
+  { level: 'silver', name: 'Silver', minLifetime: 500, multiplier: 1.25 },
+  { level: 'gold', name: 'Gold', minLifetime: 2000, multiplier: 1.5 },
+] as const
+
+/**
+ * Resolve a user's current tier from their lifetime-earned
+ * counter. Iterates from highest to lowest so the first match
+ * is the highest tier the user qualifies for.
+ */
+export function getTier(lifetimeEarned: number): LoyaltyTier {
+  if (!Number.isFinite(lifetimeEarned) || lifetimeEarned < 0) {
+    return LOYALTY_TIERS[0]
+  }
+  for (let i = LOYALTY_TIERS.length - 1; i >= 0; i--) {
+    if (lifetimeEarned >= LOYALTY_TIERS[i].minLifetime) {
+      return LOYALTY_TIERS[i]
+    }
+  }
+  return LOYALTY_TIERS[0]
+}
+
+/**
+ * Resolve the next tier above the user's current one (for
+ * progress UI). Returns null when the user is already at the
+ * top tier (no "next" to chase).
+ */
+export function getNextTier(currentLevel: LoyaltyTier['level']): LoyaltyTier | null {
+  const idx = LOYALTY_TIERS.findIndex((t) => t.level === currentLevel)
+  if (idx < 0 || idx >= LOYALTY_TIERS.length - 1) return null
+  return LOYALTY_TIERS[idx + 1]
+}
+
 function getRateThbPerPoint(): number {
   const raw = Number(process.env.LOYALTY_RATE_THB_PER_POINT)
   // Defensive: if the env is missing / NaN / <= 0, fall back
@@ -115,28 +177,43 @@ export async function awardPointsForBooking(
 
     // 1. Resolve user by email. Guests (no account) don't earn —
     //    points are a registered-user feature. Same shape as the
-    //    referral reward path.
+    //    referral reward path. Also pull lifetime_earned so we
+    //    know the user's CURRENT tier (the multiplier we apply
+    //    to this earn). Tier crossing is recomputed naturally
+    //    after the lifetime counter goes up.
     const { data: userRaw } = await supabase
       .from('users')
-      .select('id, email')
+      .select('id, email, loyalty_lifetime_earned')
       .ilike('email', input.customerEmail.trim())
       .maybeSingle()
-    const user = userRaw as { id: string; email: string } | null
+    const user = userRaw as {
+      id: string
+      email: string
+      loyalty_lifetime_earned: number | null
+    } | null
     if (!user) return { awarded: false, points: 0, reason: 'unknown_user' }
+
+    // Apply current-tier multiplier to the base point amount.
+    // A Bronze user earns 1.0× (= the base), Silver 1.25×, Gold
+    // 1.50×. We round AFTER multiplication so partial-credit
+    // never accumulates as floor-loss.
+    const tier = getTier(user.loyalty_lifetime_earned || 0)
+    const finalPoints = Math.round(points * tier.multiplier)
 
     // 2. Insert ledger row. The UNIQUE partial index (source_id,
     //    kind='earn', source_type='booking') gives us idempotency:
     //    a duplicate insert for the same booking returns 23505
     //    and we treat it as a silent no-op.
+    const tierTag = tier.level !== 'bronze' ? ` ×${tier.multiplier}` : ''
     const reason = input.bookingCode
-      ? `จองสำเร็จ ${input.bookingCode} (฿${input.amountThb.toLocaleString()})`
-      : `จองสำเร็จ (฿${input.amountThb.toLocaleString()})`
+      ? `จองสำเร็จ ${input.bookingCode} (฿${input.amountThb.toLocaleString()})${tierTag}`
+      : `จองสำเร็จ (฿${input.amountThb.toLocaleString()})${tierTag}`
 
     const { error: insertErr } = await supabase
       .from('loyalty_ledger')
       .insert({
         user_id: user.id,
-        delta: points,
+        delta: finalPoints,
         kind: 'earn',
         source_type: 'booking',
         source_id: input.bookingId,
@@ -156,47 +233,36 @@ export async function awardPointsForBooking(
       return { awarded: false, points: 0, reason: 'db_error' }
     }
 
-    // 3. Bump the counter. This is the denormalized cache for
-    //    fast reads; the ledger remains the source of truth.
-    //    If this update fails, the ledger row already landed,
-    //    so the user IS credited — they just need a manual
-    //    counter resync. We log loudly so an operator notices.
+    // 3. Bump BOTH counters: the spendable balance
+    //    (loyalty_points) AND the lifetime-earned counter
+    //    (loyalty_lifetime_earned) which gates tier eligibility.
+    //    Lifetime never decreases — redeem only touches the
+    //    spendable balance.
     //
-    //    Why we don't use an atomic RPC: keeping this as two
-    //    separate calls means it works on the mock client
-    //    (which doesn't support .rpc) without special-casing.
-    //    The race is bounded (the ledger is the truth) and the
-    //    inconsistency window is microseconds.
-    const { error: bumpErr } = await (supabase.rpc('increment_loyalty_points', {
-      p_user_id: user.id,
-      p_delta: points,
-    }) as Promise<{ error: { message: string } | null }>).then(
-      (r) => r,
-      // .rpc threw (e.g. function doesn't exist yet because we
-      // haven't added the SQL function — common in mock mode).
-      // Fall through to the manual update below.
-      () => ({ error: { message: 'rpc unavailable' } })
-    )
+    //    Read-modify-write is fine here: award contention per
+    //    user is low (one booking-paid event per checkout) and
+    //    the ledger insert above is what actually serializes
+    //    against duplicates.
+    const { data: cur } = await supabase
+      .from('users')
+      .select('loyalty_points, loyalty_lifetime_earned')
+      .eq('id', user.id)
+      .maybeSingle()
+    const curRow = cur as {
+      loyalty_points: number
+      loyalty_lifetime_earned: number | null
+    } | null
+    const nextBalance = (curRow?.loyalty_points || 0) + finalPoints
+    const nextLifetime = (curRow?.loyalty_lifetime_earned || 0) + finalPoints
+    await supabase
+      .from('users')
+      .update({
+        loyalty_points: nextBalance,
+        loyalty_lifetime_earned: nextLifetime,
+      })
+      .eq('id', user.id)
 
-    if (bumpErr) {
-      // Fallback: read-modify-write. Acceptable because award
-      // contention per user is low (max 1 booking-paid event
-      // per checkout session); the ledger insert above is what
-      // actually serializes.
-      const { data: cur } = await supabase
-        .from('users')
-        .select('loyalty_points')
-        .eq('id', user.id)
-        .maybeSingle()
-      const next =
-        ((cur as { loyalty_points: number } | null)?.loyalty_points || 0) + points
-      await supabase
-        .from('users')
-        .update({ loyalty_points: next })
-        .eq('id', user.id)
-    }
-
-    return { awarded: true, points }
+    return { awarded: true, points: finalPoints }
   } catch (err) {
     logger.error('loyalty: award threw', {
       bookingId: input.bookingId,
@@ -452,9 +518,22 @@ export interface LoyaltyLedgerEntry {
   createdAt: string
 }
 
+export interface LoyaltyTierProgress {
+  /** Current tier object. Always present (defaults to Bronze). */
+  current: LoyaltyTier
+  /** Next tier above current — null when at the top. */
+  next: LoyaltyTier | null
+  /** User's lifetime-earned counter (= source of tier eligibility). */
+  lifetimeEarned: number
+  /** Points still needed to hit `next.minLifetime` — null at top. */
+  pointsToNext: number | null
+}
+
 export interface LoyaltyOverview {
   /** Current balance — denormalized counter on users row. */
   points: number
+  /** Tier + progress for the badge + progress bar widget. */
+  tier: LoyaltyTierProgress
   /** Last 10 ledger entries, newest first. */
   recent: LoyaltyLedgerEntry[]
   /** Available redemption tiers, exposed so the UI doesn't
@@ -475,7 +554,7 @@ export async function getLoyaltyOverview(
   const [userResult, ledgerResult] = await Promise.all([
     supabase
       .from('users')
-      .select('loyalty_points')
+      .select('loyalty_points, loyalty_lifetime_earned')
       .eq('id', userId)
       .maybeSingle(),
     supabase
@@ -486,8 +565,24 @@ export async function getLoyaltyOverview(
       .limit(10),
   ])
 
-  const points =
-    (userResult.data as { loyalty_points: number } | null)?.loyalty_points || 0
+  const userRow =
+    (userResult.data as {
+      loyalty_points: number
+      loyalty_lifetime_earned: number | null
+    } | null) || null
+  const points = userRow?.loyalty_points || 0
+  const lifetimeEarned = userRow?.loyalty_lifetime_earned || 0
+
+  const currentTier = getTier(lifetimeEarned)
+  const nextTier = getNextTier(currentTier.level)
+  const tierProgress: LoyaltyTierProgress = {
+    current: currentTier,
+    next: nextTier,
+    lifetimeEarned,
+    pointsToNext: nextTier
+      ? Math.max(0, nextTier.minLifetime - lifetimeEarned)
+      : null,
+  }
 
   const recent: LoyaltyLedgerEntry[] = (
     (ledgerResult.data as Array<{
@@ -503,5 +598,10 @@ export async function getLoyaltyOverview(
     createdAt: row.created_at,
   }))
 
-  return { points, recent, redeemTiers: REDEEM_TIERS }
+  return {
+    points,
+    tier: tierProgress,
+    recent,
+    redeemTiers: REDEEM_TIERS,
+  }
 }
