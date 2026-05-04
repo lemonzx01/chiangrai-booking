@@ -423,12 +423,12 @@ function BookingContent() {
 
         {/* Title Area */}
         <div className="flex items-center gap-3 mb-2">
-          <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">
+          <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">
             {type === 'HOTEL' ? <Building2 size={14} /> : <CarIcon size={14} />}
             {type === 'HOTEL' ? t('booking.hotelBooking') : t('booking.carRental')}
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">{t('booking.title')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-display font-medium text-slate-900 tracking-tight mb-2">{t('booking.title')}</h1>
         <p className="text-slate-500 text-sm mb-8">{t('booking.subtitle')}</p>
 
         {/* Step Progress Indicator */}
@@ -457,7 +457,7 @@ function BookingContent() {
               {/* Section: วันที่เข้าพัก */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 animate-slide-up" style={{ opacity: 0 }}>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
                     <Calendar size={18} className="text-slate-900" />
                   </div>
                   <div>
@@ -598,7 +598,7 @@ function BookingContent() {
                     onClick={() => setCurrencyOpen(!currencyOpen)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border ${currencyOpen ? 'border-slate-500 ring-2 ring-slate-200' : 'border-slate-200 hover:border-slate-300'} bg-white transition-all duration-200`}
                   >
-                    <span className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-slate-900 font-bold text-sm flex-shrink-0">
+                    <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-900 font-bold text-sm flex-shrink-0">
                       {getCurrencyInfo(currency).symbol}
                     </span>
                     <span className="flex-1 text-left text-slate-900 font-medium">{getCurrencyInfo(currency).label}</span>
@@ -614,7 +614,7 @@ function BookingContent() {
                             key={option.value}
                             type="button"
                             onClick={() => { setCurrency(option.value as Currency); setCurrencyOpen(false) }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 transition-colors duration-150 ${isSelected ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 transition-colors duration-150 ${isSelected ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
                           >
                             <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${isSelected ? 'bg-slate-100 text-slate-900' : 'bg-slate-100 text-slate-500'}`}>
                               {option.symbol}
@@ -807,7 +807,7 @@ function BookingContent() {
                 <div className="space-y-3 text-sm">
                   {/* Selected Room Type */}
                   {type === 'HOTEL' && selectedRoomTypeId && roomTypes.length > 0 && (
-                    <div className="flex items-center gap-2 bg-indigo-50 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
                       <Bed size={14} className="text-slate-900 flex-shrink-0" />
                       <span className="text-slate-900 font-medium text-xs">
                         {roomTypes.find(rt => rt.id === selectedRoomTypeId)?.name_th || 'Standard'}
@@ -898,7 +898,7 @@ function BookingContent() {
                       <div className="border-t border-slate-200 pt-3 mt-1">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-slate-900">{t('booking.totalPrice')}</span>
-                          <span className="font-black text-xl text-slate-900">
+                          <span className="font-semibold text-xl text-slate-900">
                             {formatCurrencyWithType(totalPrice, currency)}
                           </span>
                         </div>

@@ -418,7 +418,7 @@ function CheckoutContent() {
               <Lock size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-display font-medium text-slate-900 tracking-tight">
                 {t('checkout.title') || 'ชำระเงิน'}
               </h1>
               <p className="text-sm text-slate-500">
@@ -450,7 +450,7 @@ function CheckoutContent() {
                   onClick={() => setSelectedMethod('card')}
                   className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                     selectedMethod === 'card'
-                      ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
+                      ? 'border-slate-900 bg-slate-100/60 shadow-sm '
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
@@ -478,7 +478,7 @@ function CheckoutContent() {
                   onClick={() => setSelectedMethod('paypal')}
                   className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                     selectedMethod === 'paypal'
-                      ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
+                      ? 'border-slate-900 bg-slate-100/60 shadow-sm '
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
@@ -507,7 +507,7 @@ function CheckoutContent() {
                     onClick={() => setSelectedMethod('promptpay')}
                     className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer text-left ${
                       selectedMethod === 'promptpay'
-                        ? 'border-slate-900 bg-indigo-50/60 shadow-sm '
+                        ? 'border-slate-900 bg-slate-100/60 shadow-sm '
                         : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
                   >
@@ -719,7 +719,7 @@ function CheckoutContent() {
                 {/* ราคารวม */}
                 <div className="mt-4 pt-4 border-t-2 border-slate-900 flex justify-between items-center">
                   <span className="font-bold text-slate-900">{t('booking.totalPrice') || 'ยอดชำระ'}</span>
-                  <span className="font-black text-2xl text-slate-900">
+                  <span className="font-display font-medium text-2xl tracking-tight text-slate-900">
                     {formatCurrencyWithType(payableAmount, currency)}
                   </span>
                 </div>

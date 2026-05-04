@@ -89,7 +89,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
               {carType}
             </span>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mt-4 mb-4">
               {name}
             </h1>
 
@@ -130,7 +130,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
                 <p className="text-slate-500 text-xs sm:text-sm mb-1">
                   {t('car.pricePerDay') || 'ราคาต่อวัน'}
                 </p>
-                <p className="text-2xl sm:text-3xl font-black text-slate-900">
+                <p className="text-2xl sm:text-3xl font-display font-medium text-slate-900 tracking-tight">
                   {formatCurrency(car.price_per_day)}
                   <span className="text-base sm:text-lg font-normal text-slate-500">
                     {t('common.perDay')}

@@ -157,12 +157,12 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
                 <MessageSquare size={14} />
                 {isThai ? 'รีวิวจากลูกค้า' : 'Guest reviews'}
               </div>
-              <h2 className="mt-3 text-xl font-black text-slate-900">
+              <h2 className="mt-3 text-xl font-semibold text-slate-900">
                 {isThai ? 'ความคิดเห็นล่าสุด' : 'Latest reviews'}
               </h2>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-black text-slate-900">{averageRating.toFixed(1)}</p>
+              <p className="text-3xl font-semibold text-slate-900">{averageRating.toFixed(1)}</p>
               <div className="mt-1 flex justify-end">
                 <StarRow rating={Math.round(averageRating)} />
               </div>
@@ -227,7 +227,7 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
         </div>
 
         <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200/70 shadow-sm p-5 sm:p-6">
-          <h3 className="text-xl font-black text-slate-900">
+          <h3 className="text-xl font-semibold text-slate-900">
             {isThai ? 'เขียนรีวิว' : 'Write a review'}
           </h3>
           <p className="mt-2 text-sm text-slate-500">

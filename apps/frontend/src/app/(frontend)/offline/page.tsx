@@ -31,7 +31,7 @@ export default function OfflinePage() {
         <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-5">
           <WifiOff className="text-amber-600" size={28} />
         </div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 mb-2">
+        <h1 className="text-xl sm:text-2xl font-display font-medium text-slate-900 tracking-tight mb-2">
           เครือข่ายขาด
         </h1>
         <p className="text-sm text-slate-500 italic mb-4">You&apos;re offline</p>

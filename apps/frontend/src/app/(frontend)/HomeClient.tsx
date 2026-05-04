@@ -468,7 +468,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <Reveal>
             <div className="text-center mb-8 sm:mb-10">
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">
+              <h2 className="text-2xl sm:text-3xl font-display font-medium text-slate-900 tracking-tight mb-2">
                 ทำไมต้องจองกับเรา
               </h2>
               <p className="text-sm text-slate-500 italic">Why book with us</p>

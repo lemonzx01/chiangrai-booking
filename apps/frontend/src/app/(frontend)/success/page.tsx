@@ -162,7 +162,7 @@ function SuccessContent() {
         {/* ============================================================
             Title และ Message
             ============================================================ */}
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">
+        <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-4">
           {t('success.title')}
         </h1>
 
@@ -175,7 +175,7 @@ function SuccessContent() {
           {/* รหัสการจอง */}
           <div className="text-center mb-6">
             <p className="text-sm text-slate-500 mb-2">{t('success.bookingCode')}</p>
-            <p className="text-3xl font-black text-slate-900">{booking.booking_code}</p>
+            <p className="text-3xl font-semibold text-slate-900">{booking.booking_code}</p>
           </div>
 
           {/* รายละเอียด */}

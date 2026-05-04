@@ -296,7 +296,7 @@ export default function Navbar() {
                 }`}
               >
                 Got Journey
-                <span className={activeLightMode ? 'text-slate-900' : 'text-indigo-400'}>
+                <span className={activeLightMode ? 'text-slate-500 font-light italic font-display' : 'text-white/70 font-light italic font-display'}>
                   {' '}Thailand
                 </span>
               </span>
@@ -304,22 +304,30 @@ export default function Navbar() {
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-1 xl:gap-2">
-              {/* ลิงก์เมนู */}
+              {/* ลิงก์เมนู — editorial weight (medium not bold),
+                  active state uses underline instead of pill bg */}
               {NAVIGATION.map((item) => (
                 <Link
                   key={item.key}
                   href={item.path}
-                  className={`px-3 xl:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+                  className={`relative px-3 xl:px-4 py-2 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                     pathname === item.path
                       ? activeLightMode
-                        ? 'text-slate-900 bg-indigo-50/80'
-                        : 'text-white bg-white/20'
+                        ? 'text-slate-900'
+                        : 'text-white'
                       : activeLightMode
-                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                        ? 'text-slate-500 hover:text-slate-900'
+                        : 'text-white/70 hover:text-white'
                   }`}
                 >
                   {getLabel(item.key)}
+                  {pathname === item.path && (
+                    <span
+                      className={`absolute left-3 right-3 -bottom-px h-px ${
+                        activeLightMode ? 'bg-slate-900' : 'bg-white'
+                      }`}
+                    />
+                  )}
                 </Link>
               ))}
 
@@ -339,7 +347,7 @@ export default function Navbar() {
                   {/* ปุ่มเปิดเมนูผู้ใช้ */}
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeLightMode
                         ? 'text-slate-600 hover:bg-slate-100'
                         : 'text-white/80 hover:bg-white/10'
@@ -351,7 +359,7 @@ export default function Navbar() {
 
                   {/* Dropdown เมนูผู้ใช้ */}
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-md border border-slate-200 py-2 z-50">
                       {/* ลิงก์โปรไฟล์ */}
                       <Link
                         href="/profile"

@@ -239,7 +239,7 @@ export default function LoyaltyCard() {
               {lang === 'th' ? 'ยอดแต้มปัจจุบัน' : 'Current balance'}
             </p>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-slate-900">
+              <span className="text-4xl font-semibold text-slate-900">
                 {data.points.toLocaleString()}
               </span>
               <span className="text-sm font-semibold text-amber-700">

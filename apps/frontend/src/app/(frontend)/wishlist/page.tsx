@@ -72,7 +72,7 @@ export default function WishlistPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-6 sm:mb-8 flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight flex items-center gap-2">
               <Heart className="text-rose-500 fill-rose-500" size={28} />
               รายการที่ชอบ
             </h1>
@@ -101,7 +101,7 @@ export default function WishlistPage() {
             <div className="w-20 h-20 mx-auto rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-5">
               <Heart className="text-slate-400" size={28} />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-2">
+            <h2 className="text-xl sm:text-2xl font-display font-medium text-slate-900 tracking-tight mb-2">
               ยังไม่มีรายการที่บันทึก
             </h2>
             <p className="text-sm text-slate-600 max-w-md mx-auto mb-6">
@@ -209,7 +209,7 @@ function WishlistCard({
           </h3>
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             <span className="text-xs text-slate-400">เริ่มต้น</span>
-            <span className="text-base font-black text-slate-900">
+            <span className="text-base font-semibold text-slate-900">
               {formatCurrency(item.price)}
               <span className="text-xs font-normal text-slate-500 ml-1">
                 / {item.kind === 'hotel' ? 'คืน' : 'วัน'}

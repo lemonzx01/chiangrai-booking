@@ -323,7 +323,7 @@ export default function BookingDetailClient({
               <CreditCard size={16} />
               ยอดรวม
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-900">
+            <div className="text-xl sm:text-2xl font-display font-medium text-slate-900 tracking-tight">
               {formatCurrency(booking.total_price)}
             </div>
           </div>

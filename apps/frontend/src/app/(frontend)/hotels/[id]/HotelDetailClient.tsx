@@ -216,7 +216,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             </div>
 
             {/* ชื่อโรงแรม */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-4">{name}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-4">{name}</h1>
 
             {/* ที่ตั้ง */}
             <div className="flex items-center gap-2 text-slate-500 mb-4 sm:mb-6 text-sm sm:text-base">
@@ -281,7 +281,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-black text-slate-900">
+                          <p className="text-xl font-semibold text-slate-900">
                             {formatCurrencyWithType(roomType.price_per_night, Currency.THB)}
                           </p>
                           <p className="text-xs text-slate-500 mb-1">/ คืน</p>
@@ -313,7 +313,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
                 {/* ราคาต่อคืน */}
                 <div>
                   <p className="text-slate-500 text-xs sm:text-sm mb-1">{t('hotel.pricePerNight') || 'ราคาต่อคืน'}</p>
-                  <p className="text-2xl sm:text-3xl font-black text-slate-900">
+                  <p className="text-2xl sm:text-3xl font-display font-medium text-slate-900 tracking-tight">
                     {formatCurrency(hotel.price_per_night)}
                     <span className="text-base sm:text-lg font-normal text-slate-500">{t('common.perNight')}</span>
                   </p>

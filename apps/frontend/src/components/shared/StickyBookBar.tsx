@@ -68,7 +68,7 @@ export default function StickyBookBar({
                   {formatCurrency(originalPrice)}
                 </span>
               )}
-              <span className="text-lg font-black text-slate-900">
+              <span className="text-lg font-semibold text-slate-900">
                 {formatCurrency(price)}
               </span>
               <span className="text-xs text-slate-500">{unit}</span>
@@ -103,7 +103,7 @@ export default function StickyBookBar({
                 {formatCurrency(originalPrice)}
               </span>
             )}
-            <span className="text-xl font-black text-slate-900">{formatCurrency(price)}</span>
+            <span className="text-xl font-semibold text-slate-900">{formatCurrency(price)}</span>
             <span className="text-xs text-slate-500 ml-1">{unit}</span>
           </div>
           <button
