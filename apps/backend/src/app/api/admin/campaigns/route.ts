@@ -18,11 +18,9 @@
  *   - Mock mode: every "send" is a logger.info, never a real
  *     SMTP/Resend call.
  *
- * NOTE: this endpoint does the send synchronously, which is
- * fine for cohorts ≤ 1000 on Vercel's 60s function ceiling.
- * Larger sends should move to a background worker before
- * we ship to a list bigger than that — there's a TODO in the
- * code where the boundary lives.
+ * NOTE: this endpoint sends synchronously and hard-caps the
+ * cohort at 500 recipients. Per spec §15 we do not run a
+ * background queue; admins split larger lists themselves.
  */
 
 export const dynamic = 'force-dynamic'
@@ -50,7 +48,7 @@ const COHORTS = [
 ] as const
 type Cohort = (typeof COHORTS)[number]
 
-const HARD_RECIPIENT_CAP = 1000
+const HARD_RECIPIENT_CAP = 500
 
 const campaignSchema = z
   .object({
@@ -167,10 +165,18 @@ export async function POST(request: Request) {
   // Hard cap as a runtime guard — schema enforces for custom_emails,
   // this catches the dynamic cohorts.
   if (recipients.length > HARD_RECIPIENT_CAP) {
-    recipients = recipients.slice(0, HARD_RECIPIENT_CAP)
-    logger.warn('campaign trimmed to hard cap', {
+    logger.warn('campaign exceeded hard cap', {
       cap: HARD_RECIPIENT_CAP,
+      attempted: recipients.length,
     })
+    return NextResponse.json(
+      {
+        error: `จำนวนผู้รับเกินขีดจำกัด ${HARD_RECIPIENT_CAP} คน กรุณาแบ่งส่งหลายครั้ง / Recipient list exceeds ${HARD_RECIPIENT_CAP} cap — please split into smaller batches`,
+        attempted: recipients.length,
+        cap: HARD_RECIPIENT_CAP,
+      },
+      { status: 400 }
+    )
   }
 
   // ---- Strip unsubscribed addresses BEFORE the dry-run preview
@@ -236,10 +242,7 @@ export async function POST(request: Request) {
   }
 
   // ---- 3. Fan out -------------------------------------------
-  // TODO: when recipients > ~500, kick this onto a background
-  // queue (Vercel Cron or external worker). 60s function
-  // ceiling can fit ~1000 sends comfortably with mock mode and
-  // ~200-300 with real Resend latency.
+  // Synchronous fan-out by design — spec §15 forbids background queues; the 500 cap keeps us inside Vercel's 60s ceiling.
   let succeeded = 0
   let failed = 0
   const errorSamples: string[] = []

@@ -3,98 +3,54 @@
  * Contact API Route - ระบบติดต่อเรา
  * ============================================================
  *
- * วัตถุประสงค์:
- *   - รับข้อความจากหน้าติดต่อเรา
- *   - ส่งแจ้งเตือนไปยัง Admin ผ่าน LINE
- *   - ตรวจสอบความถูกต้องของข้อมูล
- *
  * Endpoint:
  *   - POST /api/contact - ส่งข้อความติดต่อ
  *
- * Request Body:
- *   - name: ชื่อผู้ติดต่อ (required)
- *   - email: อีเมล (required)
- *   - phone: เบอร์โทรศัพท์ (optional)
- *   - message: ข้อความ (required)
- *
+ * Body fields: name, email, phone (optional), message
  * ============================================================
  */
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic'
 
-
-// ============================================================
-// การนำเข้า Dependencies
-// ============================================================
-
-/** Next.js Request และ Response utilities */
 import { NextRequest, NextResponse } from 'next/server'
-
-/** ค่าคงที่ของแอพ */
-import { APP_NAME } from '../../../lib/constants'
+import { z } from 'zod'
 import { logger } from '../../../lib/logger'
+import { rateLimitAsync } from '../../../middleware/rate-limit'
+import { createAdminNotification } from '../../../services/notifications/admin-inbox'
 
-// ============================================================
-// POST Handler - ส่งข้อความติดต่อ
-// ============================================================
+const contactSchema = z.object({
+  name: z.string().min(1).max(120),
+  email: z.string().email().max(254),
+  phone: z.string().max(40).optional(),
+  message: z.string().min(1).max(5000),
+})
 
-/**
- * รับและประมวลผลข้อความจากหน้าติดต่อเรา
- *
- * @description
- *   ขั้นตอนการทำงาน:
- *   1. ตรวจสอบข้อมูลที่จำเป็น (name, email, message)
- *   2. ตรวจสอบรูปแบบอีเมล
- *   3. ส่งแจ้งเตือนไปยัง Admin ผ่าน LINE
- *   4. ส่ง response กลับยืนยันการรับข้อความ
- *
- * @param {NextRequest} request - HTTP Request object
- * @returns {Promise<NextResponse>} ผลลัพธ์การส่งข้อความ
- *
- * @example
- *   POST /api/contact
- *   Body: {
- *     "name": "สมชาย ใจดี",
- *     "email": "somchai@example.com",
- *     "phone": "081-234-5678",
- *     "message": "สนใจจองโรงแรมครับ"
- *   }
- */
 export async function POST(request: NextRequest) {
   try {
-    // ดึงข้อมูลจาก request body
-    const body = await request.json()
-    const { name, email, phone, message } = body
+    const rateLimitResponse = await rateLimitAsync(request, '/api/contact')
+    if (rateLimitResponse) return rateLimitResponse
 
-    // ----------------------------------------------------------
-    // ตรวจสอบข้อมูลที่จำเป็น
-    // ----------------------------------------------------------
-    if (!name || !email || !message) {
+    const body = await request.json().catch(() => ({}))
+    const parsed = contactSchema.safeParse(body)
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
+        { error: 'กรุณากรอกข้อมูลให้ครบถ้วน', details: parsed.error.issues },
         { status: 400 }
       )
     }
 
-    // ----------------------------------------------------------
-    // ตรวจสอบรูปแบบอีเมล
-    // ----------------------------------------------------------
-    /** Regular expression สำหรับตรวจสอบอีเมล */
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'รูปแบบอีเมลไม่ถูกต้อง' },
-        { status: 400 }
-      )
-    }
+    const { name, email, phone, message } = parsed.data
 
-    // TODO: สามารถบันทึกลง database หรือส่งอีเมลแจ้งเตือนได้ถ้าต้องการ
-    // const { data, error } = await supabase
-    //   .from('contact_messages')
-    //   .insert({ name, email, phone, message })
+    // Mirrors the newsletter-subscribe approach: route submissions
+    // into the admin inbox instead of standing up a dedicated table.
+    await createAdminNotification({
+      type: 'contact.message',
+      title: 'New contact form message',
+      body: `${name}: ${message.slice(0, 200)}`,
+      data: { name, email, phone: phone ?? null, message },
+      severity: 'info',
+    })
 
-    // ----------------------------------------------------------
-    // ส่ง response สำเร็จ
-    // ----------------------------------------------------------
     return NextResponse.json({
       success: true,
       message: 'ส่งข้อความสำเร็จ เราจะติดต่อกลับโดยเร็วที่สุด',

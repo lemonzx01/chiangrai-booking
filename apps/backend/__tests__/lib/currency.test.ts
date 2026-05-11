@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock the exchange-rate module before importing currency
 vi.mock('@/lib/exchange-rate', () => ({
@@ -11,6 +11,8 @@ import {
   formatCurrencyShort,
   getCurrencyInfo,
   CURRENCY_OPTIONS,
+  updateExchangeRates,
+  __resetExchangeRateCacheForTests,
 } from '@/lib/currency'
 import { Currency } from '@chiangrai/shared/types'
 
@@ -159,5 +161,52 @@ describe('CURRENCY_OPTIONS', () => {
       expect(opt).toHaveProperty('label')
       expect(opt).toHaveProperty('symbol')
     })
+  })
+})
+
+// ============================================================
+// updateExchangeRates
+// ============================================================
+describe('updateExchangeRates', () => {
+  beforeEach(() => {
+    __resetExchangeRateCacheForTests()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    __resetExchangeRateCacheForTests()
+  })
+
+  it('updates rates on successful fetch', async () => {
+    const newRates = { USD: 0.030, EUR: 0.028, JPY: 4.2, CNY: 0.21, GBP: 0.023 }
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ amount: 1, base: 'THB', date: '2026-01-01', rates: newRates }),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateExchangeRates()
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    // 1000 THB * 0.030 = 30 USD
+    expect(convertCurrency(1000, Currency.THB, Currency.USD)).toBeCloseTo(30, 5)
+    // 1 / 0.030 ≈ 33.333 THB per USD
+    expect(convertCurrency(1, Currency.USD, Currency.THB)).toBeCloseTo(1 / 0.030, 5)
+  })
+
+  it('leaves rates untouched when fetch fails', async () => {
+    // Read the current rate baseline first (the stub mock above mutated module state,
+    // so we depend on beforeEach to reset cache but values may already be updated).
+    const baselineUsd = convertCurrency(1000, Currency.THB, Currency.USD)
+
+    const fetchMock = vi.fn(async () => {
+      throw new Error('network down')
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(updateExchangeRates()).resolves.toBeUndefined()
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(convertCurrency(1000, Currency.THB, Currency.USD)).toBeCloseTo(baselineUsd, 5)
   })
 })

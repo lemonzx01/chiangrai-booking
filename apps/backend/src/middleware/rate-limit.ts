@@ -110,6 +110,11 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 5,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
+  // Contact form - prevents admin-inbox flooding via the public POST endpoint.
+  '/api/contact': {
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests

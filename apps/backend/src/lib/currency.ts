@@ -44,6 +44,10 @@ const REVERSE_RATES: Record<Currency, number> = {
   [Currency.GBP]: 47.6, // 1 GBP = 47.6 THB (ประมาณ)
 }
 
+// Module-level cache so we only hit the upstream API once every 12h.
+const RATES_TTL_MS = 12 * 60 * 60 * 1000
+let ratesCache: { fetchedAt: number } | null = null
+
 // ============================================================
 // Currency Conversion (แปลงสกุลเงิน)
 // ============================================================
@@ -221,18 +225,66 @@ export function getCurrencyInfo(currency: Currency) {
 // ============================================================
 
 /**
- * อัปเดตอัตราแลกเปลี่ยนจาก API (สำหรับใช้ในอนาคต)
- *
- * @description สามารถเรียก API เช่น exchangerate-api.com เพื่อดึงอัตราแลกเปลี่ยนล่าสุด
+ * อัปเดตอัตราแลกเปลี่ยนจาก API
+ * Fetches latest THB-base rates from frankfurter.app and refreshes
+ * both EXCHANGE_RATES and REVERSE_RATES in place.
  *
  * @example
  * await updateExchangeRates()
  */
 export async function updateExchangeRates(): Promise<void> {
-  // TODO: เรียก API เพื่อดึงอัตราแลกเปลี่ยนล่าสุด
-  // เช่น: const rates = await fetch('https://api.exchangerate-api.com/v4/latest/THB')
-  // แล้วอัปเดต EXCHANGE_RATES และ REVERSE_RATES
-  logger.info('Exchange rates update not implemented yet')
+  const now = Date.now()
+  if (ratesCache && now - ratesCache.fetchedAt < RATES_TTL_MS) {
+    return
+  }
+  // Mark the attempt now so repeated callers within the TTL don't all race the API.
+  ratesCache = { fetchedAt: now }
+
+  const targets: Currency[] = [
+    Currency.USD,
+    Currency.EUR,
+    Currency.JPY,
+    Currency.CNY,
+    Currency.GBP,
+  ]
+  const url = `https://api.frankfurter.app/latest?from=THB&to=${targets.join(',')}`
+
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) })
+    if (!response.ok) {
+      logger.warn('Exchange rates fetch returned non-OK', { status: response.status })
+      return
+    }
+    const payload = (await response.json()) as {
+      rates?: Partial<Record<string, number>>
+    }
+    const rates = payload?.rates
+    if (!rates) {
+      logger.warn('Exchange rates fetch missing rates field')
+      return
+    }
+
+    for (const code of targets) {
+      const rate = rates[code]
+      if (typeof rate === 'number' && rate > 0) {
+        EXCHANGE_RATES[code] = rate
+        REVERSE_RATES[code] = 1 / rate
+      }
+    }
+    ratesCache = { fetchedAt: Date.now() }
+    logger.info('Exchange rates updated', { source: 'frankfurter.app' })
+  } catch (error) {
+    logger.warn('Exchange rates fetch failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
+/**
+ * Reset the in-memory cache. Test-only helper.
+ */
+export function __resetExchangeRateCacheForTests(): void {
+  ratesCache = null
 }
 
 
