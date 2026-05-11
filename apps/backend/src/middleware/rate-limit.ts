@@ -103,6 +103,13 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 10,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
+  // Newsletter subscribe - prevents admin-inbox flooding via the
+  // public POST endpoint. Legitimate users sign up once; anything
+  // beyond a handful per hour from the same caller is automation.
+  '/api/email/subscribe': {
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests
