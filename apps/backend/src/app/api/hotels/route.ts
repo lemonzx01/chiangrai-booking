@@ -98,11 +98,11 @@ export async function GET(request: Request) {
     const location = searchParams.get('location')
     /** คำค้นหา (optional) */
     const q = searchParams.get('q')
-    /** ตัวกรองราคาต่ำสุด/สูงสุด (optional) */
-    const minPrice = Number(searchParams.get('min_price'))
-    const maxPrice = Number(searchParams.get('max_price'))
-    /** ตัวกรองดาวขั้นต่ำ (optional) */
-    const minStar = Number(searchParams.get('min_star'))
+    // Use parseFloat (not Number) so missing params become NaN; Number(null)===0
+    // would silently apply a `>=0`/`<=0` filter and exclude every row.
+    const minPrice = parseFloat(searchParams.get('min_price') ?? '')
+    const maxPrice = parseFloat(searchParams.get('max_price') ?? '')
+    const minStar = parseFloat(searchParams.get('min_star') ?? '')
     /** การเรียงผลลัพธ์ (optional) */
     const sort = searchParams.get('sort') || 'newest'
 

@@ -16,6 +16,7 @@
 import { createAdminClient } from '../../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { verifyAdminToken, verifyUserToken } from '../../../../../lib/auth'
+import { verifyCsrfToken } from '../../../../../lib/csrf'
 import { calculateRefundPercentage, calculateRefundAmount, processStripeRefund } from '../../../../../lib/refund'
 import { sendCancellationNotification } from '../../../../../services/notifications/cancellation'
 import { createAdminNotification } from '../../../../../services/notifications/admin-inbox'
@@ -28,6 +29,12 @@ interface Params {
 
 export async function POST(request: Request, { params }: Params) {
   try {
+    // CSRF first — this is a state-changing endpoint that triggers
+    // refunds and emails. Aligns with /modification-request and the
+    // wishlist routes which already enforce CSRF.
+    const csrfFail = await verifyCsrfToken(request)
+    if (csrfFail) return csrfFail
+
     const { code } = await params
     const body = await request.json().catch(() => ({}))
     const reason = body.reason || ''

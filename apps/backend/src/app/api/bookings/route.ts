@@ -101,12 +101,16 @@ export async function GET(request: Request) {
 
     const adminAuth = await verifyAdminToken()
     const partnerAuth = await verifyPartnerToken()
-    const role: 'admin' | 'partner' | 'public' =
+    const role: 'admin' | 'partner' | null =
       adminAuth.success
         ? 'admin'
         : (partnerAuth.success && partnerAuth.user?.role === 'partner')
           ? 'partner'
-          : 'public'
+          : null
+
+    if (!role) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     // ----------------------------------------------------------
     // สร้าง Query พร้อม JOIN กับตารางโรงแรมและรถเช่า

@@ -47,6 +47,8 @@ import { jwtVerify } from 'jose'
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '../../../../lib/auth'
 import { logger } from '../../../../lib/logger'
+import { validatePassword } from '../../../../lib/utils'
+import { findMockUser } from '../../../../lib/mock-data'
 
 // ============================================================
 // POST Handler - รีเซ็ตรหัสผ่าน
@@ -84,19 +86,48 @@ export async function POST(request: Request) {
       )
     }
 
-    // ตรวจสอบความยาวรหัสผ่าน
-    if (password.length < 6) {
+    // Apply the same strong-password rule as /api/auth/register so
+    // a reset can't downgrade an account below the registration bar.
+    const pwCheck = validatePassword(password, 'th')
+    if (!pwCheck.isValid) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'รหัสผ่านไม่ปลอดภัย', details: pwCheck.errors },
         { status: 400 }
       )
     }
 
     // ============================================================
-    // Mock Mode: ใช้ข้อมูลจำลอง
+    // Mock Mode: verify the token and update the in-memory user so
+    // the next login with the new password actually works. Without
+    // this, mock-mode testers see "success" then can't log in.
     // ============================================================
     if (isMockMode()) {
-      // ใน Mock Mode เราจะ return success เสมอ
+      const secret = getJwtSecret()
+      let payload: { sub?: string; email?: string; type?: string }
+      try {
+        const verified = await jwtVerify(token, secret)
+        payload = verified.payload as typeof payload
+      } catch {
+        return NextResponse.json(
+          { error: 'Invalid or expired reset token' },
+          { status: 400 }
+        )
+      }
+      if (payload.type !== 'password_reset') {
+        return NextResponse.json(
+          { error: 'Invalid token type' },
+          { status: 400 }
+        )
+      }
+
+      const email = payload.email
+      if (email) {
+        const mockUser = findMockUser(email)
+        if (mockUser) {
+          mockUser.password_hash = await bcrypt.hash(password, 12)
+        }
+      }
+
       return NextResponse.json({
         message: 'Password has been reset successfully.',
       })

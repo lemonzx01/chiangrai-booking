@@ -30,6 +30,15 @@ import { cookies } from 'next/headers'
 import type { Database } from '@chiangrai/shared/types/supabase'
 import { createMockSupabaseClient } from './mock-client'
 
+// Next.js 14 patches global fetch and caches GETs in the Data Cache.
+// supabase-js calls fetch internally, so without this opt-out a query that
+// returns empty (e.g. before seed) gets memoised and serves stale empties
+// even after the DB is populated. Public CDN caching is still applied at
+// the response layer via withPublicCache; this only disables the in-process
+// per-fetch memoisation.
+const noStoreFetch: typeof fetch = (input, init) =>
+  fetch(input, { ...init, cache: 'no-store' })
+
 // ============================================================
 // Configuration Check (ตรวจสอบการตั้งค่า)
 // ============================================================
@@ -92,6 +101,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: noStoreFetch },
       cookies: {
         /**
          * ดึงค่า cookie ตามชื่อ
@@ -181,6 +191,7 @@ export async function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!, // ใช้ Service Role Key แทน Anon Key
     {
+      global: { fetch: noStoreFetch },
       cookies: {
         /**
          * ดึงค่า cookie ตามชื่อ

@@ -58,9 +58,21 @@ function createMockStripe(): any {
             sessionId: id,
             amount: params?.line_items?.[0]?.price_data?.unit_amount,
           })
-          // Redirect to the mock checkout page so the booking flow can be
-          // completed end-to-end without a real Stripe account.
-          const url = `${baseUrl}/checkout/mock?session=${id}`
+          // Forward the metadata that the webhook needs through the
+          // mock checkout URL — without booking_id the webhook can't
+          // flip the booking to PAID, and the confirmation email +
+          // loyalty/referral side effects don't fire. Real Stripe
+          // attaches metadata to the session object directly; in mock
+          // mode we shuttle it through the URL because the mock page
+          // is what synthesizes the webhook event.
+          const md = (params?.metadata || {}) as Record<string, unknown>
+          const qs = new URLSearchParams({ session: id })
+          if (md.booking_id) qs.set('booking_id', String(md.booking_id))
+          if (md.booking_code) qs.set('booking_code', String(md.booking_code))
+          if (md.original_amount) qs.set('original_amount', String(md.original_amount))
+          if (md.discount_amount) qs.set('discount_amount', String(md.discount_amount))
+          if (md.coupon_code) qs.set('coupon_code', String(md.coupon_code))
+          const url = `${baseUrl}/checkout/mock?${qs.toString()}`
           return {
             id,
             object: 'checkout.session',

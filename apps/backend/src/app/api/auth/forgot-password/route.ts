@@ -111,15 +111,30 @@ export async function POST(request: Request) {
     }
 
     // ============================================================
-    // Mock Mode: ใช้ข้อมูลจำลอง
+    // Mock Mode: generate a real token + log the link so the full
+    // forgot → reset flow works end-to-end without a mail server.
+    // We still return the privacy-preserving response shape.
     // ============================================================
     if (isMockMode()) {
-      // ตรวจสอบว่ามี user หรือ admin ในระบบหรือไม่
       const mockUser = findMockUser(email)
       const mockAdmin = findMockAdmin(email)
+      const subject = mockUser?.id || mockAdmin?.id
+      if (subject) {
+        const secret = getJwtSecret()
+        const resetToken = await new SignJWT({
+          sub: subject,
+          email,
+          type: 'password_reset',
+        })
+          .setProtectedHeader({ alg: 'HS256' })
+          .setExpirationTime('1h')
+          .setIssuedAt()
+          .sign(secret)
 
-      // ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่ (เพื่อความปลอดภัย)
-      // แต่ใน Mock Mode เราจะแสดงข้อความสำเร็จเสมอ
+        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+        logger.info('[DEV] Password reset link (mock mode)', { resetLink })
+      }
+
       return NextResponse.json({
         message: 'If the email exists, a password reset link has been sent.',
       })

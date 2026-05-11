@@ -98,11 +98,11 @@ export async function GET(request: Request) {
     const carType = searchParams.get('car_type')
     /** คำค้นหา (optional) */
     const q = searchParams.get('q')
-    /** ตัวกรองราคาต่ำสุด/สูงสุด (optional) */
-    const minPrice = Number(searchParams.get('min_price'))
-    const maxPrice = Number(searchParams.get('max_price'))
-    /** จำนวนผู้โดยสารขั้นต่ำ (optional) */
-    const minPassengers = Number(searchParams.get('min_passengers'))
+    // Use parseFloat (not Number) so missing params become NaN; Number(null)===0
+    // would silently apply a `>=0`/`<=0` filter and exclude every row.
+    const minPrice = parseFloat(searchParams.get('min_price') ?? '')
+    const maxPrice = parseFloat(searchParams.get('max_price') ?? '')
+    const minPassengers = parseFloat(searchParams.get('min_passengers') ?? '')
     /** การเรียงผลลัพธ์ */
     const sort = searchParams.get('sort') || 'newest'
 
