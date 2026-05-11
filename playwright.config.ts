@@ -33,10 +33,18 @@ const { defineConfig, devices } = playwrightModule
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  // Run sequentially. The webServer below uses `npm run dev`, which
+  // compiles routes on first hit; 6 parallel workers slamming cold
+  // routes simultaneously blows the 30s default timeout for no
+  // reason on a real app. Sequential is "slow but never flaky".
+  fullyParallel: false,
+  workers: 1,
+  // First cold compile of a heavy page (e.g. /login with i18n) can
+  // legitimately take ~40s on Windows; 60s gives headroom without
+  // hiding actual stalls.
+  timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'list',
 
   use: {
