@@ -102,7 +102,7 @@ chiangrai-booking/
 | Input | `src/components/ui/Input.tsx` |
 | Badge | `src/components/ui/Badge.tsx` |
 | Skeleton | `src/components/ui/Skeleton.tsx` |
-| DatePicker | `src/components/ui/CustomDatePicker.tsx` |
+| DateRangePicker | `src/components/ui/DateRangePicker.tsx` |
 
 ---
 

@@ -10,7 +10,6 @@
  *   - ฟังก์ชันช่วยเหลืออื่นๆ (helpers)
  *
  * การทำงานหลัก:
- *   - cn(): รวม class names (Tailwind CSS)
  *   - formatCurrency(): จัดรูปแบบสกุลเงินบาท
  *   - formatDate(): จัดรูปแบบวันที่
  *   - calculateNights(): คำนวณจำนวนคืน
@@ -19,33 +18,6 @@
  *
  * ============================================================
  */
-
-// ============================================================
-// Imports
-// ============================================================
-
-import { type ClassValue, clsx } from 'clsx'
-
-// ============================================================
-// Class Name Utilities (ฟังก์ชันจัดการ Class Names)
-// ============================================================
-
-/**
- * รวม class names เข้าด้วยกัน
- *
- * @description ใช้ร่วมกับ Tailwind CSS เพื่อรวม class names
- *              รองรับ conditional classes และ array
- *
- * @param inputs - Class names ที่ต้องการรวม
- * @returns String ของ class names ที่รวมแล้ว
- *
- * @example
- * cn('btn', 'btn-primary') // 'btn btn-primary'
- * cn('btn', isActive && 'active') // 'btn active' (ถ้า isActive เป็น true)
- */
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs)
-}
 
 // ============================================================
 // Formatting Functions (ฟังก์ชันจัดรูปแบบข้อมูล)
