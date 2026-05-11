@@ -47,6 +47,9 @@ import Image from 'next/image'
 /** Lucide icons สำหรับ UI */
 import { CreditCard, Loader2, ArrowLeft, Lock, Shield, Check, ShieldCheck, QrCode, CalendarDays, Users } from 'lucide-react'
 
+/** Skeleton patterns matching the eventual layout */
+import { BookingDetailSkeleton } from '@/components/shared/Skeletons'
+
 /** Type definition สำหรับ Booking */
 import { Booking, Coupon, Currency } from '@chiangrai/shared/types'
 
@@ -307,8 +310,8 @@ function CheckoutContent() {
   // ----------------------------------------------------------
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+      <div className="min-h-screen pt-24 pb-12">
+        <BookingDetailSkeleton />
       </div>
     )
   }
@@ -748,8 +751,8 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+      <div className="min-h-screen pt-24 pb-12">
+        <BookingDetailSkeleton />
       </div>
     }>
       <CheckoutContent />

@@ -296,7 +296,7 @@ export default function NotificationsInbox({ initial }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">
             ยังไม่ได้อ่าน
           </p>
-          <p className="mt-1 text-2xl font-semibold text-indigo-900">{unread}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-900">{unread}</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3">
           <div>
@@ -390,14 +390,14 @@ export default function NotificationsInbox({ initial }: Props) {
           aria-label="การดำเนินการกับรายการที่เลือก"
           className="rounded-xl border border-slate-200 bg-slate-100 p-3 flex flex-wrap items-center gap-2"
         >
-          <span className="text-sm font-bold text-indigo-900">
+          <span className="text-sm font-bold text-slate-900">
             เลือก {selected.size} รายการ
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
             <button
               type="button"
               onClick={selectAllVisible}
-              className="text-xs font-semibold text-slate-900 hover:text-indigo-900"
+              className="text-xs font-semibold text-slate-900 hover:text-slate-700"
             >
               เลือกทั้งหมดในรายการ
             </button>
@@ -468,7 +468,7 @@ export default function NotificationsInbox({ initial }: Props) {
                 key={notification.id}
                 className={`rounded-xl border px-4 py-3 transition-colors ${
                   checked
-                    ? 'border-indigo-400 bg-slate-100 ring-1 ring-indigo-200'
+                    ? 'border-slate-400 bg-slate-100 ring-1 ring-slate-200'
                     : notification.is_read
                       ? 'border-slate-200 bg-white'
                       : 'border-slate-200 bg-slate-100/40'
@@ -495,7 +495,7 @@ export default function NotificationsInbox({ initial }: Props) {
                     {notification.is_read ? (
                       <Circle size={8} className="text-slate-300" />
                     ) : (
-                      <Circle size={8} className="fill-indigo-500 text-indigo-500" />
+                      <Circle size={8} className="fill-slate-700 text-slate-700" />
                     )}
                   </div>
 
@@ -523,7 +523,7 @@ export default function NotificationsInbox({ initial }: Props) {
                     {notification.link && (
                       <Link
                         href={notification.link}
-                        className="mt-2 inline-block text-xs font-semibold text-slate-900 hover:text-indigo-800"
+                        className="mt-2 inline-block text-xs font-semibold text-slate-900 hover:text-slate-700"
                       >
                         ดูรายละเอียด →
                       </Link>

@@ -199,7 +199,7 @@ export default function ModificationRequestModal({
             </div>
           </div>
 
-          <div className="rounded-lg bg-indigo-50 border border-slate-200 px-3 py-2 text-xs text-indigo-800">
+          <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-700">
             <strong>หมายเหตุ:</strong> ระบบจะส่งคำขอไปยังทีมงาน — ไม่ใช่การยืนยันทันที
             ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมงเพื่อยืนยันราคาและดำเนินการต่อไป
           </div>

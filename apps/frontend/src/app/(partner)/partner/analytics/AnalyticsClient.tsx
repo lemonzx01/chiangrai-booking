@@ -155,7 +155,7 @@ export default function AnalyticsClient({
               disabled={loading}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
                 days === d
-                  ? 'bg-white text-indigo-700 shadow-sm'
+                  ? 'bg-white text-slate-700 shadow-sm'
                   : 'text-slate-500 hover:text-slate-800'
               } disabled:opacity-50`}
             >
@@ -180,8 +180,8 @@ export default function AnalyticsClient({
           sub="Bookings"
           value={stats.totals.bookings.toString()}
           icon={CalendarCheck}
-          iconBg="bg-indigo-100"
-          iconColor="text-indigo-600"
+          iconBg="bg-slate-100"
+          iconColor="text-slate-900"
         />
         <Kpi
           label="อัตราเข้าพัก"
@@ -205,9 +205,9 @@ export default function AnalyticsClient({
 
       {/* Upcoming callout */}
       {stats.upcoming.next7Days > 0 && (
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 sm:p-5 flex items-start gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5 flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-            <Users className="text-indigo-600" size={20} />
+            <Users className="text-slate-900" size={20} />
           </div>
           <div>
             <p className="text-sm font-bold text-slate-900">
@@ -275,7 +275,7 @@ export default function AnalyticsClient({
                     <td className="py-2.5 text-right text-slate-600">
                       {row.bookings}
                     </td>
-                    <td className="py-2.5 text-right font-bold text-indigo-600">
+                    <td className="py-2.5 text-right font-bold text-slate-900">
                       {formatCurrency(row.revenue)}
                     </td>
                   </tr>
@@ -352,7 +352,7 @@ function RevenueChart({ timeline }: { timeline: TimelinePoint[] }) {
           >
             <div className="flex-1 w-full flex items-end">
               <div
-                className="w-full bg-indigo-500 group-hover:bg-indigo-600 rounded-t transition-colors"
+                className="w-full bg-slate-700 group-hover:bg-slate-900 rounded-t transition-colors"
                 style={{ height: `${Math.max(2, heightPct)}%` }}
               />
             </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Loader2, X } from 'lucide-react'
 import Button from './Button'
+import { apiFetch } from '@/lib/api'
 
 interface CancelBookingModalProps {
   bookingCode: string
@@ -56,15 +57,14 @@ export default function CancelBookingModal({
     setError('')
 
     try {
-      const res = await fetch(`/api/bookings/${bookingCode}/cancel`, {
+      const res = await apiFetch(`/api/bookings/${bookingCode}/cancel`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
+        body: { reason },
       })
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'ไม่สามารถยกเลิกได้')
+        const data = await res.json().catch(() => ({}))
+        throw new Error((data as { error?: string }).error || 'ไม่สามารถยกเลิกได้')
       }
 
       onCancelled()

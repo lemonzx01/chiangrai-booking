@@ -122,7 +122,7 @@ export default async function PartnerDashboardPage() {
       title: 'การจองทั้งหมด',
       value: stats.totalBookings,
       icon: Calendar,
-      color: 'bg-purple-500',
+      color: 'bg-slate-700',
     },
     {
       title: 'รายได้รวม',
@@ -145,7 +145,7 @@ export default async function PartnerDashboardPage() {
 
           <Link
             href="/partner/cars/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors text-sm sm:text-base w-full sm:w-auto"
           >
             <Plus size={18} />
             เพิ่มรถ
@@ -174,7 +174,7 @@ export default async function PartnerDashboardPage() {
             <h2 className="text-lg font-bold text-slate-900">การจองล่าสุด</h2>
             <Link
               href="/partner/bookings"
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+              className="text-sm text-slate-900 hover:text-slate-700 font-medium flex items-center gap-1"
             >
               ดูทั้งหมด
               <ArrowRight size={14} />
@@ -202,9 +202,9 @@ export default async function PartnerDashboardPage() {
                   </tr>
                 ) : (
                   recentBookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-indigo-50/50 transition-colors">
+                    <tr key={booking.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 text-sm font-medium">
-                        <Link href="/partner/bookings" className="text-indigo-600 hover:text-indigo-700">
+                        <Link href="/partner/bookings" className="text-slate-900 hover:text-slate-700">
                           {booking.booking_code}
                         </Link>
                       </td>

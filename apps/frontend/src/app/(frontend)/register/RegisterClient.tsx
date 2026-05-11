@@ -45,6 +45,7 @@ import { UserPlus, Loader2, Gift } from 'lucide-react'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import BrandPanel from '@/components/shared/BrandPanel'
 
 // ============================================================
 // Main Component
@@ -157,9 +158,28 @@ function RegisterPageInner() {
       return
     }
 
-    // ตรวจสอบความยาวรหัสผ่าน
-    if (formData.password.length < 6) {
-      setError(lang === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters')
+    // Password policy mirrors the backend's validatePassword:
+    // ≥8 chars + at least one uppercase, lowercase, digit, and special.
+    // Aligning the FE check avoids passing local validation only to
+    // be rejected with a generic 400 on the server.
+    const pwIssues: string[] = []
+    if (formData.password.length < 8) {
+      pwIssues.push(lang === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'At least 8 characters')
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว' : 'At least 1 uppercase letter')
+    }
+    if (!/[a-z]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว' : 'At least 1 lowercase letter')
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวเลขอย่างน้อย 1 ตัว' : 'At least 1 number')
+    }
+    if (!/[!@#$%^&*]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีอักขระพิเศษ (!@#$%^&*)' : 'At least 1 special character (!@#$%^&*)')
+    }
+    if (pwIssues.length > 0) {
+      setError(pwIssues.join(' • '))
       return
     }
 
@@ -184,11 +204,20 @@ function RegisterPageInner() {
         }),
       })
 
-      const data = await res.json()
+      // Backend may return non-JSON (e.g. 502 HTML from the proxy);
+      // shield against that so the catch below sees a real network
+      // error rather than a JSON parse failure.
+      const data = await res.json().catch(() => ({} as { error?: string; details?: string[] }))
 
       // Handle error response
       if (!res.ok) {
-        setError(data.error || (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred'))
+        const detailLine = Array.isArray((data as { details?: string[] }).details)
+          ? (data as { details?: string[] }).details!.join(' • ')
+          : ''
+        const baseError =
+          (data as { error?: string }).error ||
+          (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred')
+        setError(detailLine ? `${baseError}: ${detailLine}` : baseError)
         return
       }
 
@@ -207,30 +236,40 @@ function RegisterPageInner() {
   return (
     <div className="min-h-screen pt-24 pb-12 bg-slate-50">
       {/* ============================================================
-          Header Section - Gradient Background
+          Two-column desktop / single-column mobile.
+          Same shape as /login so the auth flows feel like one unit.
           ============================================================ */}
-      <div className="bg-white border-b border-slate-200 py-12">
-        <div className="max-w-md mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-3 tracking-tight">
-            {lang === 'th' ? 'สมัครสมาชิก' : 'Create Account'}
-          </h1>
-          <p className="text-base text-slate-500 font-light">
-            {lang === 'th' ? 'สร้างบัญชีเพื่อจองง่ายขึ้น' : 'Create an account for easier booking'}
-          </p>
-        </div>
-      </div>
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-4">
+        <BrandPanel variant="register" />
 
-      {/* ============================================================
-          Register Form Card
-          ============================================================ */}
-      <div className="max-w-md mx-auto px-6 sm:px-8 mt-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-slate-900" />
-            </div>
+        <div className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto">
+          {/* Mobile-only headline */}
+          <div className="text-center lg:hidden mb-6">
+            <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-2 tracking-tight">
+              {lang === 'th' ? 'สมัครสมาชิก' : 'Create Account'}
+            </h1>
+            <p className="text-sm text-slate-500 font-light">
+              {lang === 'th' ? 'สร้างบัญชีเพื่อจองง่ายขึ้น' : 'Create an account for easier booking'}
+            </p>
           </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-7 sm:p-8">
+            {/* Desktop heading inside the form card */}
+            <div className="hidden lg:block mb-6">
+              <h1 className="text-2xl font-display font-medium text-slate-900 tracking-tight mb-1">
+                {lang === 'th' ? 'สร้างบัญชีใหม่' : 'Create your account'}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {lang === 'th' ? 'ใช้เวลาไม่ถึงนาที' : 'Takes under a minute'}
+              </p>
+            </div>
+
+            {/* Mobile-only icon */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center">
+                <UserPlus className="w-7 h-7 text-slate-900" />
+              </div>
+            </div>
 
           {/* Referral Banner — shown when ?ref=CODE is on the URL */}
           {referralCode && (
@@ -297,7 +336,7 @@ function RegisterPageInner() {
               label={lang === 'th' ? 'รหัสผ่าน' : 'Password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder={lang === 'th' ? 'อย่างน้อย 6 ตัวอักษร' : 'At least 6 characters'}
+              placeholder={lang === 'th' ? 'อย่างน้อย 8 ตัว + พิมพ์ใหญ่/เล็ก/เลข/อักขระ' : 'At least 8 chars · Aa · 0-9 · !@#'}
               required
               disabled={loading}
             />
@@ -326,14 +365,15 @@ function RegisterPageInner() {
             </Button>
           </form>
 
-          {/* Link ไปหน้า Login */}
-          <div className="mt-6 text-center">
-            <p className="text-slate-500">
-              {lang === 'th' ? 'มีบัญชีอยู่แล้ว?' : 'Already have an account?'}{' '}
-              <Link href="/login" className="text-slate-900 font-semibold hover:underline">
-                {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
-              </Link>
-            </p>
+            {/* Link ไปหน้า Login */}
+            <div className="mt-6 text-center">
+              <p className="text-slate-500">
+                {lang === 'th' ? 'มีบัญชีอยู่แล้ว?' : 'Already have an account?'}{' '}
+                <Link href="/login" className="text-slate-900 font-semibold hover:underline">
+                  {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -58,8 +58,8 @@ export default function WishlistButton({
         aria-label={saved ? 'ลบจากรายการที่ชอบ' : 'บันทึกในรายการที่ชอบ'}
         className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all hover:scale-110 ${
           saved
-            ? 'bg-rose-500 text-white'
-            : 'bg-white/90 text-slate-600 hover:text-rose-500'
+            ? 'bg-slate-900 text-white'
+            : 'bg-white/90 text-slate-600 hover:text-slate-900'
         }`}
       >
         <Heart

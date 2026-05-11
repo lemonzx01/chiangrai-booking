@@ -306,7 +306,7 @@ export default function AvailabilityClient({ initialResources }: Props) {
                 }}
                 disabled={hotels.length === 0}
                 className={`px-4 py-2 text-sm font-medium ${
-                  target?.kind === 'hotel' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
+                  target?.kind === 'hotel' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
                 } disabled:opacity-40 disabled:cursor-not-allowed`}
               >
                 โรงแรม ({hotels.length})
@@ -318,7 +318,7 @@ export default function AvailabilityClient({ initialResources }: Props) {
                 }}
                 disabled={cars.length === 0}
                 className={`px-4 py-2 text-sm font-medium border-l border-slate-300 ${
-                  target?.kind === 'car' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
+                  target?.kind === 'car' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
                 } disabled:opacity-40 disabled:cursor-not-allowed`}
               >
                 รถเช่า ({cars.length})
@@ -389,7 +389,7 @@ export default function AvailabilityClient({ initialResources }: Props) {
             type="button"
             onClick={() => openAdd()}
             disabled={!target}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus size={16} />
             เพิ่มวันที่บล็อก
@@ -458,10 +458,10 @@ export default function AvailabilityClient({ initialResources }: Props) {
                 disabled={!target}
                 className={`relative min-h-[70px] rounded-lg border text-left p-1.5 transition ${
                   inMonth ? 'bg-white' : 'bg-slate-50 text-slate-400'
-                } ${isToday ? 'border-indigo-500' : 'border-slate-200'} hover:border-indigo-400 disabled:cursor-not-allowed disabled:hover:border-slate-200`}
+                } ${isToday ? 'border-slate-900' : 'border-slate-200'} hover:border-slate-400 disabled:cursor-not-allowed disabled:hover:border-slate-200`}
               >
                 <div className="flex justify-between items-start">
-                  <span className={`text-xs font-medium ${isToday ? 'text-indigo-600' : ''}`}>{d.getDate()}</span>
+                  <span className={`text-xs font-medium ${isToday ? 'text-slate-900' : ''}`}>{d.getDate()}</span>
                   {hasBooking && (
                     <span className="text-[10px] bg-red-500 text-white rounded-full px-1.5 min-w-[16px] text-center">
                       {bookingsOnDay.length}
@@ -500,7 +500,7 @@ export default function AvailabilityClient({ initialResources }: Props) {
             จำนวนการจอง
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="w-3 h-3 border-2 border-indigo-500 rounded-sm"></span>
+            <span className="w-3 h-3 border-2 border-slate-900 rounded-sm"></span>
             วันนี้
           </span>
         </div>
@@ -614,7 +614,7 @@ export default function AvailabilityClient({ initialResources }: Props) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+                  className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-60"
                 >
                   {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
                 </button>

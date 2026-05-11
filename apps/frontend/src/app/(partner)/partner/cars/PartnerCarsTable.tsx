@@ -10,7 +10,7 @@ import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 const ITEMS_PER_PAGE = 10
 
 const statusOptions = [
-  { value: 'ALL', label: 'All status', dot: 'bg-indigo-500' },
+  { value: 'ALL', label: 'All status', dot: 'bg-slate-700' },
   { value: 'ACTIVE', label: 'Active', dot: 'bg-green-500' },
   { value: 'INACTIVE', label: 'Inactive', dot: 'bg-red-500' },
 ]
@@ -64,7 +64,7 @@ export default function PartnerCarsTable({ cars }: PartnerCarsTableProps) {
                 setSearch(event.target.value)
                 setPage(1)
               }}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm"
             />
           </div>
 
@@ -161,7 +161,7 @@ export default function PartnerCarsTable({ cars }: PartnerCarsTableProps) {
                 key={itemPage}
                 onClick={() => setPage(itemPage)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  itemPage === currentPage ? 'bg-indigo-600 text-white' : 'hover:bg-slate-100'
+                  itemPage === currentPage ? 'bg-slate-900 text-white' : 'hover:bg-slate-100'
                 }`}
               >
                 {itemPage}

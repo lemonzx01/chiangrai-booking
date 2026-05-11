@@ -73,7 +73,7 @@ export default function WishlistPage() {
         <div className="flex items-end justify-between mb-6 sm:mb-8 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight flex items-center gap-2">
-              <Heart className="text-rose-500 fill-rose-500" size={28} />
+              <Heart className="text-slate-900 fill-slate-900" size={28} />
               รายการที่ชอบ
             </h1>
             <p className="text-sm text-slate-500 mt-1">
@@ -187,7 +187,7 @@ function WishlistCard({
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
           {item.rating != null && (
             <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <Star size={12} className="text-yellow-500 fill-yellow-500" />
+              <Star size={12} className="text-amber-500 fill-amber-500" />
               <span className="text-xs font-bold text-slate-900">{item.rating}</span>
             </div>
           )}

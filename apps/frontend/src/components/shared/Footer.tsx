@@ -25,8 +25,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Compass, Mail, Phone } from 'lucide-react'
+import { Compass, Mail, Phone, Facebook, Instagram, Youtube } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import NewsletterSignup from './NewsletterSignup'
 
 // ============================================================
 // Component Definition
@@ -69,10 +70,12 @@ export default function Footer() {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-30"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Grid 4 คอลัมน์ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-16 mb-12 sm:mb-16 lg:mb-20 text-center sm:text-left">
+        {/* Grid: 1 col on mobile, 2 col on small, 5 col on large.
+            Brand (description) takes 2 cols on lg so the supporting
+            columns line up evenly to its right. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-12 mb-12 sm:mb-16 lg:mb-20 text-center sm:text-left">
           {/* คอลัมน์ 1: โลโก้และรายละเอียด */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             {/* โลโก้ */}
             <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 mb-6 sm:mb-8">
               <Compass size={24} className="sm:w-[28px] sm:h-[28px] text-white/60" />
@@ -82,6 +85,25 @@ export default function Footer() {
             <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 font-medium">
               {t('footer.description') || 'จองทริปเที่ยวพ่วงรถเช่าพรีเมียม ดิวลับที่คุณหาไม่ได้จากที่ไหน ทุกที่พักเราไปดิวเองกับมือ'}
             </p>
+            {/* Social row — rendered for layout, disabled until the
+                accounts go live. Tabindex -1 + aria-disabled keeps
+                them out of the tab order. */}
+            <div className="flex items-center justify-center sm:justify-start gap-3 mt-6">
+              {[
+                { icon: Facebook, label: 'Facebook' },
+                { icon: Instagram, label: 'Instagram' },
+                { icon: Youtube, label: 'YouTube' },
+              ].map(({ icon: Icon, label }) => (
+                <span
+                  key={label}
+                  aria-label={label}
+                  aria-disabled="true"
+                  className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/30"
+                >
+                  <Icon size={16} strokeWidth={1.75} />
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* คอลัมน์ 2: เมนู */}
@@ -98,6 +120,37 @@ export default function Footer() {
               <li>
                 <Link href="/cars" className="hover:text-white/60 transition-colors">
                   {t('navbar.cars')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/wishlist" className="hover:text-white/60 transition-colors">
+                  {lang === 'th' ? 'รายการที่ชอบ' : 'Wishlist'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* คอลัมน์: บัญชีของฉัน — quick jumps to authenticated
+              areas. Links work whether or not the user is signed in;
+              the destinations redirect to /login as needed. */}
+          <div>
+            <h4 className="text-white font-semibold text-xs uppercase tracking-[0.3em] mb-6 sm:mb-8">
+              {lang === 'th' ? 'บัญชี' : 'Account'}
+            </h4>
+            <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm font-bold tracking-widest uppercase">
+              <li>
+                <Link href="/profile" className="hover:text-white/60 transition-colors">
+                  {lang === 'th' ? 'โปรไฟล์' : 'Profile'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/profile#bookings" className="hover:text-white/60 transition-colors">
+                  {lang === 'th' ? 'การจองของฉัน' : 'My bookings'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/profile#loyalty" className="hover:text-white/60 transition-colors">
+                  {lang === 'th' ? 'แต้มสะสม' : 'Loyalty'}
                 </Link>
               </li>
               <li>
@@ -139,6 +192,24 @@ export default function Footer() {
               {t('footer.becomePartner') || 'ร่วมเป็นพาร์ทเนอร์'}
             </Link>
           </div>
+        </div>
+
+        {/* Newsletter — single-row email capture above the legal
+            strip. POSTs to /api/email/subscribe which surfaces a
+            row in the admin inbox until a dedicated subscribers
+            table is warranted. */}
+        <div className="border-t border-white/5 pt-8 sm:pt-10 mb-8 sm:mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-8">
+          <div className="text-center md:text-left">
+            <h4 className="text-white font-semibold text-xs uppercase tracking-[0.3em] mb-2">
+              {lang === 'th' ? 'รับข่าวสารและโปรโมชั่น' : 'Stay in the loop'}
+            </h4>
+            <p className="text-xs sm:text-sm text-white/40 font-light">
+              {lang === 'th'
+                ? 'ดิวลับและทริปหายากส่งตรงถึงอีเมลของคุณ'
+                : 'Quiet drops and curated trips, straight to your inbox.'}
+            </p>
+          </div>
+          <NewsletterSignup />
         </div>
 
         {/* ลิขสิทธิ์ + ลิงก์กฎหมาย */}

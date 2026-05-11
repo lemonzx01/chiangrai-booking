@@ -212,7 +212,7 @@ export default function SearchAutocomplete({
                     onClick={() => navigate(r)}
                     onMouseEnter={() => setHighlight(i)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
-                      highlight === i ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                      highlight === i ? 'bg-slate-100' : 'hover:bg-slate-50'
                     }`}
                   >
                     <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">

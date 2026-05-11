@@ -69,6 +69,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import LoyaltyPointsPreview from '@/components/shared/LoyaltyPointsPreview'
+import { DetailPageSkeleton } from '@/components/shared/Skeletons'
 
 /** Profile auto-fill hook */
 import useCurrentUser from '@/hooks/useCurrentUser'
@@ -376,9 +377,8 @@ function BookingContent() {
   // ----------------------------------------------------------
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
-        <p className="text-sm text-slate-400">{t('booking.loadingData')}</p>
+      <div className="min-h-screen pt-24 pb-12">
+        <DetailPageSkeleton />
       </div>
     )
   }
@@ -530,8 +530,8 @@ function BookingContent() {
               {type === 'HOTEL' && roomTypes.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 animate-slide-up" style={{ opacity: 0, animationDelay: '0.05s' }}>
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                      <Bed size={18} className="text-purple-600" />
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                      <Bed size={18} className="text-slate-700" />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-slate-900">{t('booking.roomType')}</h2>
@@ -787,7 +787,7 @@ function BookingContent() {
                 {type === 'HOTEL' && (item as Hotel).star_rating > 0 && (
                   <div className="absolute top-3 right-3">
                     <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-                      <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                      <Star size={12} className="text-amber-500 fill-amber-500" />
                       {(item as Hotel).star_rating}
                     </span>
                   </div>
@@ -956,8 +956,8 @@ function BookingContent() {
 export default function BookingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+      <div className="min-h-screen pt-24 pb-12">
+        <DetailPageSkeleton />
       </div>
     }>
       <BookingContent />

@@ -106,7 +106,7 @@ export default function RecentlyViewed({
               ) : null}
               {item.rating != null && (
                 <div className="absolute top-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                  <Star size={11} className="text-yellow-500 fill-yellow-500" />
+                  <Star size={11} className="text-amber-500 fill-amber-500" />
                   <span className="text-[11px] font-bold text-slate-900">
                     {item.rating}
                   </span>

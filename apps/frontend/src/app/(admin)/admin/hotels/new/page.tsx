@@ -212,7 +212,7 @@ export default function NewHotelPage() {
                   <textarea
                     value={formData.description_th}
                     onChange={(e) => setFormData({ ...formData, description_th: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function NewHotelPage() {
                   <textarea
                     value={formData.description_en}
                     onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -324,7 +324,7 @@ export default function NewHotelPage() {
                       onChange={(e) => setNewAmenityTh(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity('th'))}
                       placeholder="เพิ่มสิ่งอำนวยความสะดวก"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addAmenity('th')} size="sm">
                       <Plus size={16} />
@@ -359,7 +359,7 @@ export default function NewHotelPage() {
                       onChange={(e) => setNewAmenityEn(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity('en'))}
                       placeholder="Add amenity"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addAmenity('en')} size="sm">
                       <Plus size={16} />
@@ -411,7 +411,7 @@ export default function NewHotelPage() {
                   onChange={(e) => setNewImage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
                   placeholder="หรือใส่ URL รูปภาพ"
-                  className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                  className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                 />
                 <Button type="button" onClick={addImage} size="sm">
                   <Plus size={16} />

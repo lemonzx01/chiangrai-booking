@@ -204,13 +204,13 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
             {/* Badge Section - Star Rating และ Room Type */}
             <div className="flex items-center gap-3 mb-4">
               {/* Star Rating Badge */}
-              <div className="flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-full">
-                <Star size={14} className="text-yellow-500 fill-yellow-500" />
+              <div className="flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-full">
+                <Star size={14} className="text-amber-500 fill-amber-500" />
                 <span className="text-sm font-bold text-slate-900">{hotel.star_rating}</span>
               </div>
 
               {/* Room Type Badge */}
-              <span className="text-sm font-medium text-slate-900 bg-indigo-50 px-3 py-1.5 rounded-full">
+              <span className="text-sm font-medium text-slate-900 bg-slate-100 px-3 py-1.5 rounded-full">
                 {roomType}
               </span>
             </div>

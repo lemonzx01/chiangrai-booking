@@ -26,7 +26,7 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
   const getTypeBadgeColor = (type: PartnerType) => {
     return type === PartnerType.HOTEL
       ? 'bg-blue-100 text-blue-700'
-      : 'bg-purple-100 text-purple-700'
+      : 'bg-slate-200 text-slate-700'
   }
 
   // Filter + Search
@@ -89,7 +89,7 @@ export default function PartnersTable({ partners, hotelCount, driverCount }: Par
               onClick={() => handleFilterType(PartnerType.DRIVER)}
               className={`px-4 py-2 rounded-xl font-medium transition-colors ${
                 filterType === PartnerType.DRIVER
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-slate-900 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >

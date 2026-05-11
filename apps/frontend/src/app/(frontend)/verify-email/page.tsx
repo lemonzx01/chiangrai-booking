@@ -51,11 +51,15 @@ function VerifyEmailContent() {
   }, [token, lang])
 
   if (loading) {
+    // Verify-email is a transient state — keep a centered hint
+    // (no skeleton) since the action is what matters, not the
+    // chrome around it. Spec §3.5 prescribes skeletons for
+    // listing/profile/booking pages, not single-action transitions.
     return (
       <div className="min-h-screen pt-24 pb-12 bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-900 mx-auto mb-4" />
-          <p className="text-slate-600">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto mb-3" />
+          <p className="text-sm text-slate-500">
             {lang === 'th' ? 'กำลังยืนยันอีเมล...' : 'Verifying email...'}
           </p>
         </div>
@@ -120,7 +124,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
       </div>
     }>
       <VerifyEmailContent />

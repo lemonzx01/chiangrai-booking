@@ -149,9 +149,26 @@ function ResetPasswordContent() {
       return
     }
 
-    // ตรวจสอบความยาวรหัสผ่าน
-    if (formData.password.length < 6) {
-      setError(lang === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters')
+    // Mirror the backend's strong-password rule from /register and
+    // /reset-password — same checks as RegisterClient.
+    const pwIssues: string[] = []
+    if (formData.password.length < 8) {
+      pwIssues.push(lang === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'At least 8 characters')
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว' : 'At least 1 uppercase letter')
+    }
+    if (!/[a-z]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว' : 'At least 1 lowercase letter')
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีตัวเลขอย่างน้อย 1 ตัว' : 'At least 1 number')
+    }
+    if (!/[!@#$%^&*]/.test(formData.password)) {
+      pwIssues.push(lang === 'th' ? 'ต้องมีอักขระพิเศษ (!@#$%^&*)' : 'At least 1 special character (!@#$%^&*)')
+    }
+    if (pwIssues.length > 0) {
+      setError(pwIssues.join(' • '))
       return
     }
 
@@ -173,11 +190,18 @@ function ResetPasswordContent() {
         }),
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({} as { error?: string; details?: string[] }))
 
-      // Handle error response
+      // Handle error response — surface server `details[]` so the
+      // user sees which password rule failed instead of a generic error.
       if (!res.ok) {
-        setError(data.error || (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred'))
+        const detailLine = Array.isArray((data as { details?: string[] }).details)
+          ? (data as { details?: string[] }).details!.join(' • ')
+          : ''
+        const baseError =
+          (data as { error?: string }).error ||
+          (lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred')
+        setError(detailLine ? `${baseError}: ${detailLine}` : baseError)
         setLoading(false)
         return
       }
@@ -276,7 +300,7 @@ function ResetPasswordContent() {
                 label={lang === 'th' ? 'รหัสผ่านใหม่' : 'New Password'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder={lang === 'th' ? 'กรอกรหัสผ่านใหม่' : 'Enter new password'}
+                placeholder={lang === 'th' ? 'อย่างน้อย 8 ตัว + พิมพ์ใหญ่/เล็ก/เลข/อักขระ' : 'At least 8 chars · Aa · 0-9 · !@#'}
                 required
                 disabled={loading}
               />

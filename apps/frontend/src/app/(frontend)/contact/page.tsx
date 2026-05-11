@@ -189,7 +189,7 @@ export default function ContactPage() {
               <div className="space-y-6">
                 {/* ที่อยู่ */}
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
@@ -200,7 +200,7 @@ export default function ContactPage() {
 
                 {/* โทรศัพท์ */}
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Phone className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
@@ -211,7 +211,7 @@ export default function ContactPage() {
 
                 {/* อีเมล */}
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Mail className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
@@ -222,7 +222,7 @@ export default function ContactPage() {
 
                 {/* เวลาทำการ */}
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Clock className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>

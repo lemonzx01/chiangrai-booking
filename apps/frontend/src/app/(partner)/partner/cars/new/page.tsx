@@ -119,7 +119,7 @@ export default function NewPartnerCarPage() {
           <div>
             <Link
               href="/partner/cars"
-              className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors mb-4"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors mb-4"
             >
               <ArrowLeft size={18} />
               Back to cars
@@ -175,7 +175,7 @@ export default function NewPartnerCarPage() {
                   <textarea
                     value={formData.description_th}
                     onChange={(event) => setFormData((prev) => ({ ...prev, description_th: event.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none min-h-[110px]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none min-h-[110px]"
                     required
                   />
                 </div>
@@ -186,7 +186,7 @@ export default function NewPartnerCarPage() {
                   <textarea
                     value={formData.description_en}
                     onChange={(event) => setFormData((prev) => ({ ...prev, description_en: event.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none min-h-[110px]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none min-h-[110px]"
                     required
                   />
                 </div>
@@ -234,7 +234,7 @@ export default function NewPartnerCarPage() {
                       type="checkbox"
                       checked={formData.is_active}
                       onChange={(event) => setFormData((prev) => ({ ...prev, is_active: event.target.checked }))}
-                      className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
                     />
                     Active listing
                   </label>
@@ -269,7 +269,7 @@ export default function NewPartnerCarPage() {
                     value={formData.includes_th_text}
                     onChange={(event) => setFormData((prev) => ({ ...prev, includes_th_text: event.target.value }))}
                     placeholder="One item per line, or comma separated"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none min-h-[100px]"
                   />
                 </div>
                 <div>
@@ -280,7 +280,7 @@ export default function NewPartnerCarPage() {
                     value={formData.includes_en_text}
                     onChange={(event) => setFormData((prev) => ({ ...prev, includes_en_text: event.target.value }))}
                     placeholder="One item per line, or comma separated"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none min-h-[100px]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -291,7 +291,7 @@ export default function NewPartnerCarPage() {
                     value={formData.images_text}
                     onChange={(event) => setFormData((prev) => ({ ...prev, images_text: event.target.value }))}
                     placeholder="One URL per line, or comma separated"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none min-h-[110px]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none min-h-[110px]"
                   />
                 </div>
               </div>

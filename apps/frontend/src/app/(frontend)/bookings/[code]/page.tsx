@@ -22,8 +22,8 @@
  */
 
 import { Suspense } from 'react'
-import { Loader2 } from 'lucide-react'
 import BookingDetailClient from './BookingDetailClient'
+import { BookingDetailSkeleton } from '@/components/shared/Skeletons'
 
 interface PageProps {
   params: Promise<{ code: string }>
@@ -47,13 +47,7 @@ export default async function BookingDetailPage({
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-slate-50">
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center py-20 text-slate-400">
-            <Loader2 className="animate-spin" size={28} />
-          </div>
-        }
-      >
+      <Suspense fallback={<BookingDetailSkeleton />}>
         <BookingDetailClient code={code} initialEmail={email || ''} />
       </Suspense>
     </div>

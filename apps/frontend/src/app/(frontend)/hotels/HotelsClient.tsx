@@ -25,6 +25,9 @@ import { Hotel } from '@chiangrai/shared/types'
 
 import HotelCard from '@/components/cards/HotelCard'
 import SearchAutocomplete from '@/components/shared/SearchAutocomplete'
+import DestinationChips from '@/components/shared/DestinationChips'
+import EmptyState from '@/components/ui/EmptyState'
+import { SearchX } from 'lucide-react'
 import FilterSidebar, {
   FilterSidebarSheet,
   ActiveFilterChips,
@@ -197,6 +200,16 @@ export default function HotelsClient({
               onSubmit={(term) => setFilters((f) => ({ ...f, q: term }))}
             />
           </div>
+
+          {/* Destination quick-chips — one-click filter for the
+              most common locations. Toggling re-clicks the same
+              chip clears the filter (handled inside the component). */}
+          <div className="mt-5">
+            <DestinationChips
+              current={filters.location}
+              onChange={(loc) => setFilters((f) => ({ ...f, location: loc }))}
+            />
+          </div>
         </div>
       </div>
 
@@ -240,18 +253,15 @@ export default function HotelsClient({
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl bg-white border border-slate-100 p-16 text-center">
-                <p className="text-slate-500 text-lg">
-                  {t('hotels.noResults') || 'ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="mt-3 text-sm text-slate-900 font-semibold hover:underline"
-                >
-                  ล้างตัวกรองทั้งหมด
-                </button>
-              </div>
+              <EmptyState
+                icon={SearchX}
+                title={t('hotels.noResults') || 'ไม่พบแพ็คเกจที่ตรงกับเงื่อนไข'}
+                description="ลองปรับช่วงราคา ระดับดาว หรือเปลี่ยนปลายทางใหม่ดูครับ"
+                action={{
+                  label: 'ล้างตัวกรองทั้งหมด',
+                  onClick: () => setFilters(EMPTY_FILTERS),
+                }}
+              />
             )}
           </div>
         </div>

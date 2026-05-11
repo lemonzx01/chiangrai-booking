@@ -11,6 +11,8 @@ import CancelBookingModal from '@/components/ui/CancelBookingModal'
 import ModificationRequestModal from '@/components/shared/ModificationRequestModal'
 import ReferralCard from '@/components/shared/ReferralCard'
 import LoyaltyCard from '@/components/shared/LoyaltyCard'
+import ProfileSummary from '@/components/shared/ProfileSummary'
+import { ProfilePageSkeleton } from '@/components/shared/Skeletons'
 import { formatCurrency } from '@chiangrai/shared/utils'
 import type { Booking } from '@chiangrai/shared/types'
 import useLocalize from '@/hooks/useLocalize'
@@ -43,6 +45,7 @@ export default function ProfilePage() {
   // Email verification
   const [sendingVerification, setSendingVerification] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
+  const [verificationError, setVerificationError] = useState<string | null>(null)
 
   // Profile edit form
   const [editName, setEditName] = useState('')
@@ -116,13 +119,37 @@ export default function ProfilePage() {
 
   const handleResendVerification = async () => {
     setSendingVerification(true)
+    setVerificationError(null)
     try {
       const res = await fetch('/api/auth/resend-verification', { method: 'POST' })
       if (res.ok) {
         setVerificationSent(true)
+        return
+      }
+      // Surface the failure so the user knows to retry. 429 is the most
+      // likely case (resend has a per-user throttle on the backend) —
+      // distinguish it so the message is actionable.
+      const data = await res.json().catch(() => ({} as { error?: string }))
+      if (res.status === 429) {
+        setVerificationError(
+          lang === 'th'
+            ? 'ส่งบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่'
+            : 'Too many requests. Please wait a moment and try again.'
+        )
+      } else {
+        setVerificationError(
+          (data as { error?: string }).error ||
+            (lang === 'th'
+              ? 'ไม่สามารถส่งอีเมลยืนยันได้ กรุณาลองใหม่'
+              : 'Could not send verification email. Please try again.')
+        )
       }
     } catch {
-      // ignore
+      setVerificationError(
+        lang === 'th'
+          ? 'เครือข่ายขัดข้อง กรุณาลองใหม่'
+          : 'Network error. Please try again.'
+      )
     } finally {
       setSendingVerification(false)
     }
@@ -255,13 +282,18 @@ export default function ProfilePage() {
     return name.slice(0, 2).toUpperCase()
   }
 
-  // Loading state
+  // Loading state — skeleton matches the eventual layout to
+  // reduce perceived load + prevent layout shift (see spec §3.5).
   if (loading) {
-    return (
-      <div className="min-h-screen pt-24 pb-12 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
-      </div>
-    )
+    return <ProfilePageSkeleton />
+  }
+
+  // 401 path: loadProfile fires router.push('/login') and finally
+  // sets loading=false. Without this guard, the success body
+  // briefly renders with profile=null while the navigation is
+  // still in flight — keep the skeleton up instead.
+  if (!profile && !pageError) {
+    return <ProfilePageSkeleton />
   }
 
   // Error state - server error (not auth error)
@@ -300,17 +332,31 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 sm:px-8 mt-8">
+        {/* Summary cards lead the page — counters are what users
+            care about most ("am I tracking anything?") so they
+            sit above the account chrome. (spec-polish §3.4) */}
+        <ProfileSummary
+          activeBookings={
+            bookings.filter((b) =>
+              ['PENDING', 'CONFIRMED', 'PAID'].includes(b.status)
+            ).length
+          }
+          enabled={!!profile}
+        />
+
         {/* User Info Card with Avatar */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-4">
             {/* Avatar with initials */}
-            <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center text-white text-xl font-bold">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-900 rounded-full flex items-center justify-center text-white text-lg sm:text-xl font-bold flex-shrink-0">
               {getInitials(profile?.name || '')}
             </div>
 
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-slate-900">{profile?.name}</h2>
-              <p className="text-slate-500">{profile?.email}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg sm:text-xl font-display font-medium text-slate-900 tracking-tight truncate">
+                {profile?.name}
+              </h2>
+              <p className="text-sm text-slate-500 truncate">{profile?.email}</p>
             </div>
 
             {/* Logout Button */}
@@ -325,7 +371,7 @@ export default function ProfilePage() {
               ) : (
                 <LogOut className="w-4 h-4" />
               )}
-              {lang === 'th' ? 'ออกจากระบบ' : 'Logout'}
+              <span className="hidden sm:inline">{lang === 'th' ? 'ออกจากระบบ' : 'Logout'}</span>
             </Button>
           </div>
         </div>
@@ -342,6 +388,11 @@ export default function ProfilePage() {
                 <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
                   <CheckCircle className="w-3 h-3" />
                   {lang === 'th' ? 'ส่งอีเมลยืนยันแล้ว กรุณาตรวจสอบ inbox' : 'Verification email sent. Check your inbox.'}
+                </p>
+              )}
+              {verificationError && (
+                <p className="text-xs text-red-600 mt-1">
+                  {verificationError}
                 </p>
               )}
             </div>
@@ -363,7 +414,7 @@ export default function ProfilePage() {
         )}
 
         {/* Profile Edit Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3 mb-6">
             <User className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
@@ -447,7 +498,7 @@ export default function ProfilePage() {
 
         {/* Password Change Section - hidden for Google-only users */}
         {profile?.has_password && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
             <button
               onClick={() => setShowPasswordSection(!showPasswordSection)}
               className="flex items-center justify-between w-full"
@@ -515,7 +566,7 @@ export default function ProfilePage() {
         )}
 
         {/* Account Info */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
@@ -556,13 +607,15 @@ export default function ProfilePage() {
         </div>
 
         {/* Loyalty points — phase 1 counter + history */}
-        <LoyaltyCard />
+        <div id="loyalty" className="scroll-mt-24">
+          <LoyaltyCard />
+        </div>
 
         {/* Referral Program Card — share code, see funnel */}
         <ReferralCard />
 
         {/* Bookings Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-6">
+        <div id="bookings" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 scroll-mt-24">
           <div className="flex items-center gap-3 mb-6">
             <BookOpen className="w-6 h-6 text-slate-900" />
             <h2 className="text-xl font-bold text-slate-900">
@@ -585,7 +638,7 @@ export default function ProfilePage() {
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="border border-slate-200 rounded-xl p-4 hover:border-slate-200 transition-colors"
+                  className="border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -629,7 +682,7 @@ export default function ProfilePage() {
                         <>
                           <button
                             onClick={() => setModifyingBooking(booking)}
-                            className="px-3 py-1.5 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg hover:bg-indigo-50 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
                           >
                             {lang === 'th' ? 'ขอเลื่อนวัน' : 'Reschedule'}
                           </button>

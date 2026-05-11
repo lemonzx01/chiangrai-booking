@@ -164,7 +164,7 @@ export default function PayoutsClient({ partner }: { partner: PartnerProfile }) 
                   setView({ kind: 'loading' })
                   void refresh()
                 }}
-                className="mt-3 text-sm font-semibold text-indigo-600 hover:underline"
+                className="mt-3 text-sm font-semibold text-slate-900 hover:underline"
               >
                 ลองใหม่
               </button>
@@ -217,8 +217,8 @@ function StatusCard({ view }: { view: ViewState }) {
         }
       case 'loading':
         return {
-          icon: <Loader2 size={20} className="animate-spin text-indigo-500" />,
-          bg: 'bg-indigo-50 border-indigo-100',
+          icon: <Loader2 size={20} className="animate-spin text-slate-700" />,
+          bg: 'bg-slate-50 border-slate-200',
           label: 'กำลังตรวจสอบ',
           desc: 'รอผลจาก Stripe...',
         }
@@ -287,7 +287,7 @@ function ActionRow({
         className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
           secondary
             ? 'bg-amber-500 hover:bg-amber-600 text-white'
-            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            : 'bg-slate-900 hover:bg-slate-800 text-white'
         }`}
       >
         {busy ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}

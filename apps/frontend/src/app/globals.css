@@ -3,8 +3,6 @@
 @tailwind utilities;
 
 /* React DatePicker */
-@import 'react-datepicker/dist/react-datepicker.css';
-@import '../styles/datepicker.css';
 
 :root {
   --background: #fafbfc;
@@ -41,7 +39,7 @@ body {
 
 /* Selection */
 ::selection {
-  background-color: #4f46e5;
+  background-color: #0f172a;
   color: white;
 }
 
@@ -114,8 +112,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45); }
-  50% { box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 23, 42, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(15, 23, 42, 0); }
 }
 
 @keyframes ripple {
@@ -178,11 +176,6 @@ body {
     display: none;
   }
 
-  /* Gradient text */
-  .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600;
-  }
-
   /* Glass effect */
   .glass {
     @apply bg-white/80 backdrop-blur-md;
@@ -213,9 +206,10 @@ body {
     transform: scale(1.03);
   }
 
-  /* Inline focus ring — for buttons inside dialogs / search dropdowns */
+  /* Inline focus ring — slate keyline keeps editorial palette
+     (spec §1: no indigo). Still high-contrast on white surfaces. */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
   }
 }
 
@@ -271,19 +265,19 @@ select option {
 
 select option:hover {
   background-color: #f1f5f9;
-  color: #4f46e5;
+  color: #0f172a;
 }
 
 select option:checked,
 select option:focus {
-  background-color: #4f46e5;
+  background-color: #0f172a;
   color: white;
   font-weight: 600;
 }
 
 /* For WebKit browsers (Chrome, Safari) - Better dropdown appearance */
 select option:checked {
-  background-color: #4f46e5 !important;
+  background-color: #0f172a !important;
   color: white !important;
 }
 
@@ -300,11 +294,6 @@ select option:hover:not(:checked) {
 .btn-loading::after {
   content: '';
   @apply ml-2 inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin;
-}
-
-/* Additional DatePicker positioning */
-.react-datepicker-popper[data-placement^="bottom"] {
-  padding-top: 8px !important;
 }
 
 /* Custom Dropdown Styles */

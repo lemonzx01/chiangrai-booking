@@ -25,6 +25,7 @@
 // ============================================================
 
 import { getBackendUrl } from '@/lib/api'
+import { cookies } from 'next/headers'
 
 /** Supabase client สำหรับ Admin */
 
@@ -116,9 +117,12 @@ interface BookingRow {
  * @returns {Promise<BookingRow[]>} รายการการจอง
  */
 async function getBookings(): Promise<BookingRow[]> {
-  // ดึงผ่าน backend API
+  const cookieStore = await cookies()
+  const cookieHeader = cookieStore.getAll().map((c) => `${c.name}=${c.value}`).join('; ')
+
   const res = await fetch(`${getBackendUrl()}/api/bookings`, {
     cache: 'no-store',
+    headers: { cookie: cookieHeader },
   })
 
   const json = (await res.json()) as { data?: BookingRow[]; error?: string }

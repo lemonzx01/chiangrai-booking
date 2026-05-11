@@ -60,7 +60,7 @@ export default function SelectDropdown({
               type="button"
               onClick={() => { onChange(String(opt.value)); setOpen(false) }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                String(value) === String(opt.value) ? 'bg-indigo-50 text-slate-900' : 'hover:bg-slate-50 text-slate-700'
+                String(value) === String(opt.value) ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-700'
               }`}
             >
               {opt.dot && <span className={`w-2.5 h-2.5 rounded-full ${opt.dot}`} />}

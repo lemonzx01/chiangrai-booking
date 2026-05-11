@@ -540,7 +540,7 @@ export function ActiveFilterChips({
                   : '',
             })
           }
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-slate-200 text-xs font-semibold text-slate-900 hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-900 hover:bg-slate-200"
         >
           {c.label}
           <X size={12} />

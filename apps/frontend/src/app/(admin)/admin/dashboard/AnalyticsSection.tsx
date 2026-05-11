@@ -134,7 +134,7 @@ function SignupTrendCard({
           return (
             <div
               key={d.date}
-              className="flex-1 bg-gradient-to-t from-indigo-200 to-indigo-500 rounded-t hover:from-indigo-300 hover:to-slate-900 transition-colors relative group"
+              className="flex-1 bg-gradient-to-t from-slate-300 to-slate-700 rounded-t hover:from-slate-400 hover:to-slate-900 transition-colors relative group"
               style={{ height: `${Math.max(heightPct, 4)}%` }}
               title={`${d.date}: ${d.count} signup${d.count === 1 ? '' : 's'}`}
             >
@@ -336,8 +336,8 @@ function CouponBreakdownCard({
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Tag size={18} className="text-purple-600" />
+          <div className="p-2 bg-slate-100 rounded-lg">
+            <Tag size={18} className="text-slate-700" />
           </div>
           <h3 className="font-bold text-slate-900">Coupons</h3>
         </div>

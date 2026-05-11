@@ -64,8 +64,9 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(
           // สไตล์พื้นฐาน: พื้นขาว ขอบโค้ง เงาเบา
           'bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden',
-          // hover effect: ยกขึ้นและเงาเข้มขึ้น
-          hover && 'transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+          // hover: border darkens — matches `card-premium` recipe (no
+          // translate-y / colored shadow / scale, see globals.css L196)
+          hover && 'transition-colors duration-200 hover:border-slate-300',
           className
         )}
         {...props}

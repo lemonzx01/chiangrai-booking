@@ -80,8 +80,8 @@ function AuthCallbackContent() {
           </>
         ) : (
           <>
-            <Loader2 className="w-12 h-12 animate-spin text-slate-900 mx-auto mb-4" />
-            <p className="text-slate-600">กำลังเข้าสู่ระบบ...</p>
+            <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto mb-3" />
+            <p className="text-sm text-slate-500">กำลังเข้าสู่ระบบ...</p>
           </>
         )}
       </div>
@@ -93,7 +93,7 @@ export default function AuthCallbackPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-12 h-12 animate-spin text-slate-900" />
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
       </div>
     }>
       <AuthCallbackContent />

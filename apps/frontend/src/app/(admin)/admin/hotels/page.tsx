@@ -25,6 +25,7 @@
 // ============================================================
 
 import { getBackendUrl } from '@/lib/api'
+import { cookies } from 'next/headers'
 
 /** Supabase client สำหรับ Admin */
 
@@ -66,8 +67,12 @@ export const metadata = {
  * @returns {Promise<Hotel[]>} รายการโรงแรม
  */
 async function getHotels(): Promise<Hotel[]> {
+  const cookieStore = await cookies()
+  const cookieHeader = cookieStore.getAll().map((c) => `${c.name}=${c.value}`).join('; ')
+
   const res = await fetch(`${getBackendUrl()}/api/hotels`, {
     cache: 'no-store',
+    headers: { cookie: cookieHeader },
   })
 
   const json = (await res.json()) as { data?: Hotel[]; error?: string }

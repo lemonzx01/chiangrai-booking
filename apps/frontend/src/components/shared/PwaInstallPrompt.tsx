@@ -130,11 +130,11 @@ export default function PwaInstallPrompt() {
         className="fixed inset-x-0 bottom-0 z-40 p-3 sm:p-4 md:hidden"
       >
         <div className="max-w-md mx-auto bg-slate-900 text-white rounded-2xl shadow-2xl p-4 flex items-start gap-3">
-          <Share2 size={20} className="text-indigo-300 flex-shrink-0 mt-0.5" />
+          <Share2 size={20} className="text-slate-300 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0 text-sm">
             <p className="font-bold">ติดตั้งเป็นแอป</p>
             <p className="text-slate-300 text-xs mt-0.5">
-              แตะ <Share2 size={11} className="inline text-indigo-300" />{' '}
+              แตะ <Share2 size={11} className="inline text-slate-300" />{' '}
               ด้านล่าง แล้วเลือก &ldquo;Add to Home Screen&rdquo;
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function PwaInstallPrompt() {
       className="fixed inset-x-0 bottom-0 z-40 p-3 sm:p-4 md:bottom-6 md:right-6 md:left-auto md:max-w-sm"
     >
       <div className="max-w-md mx-auto md:mx-0 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 flex items-start gap-3">
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
           <Download size={18} className="text-white" />
         </div>
         <div className="flex-1 min-w-0">

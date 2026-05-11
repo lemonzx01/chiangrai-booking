@@ -40,16 +40,10 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
-import { ArrowRight, Star, MapPin, Users, Search, Calendar, Minus, Plus } from 'lucide-react'
+import { ArrowRight, MapPin, Users, Search, Calendar, Minus, Plus } from 'lucide-react'
 
 /** Type definitions */
 import { Hotel, Car } from '@chiangrai/shared/types'
-
-/** Utility functions */
-import { formatCurrency } from '@chiangrai/shared/utils'
-
-/** Custom hook สำหรับดึงข้อมูลตามภาษา */
-import useLocalize from '@/hooks/useLocalize'
 
 /** UI Components */
 import DateRangePicker from '@/components/ui/DateRangePicker'
@@ -57,6 +51,9 @@ import CustomSelect from '@/components/ui/CustomSelect'
 import RecentlyViewed from '@/components/shared/RecentlyViewed'
 import TrustSignals from '@/components/shared/TrustSignals'
 import Reveal from '@/components/shared/Reveal'
+import HowItWorks from '@/components/shared/HowItWorks'
+import HotelCard from '@/components/cards/HotelCard'
+import CarCard from '@/components/cards/CarCard'
 
 // ============================================================
 // Type Definitions
@@ -92,9 +89,6 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
   // ----------------------------------------------------------
   /** Hook สำหรับ translation */
   const { t, i18n } = useTranslation()
-
-  /** Hook สำหรับดึงข้อมูลตามภาษา */
-  const { getField } = useLocalize()
 
   /** Hook สำหรับ navigation */
   const router = useRouter()
@@ -185,7 +179,13 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
               The serif italic on line 2 is the single biggest
               "this was designed by a human" signal on the page.
               Falls back to system Thai serif for Thai locales. */}
-          <h1 className="text-5xl md:text-6xl text-white leading-[1.05] mb-5 animate-slide-up max-w-3xl tracking-tight">
+          {/* Hero stack uses a 80ms stagger so the eye reads the
+              hierarchy (title → rule → subtitle → CTA → trust → search)
+              instead of all six elements popping in at once. */}
+          <h1
+            className="text-5xl md:text-6xl text-white leading-[1.05] mb-5 animate-slide-up max-w-3xl tracking-tight"
+            style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
+          >
             <span className="font-bold">{t('home.hero.titleLine1')}</span>
             <br />
             <span className="font-display font-light italic text-white/85">
@@ -194,33 +194,55 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
           </h1>
 
           {/* Thin accent rule — small typographic signature */}
-          <div className="h-px w-16 bg-white/40 mb-6 animate-slide-up" />
+          <div
+            className="h-px w-16 bg-white/40 mb-6 animate-slide-up"
+            style={{ animationDelay: '80ms', animationFillMode: 'backwards' }}
+          />
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-white/80 max-w-xl mb-10 animate-slide-up font-light leading-relaxed">
+          <p
+            className="text-lg md:text-xl text-white/80 max-w-xl mb-10 animate-slide-up font-light leading-relaxed"
+            style={{ animationDelay: '160ms', animationFillMode: 'backwards' }}
+          >
             {t('home.hero.subtitle')}
           </p>
 
           {/* Single CTA — stay simple */}
-          <div className="flex flex-col sm:flex-row gap-3 animate-slide-up mb-10">
+          <div
+            className="flex flex-col sm:flex-row gap-3 animate-slide-up mb-6"
+            style={{ animationDelay: '240ms', animationFillMode: 'backwards' }}
+          >
             <Link
               href="/hotels"
-              className="inline-flex items-center justify-center px-7 py-3.5 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 transition-all"
+              className="inline-flex items-center justify-center px-7 py-3.5 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 hover:scale-[1.02] active:scale-95 transition-transform"
             >
               {t('navbar.bookPackage')}
             </Link>
             <Link
               href="/cars"
-              className="inline-flex items-center justify-center px-7 py-3.5 text-white border border-white/30 rounded-full font-semibold hover:bg-white/10 transition-all"
+              className="inline-flex items-center justify-center px-7 py-3.5 text-white border border-white/30 rounded-full font-semibold hover:bg-white/10 hover:scale-[1.02] active:scale-95 transition-transform"
             >
               {t('navbar.cars')}
             </Link>
           </div>
 
+          {/* Trust pills row — quick reassurance under the CTA. Uses
+              the same TrustSignals component as the detail/checkout
+              pages so the messaging stays consistent. */}
+          <div
+            className="animate-slide-up mb-10"
+            style={{ animationDelay: '320ms', animationFillMode: 'backwards' }}
+          >
+            <TrustSignals variant="compact" />
+          </div>
+
           {/* ----------------------------------------------------------
               Search Box
               ---------------------------------------------------------- */}
-          <div className="mt-8 sm:mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-20">
+          <div
+            className="mt-8 sm:mt-14 max-w-5xl mx-auto animate-slide-up px-4 overflow-visible relative z-20"
+            style={{ animationDelay: '400ms', animationFillMode: 'backwards' }}
+          >
             <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-visible border border-white/50">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] gap-0 overflow-visible items-stretch">
                 {/* ============================================================
@@ -282,19 +304,21 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                       {/* ปุ่มลด */}
                       <button
                         onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed font-bold"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed font-bold"
                         disabled={guests <= 1}
+                        aria-label={lang === 'th' ? 'ลดจำนวนผู้เข้าพัก' : 'Decrease guests'}
                       >
                         <Minus size={16} />
                       </button>
                       {/* จำนวน */}
-                      <span className="text-lg text-slate-900 font-bold min-w-[32px] text-center">
+                      <span className="text-lg text-slate-900 font-bold min-w-[32px] text-center" aria-live="polite">
                         {guests}
                       </span>
                       {/* ปุ่มเพิ่ม */}
                       <button
                         onClick={() => setGuests(guests + 1)}
-                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center font-bold"
+                        className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-all active:scale-90 flex items-center justify-center font-bold"
+                        aria-label={lang === 'th' ? 'เพิ่มจำนวนผู้เข้าพัก' : 'Increase guests'}
                       >
                         <Plus size={16} />
                       </button>
@@ -307,7 +331,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     ============================================================ */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-slate-900 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-slate-800 transition-all active:scale-95 shadow-lg hover:shadow-xl shadow-indigo-600/30 min-h-[60px] sm:min-h-[70px]"
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-slate-900 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-slate-800 transition-all active:scale-95 shadow-md hover:shadow-lg min-h-[60px] sm:min-h-[70px]"
                 >
                   <Search size={20} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('home.search.button')}</span>
@@ -340,46 +364,12 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             </div>
           </Reveal>
 
-          {/* Hotels Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Hotels Grid — uses the shared HotelCard component
+              so the home page stays in lockstep with the listing
+              page. Editing card design once propagates everywhere. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {hotels.map((hotel) => (
-              <Link key={hotel.id} href={`/hotels/${hotel.id}`} className="group block">
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-colors duration-200 hover:border-slate-300">
-                  <div className="relative h-52 overflow-hidden">
-                    <Image
-                      src={hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945'}
-                      alt={getField(hotel, 'name')}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 px-2 py-1 rounded-full">
-                      <Star size={11} className="text-amber-500 fill-amber-500" />
-                      <span className="text-xs font-semibold text-slate-900">{hotel.star_rating}</span>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2 uppercase tracking-wide">
-                      <MapPin size={11} />
-                      <span>{getField(hotel, 'location')}</span>
-                    </div>
-                    <h3 className="font-display text-base font-medium text-slate-900 mb-3 line-clamp-1 tracking-tight">
-                      {getField(hotel, 'name')}
-                    </h3>
-                    <div className="flex items-end justify-between">
-                      <div className="flex items-center gap-1.5 text-slate-500 text-xs">
-                        <Users size={12} />
-                        <span>{hotel.max_guests} {t('common.guests')}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-base font-semibold text-slate-900 tracking-tight">
-                          {formatCurrency(hotel.price_per_night)}
-                        </span>
-                        <span className="text-slate-400 text-xs ml-0.5">{t('common.perNight')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+              <HotelCard key={hotel.id} hotel={hotel} />
             ))}
           </div>
 
@@ -419,41 +409,10 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
               </div>
             </Reveal>
 
-            {/* Cars Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Cars Grid — same shared CarCard as /cars listing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {cars.map((car) => (
-                <Link key={car.id} href={`/cars/${car.id}`} className="group block">
-                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-colors duration-200 hover:border-slate-300 flex flex-col md:flex-row">
-                    <div className="relative h-40 md:h-auto md:w-5/12 overflow-hidden">
-                      <Image
-                        src={car.images?.[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70'}
-                        alt={getField(car, 'name')}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                      />
-                    </div>
-                    <div className="p-5 md:w-7/12 flex flex-col justify-center">
-                      <span className="text-xs text-slate-500 uppercase tracking-wide mb-2">
-                        {getField(car, 'car_type')}
-                      </span>
-                      <h3 className="font-display text-lg font-medium text-slate-900 mb-4 tracking-tight">
-                        {getField(car, 'name')}
-                      </h3>
-                      <div className="flex items-end justify-between">
-                        <div className="flex items-center gap-1.5 text-slate-500 text-xs">
-                          <Users size={12} />
-                          <span>{car.max_passengers} {t('common.passengers')}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-lg font-semibold text-slate-900 tracking-tight">
-                            {formatCurrency(car.price_per_day)}
-                          </span>
-                          <span className="text-slate-400 text-xs ml-0.5">{t('common.perDay')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <CarCard key={car.id} car={car} />
               ))}
             </div>
           </div>
@@ -461,10 +420,18 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
       )}
 
       {/* ============================================================
+          How It Works — three-step explainer. Sits between the
+          inventory previews and the trust grid so it answers
+          "what happens after I click book?" before the user scrolls
+          to the trust signals.
+          ============================================================ */}
+      <HowItWorks />
+
+      {/* ============================================================
           Trust Signals — reassurance row above the fold of the
           last screenful, before the user scrolls into the footer.
           ============================================================ */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <Reveal>
             <div className="text-center mb-8 sm:mb-10">

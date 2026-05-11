@@ -23,6 +23,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Car } from '@chiangrai/shared/types'
 import CarCard from '@/components/cards/CarCard'
 import SearchAutocomplete from '@/components/shared/SearchAutocomplete'
+import DestinationChips from '@/components/shared/DestinationChips'
+import EmptyState from '@/components/ui/EmptyState'
+import { SearchX } from 'lucide-react'
 import FilterSidebar, {
   FilterSidebarSheet,
   ActiveFilterChips,
@@ -48,12 +51,13 @@ interface CarsClientProps {
   allCarTypes?: string[]
 }
 
+// Cars don't carry star/rating in their schema, so we only honor sorts
+// the comparator below actually implements. Hotels' sort set lives in
+// HotelsClient where star/rating are real fields.
 const VALID_SORTS: ReadonlySet<FilterState['sort']> = new Set([
   'newest',
   'price_asc',
   'price_desc',
-  'star_desc',
-  'rating_desc',
 ])
 function coerceSort(s?: string): FilterState['sort'] {
   return s && VALID_SORTS.has(s as FilterState['sort']) ? (s as FilterState['sort']) : 'newest'
@@ -185,6 +189,16 @@ export default function CarsClient({
               onSubmit={(term) => setFilters((f) => ({ ...f, q: term }))}
             />
           </div>
+
+          {/* Destination quick-chips — same parity as /hotels.
+              Cars have no location field, so chips set the search
+              query instead, acting as a popular-search shortcut. */}
+          <div className="mt-5">
+            <DestinationChips
+              current={filters.q}
+              onChange={(loc) => setFilters((f) => ({ ...f, q: loc }))}
+            />
+          </div>
         </div>
       </div>
 
@@ -204,7 +218,7 @@ export default function CarsClient({
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-slate-600 font-medium">
                 {t('common.found')}{' '}
-                <span className="text-emerald-600 font-semibold">{visible.length}</span>{' '}
+                <span className="text-slate-900 font-semibold">{visible.length}</span>{' '}
                 {t('common.cars') || 'รายการ'}
               </p>
               <MobileFilterTrigger
@@ -222,18 +236,15 @@ export default function CarsClient({
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl bg-white border border-slate-100 p-16 text-center">
-                <p className="text-slate-500 text-lg">
-                  {t('cars.noResults') || 'ไม่พบรถที่ตรงกับเงื่อนไข'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="mt-3 text-sm text-emerald-600 font-semibold hover:underline"
-                >
-                  ล้างตัวกรองทั้งหมด
-                </button>
-              </div>
+              <EmptyState
+                icon={SearchX}
+                title={t('cars.noResults') || 'ไม่พบรถที่ตรงกับเงื่อนไข'}
+                description="ลองปรับช่วงราคา จำนวนที่นั่ง หรือเปลี่ยนประเภทรถใหม่ดูครับ"
+                action={{
+                  label: 'ล้างตัวกรองทั้งหมด',
+                  onClick: () => setFilters(EMPTY_FILTERS),
+                }}
+              />
             )}
           </div>
         </div>

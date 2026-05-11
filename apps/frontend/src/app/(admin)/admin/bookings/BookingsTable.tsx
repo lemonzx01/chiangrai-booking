@@ -158,7 +158,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
         <button
           onClick={() => handleFilter('ALL')}
           className={`bg-white rounded-2xl border shadow-sm p-4 text-left transition-colors ${
-            filterStatus === 'ALL' ? 'border-indigo-400 ring-2 ring-indigo-200' : 'border-slate-100'
+            filterStatus === 'ALL' ? 'border-slate-400 ring-2 ring-slate-200' : 'border-slate-100'
           }`}
         >
           <p className="text-xs text-slate-500 mb-1">ทั้งหมด</p>

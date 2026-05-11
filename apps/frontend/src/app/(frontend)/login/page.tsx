@@ -47,6 +47,21 @@ import { LogIn, Loader2, CheckCircle } from 'lucide-react'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import BrandPanel from '@/components/shared/BrandPanel'
+
+/**
+ * Only allow internal, single-slash paths as redirect targets.
+ * Blocks `https://evil.com`, `//evil.com`, and backslash tricks
+ * that some browsers normalize to `/`. Returns null when the
+ * input cannot safely be used as a redirect.
+ */
+function safeInternalPath(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/')) return null
+  if (raw.startsWith('//') || raw.startsWith('/\\')) return null
+  if (raw.includes('\\')) return null
+  return raw
+}
 
 // ============================================================
 // Google Login Button Component
@@ -213,7 +228,7 @@ function LoginContent() {
       try {
         const res = await fetch('/api/auth/me')
         if (res.ok) {
-          const redirect = searchParams.get('redirect') || '/'
+          const redirect = safeInternalPath(searchParams.get('redirect')) || '/'
           router.push(redirect)
         } else {
           // token หมดอายุ - ลบ logged_in cookie
@@ -291,14 +306,14 @@ function LoginContent() {
         // Admin ไป Dashboard (ใช้ window.location เพื่อ full refresh)
         window.location.href = '/admin/dashboard'
       } else if (data.user?.role === 'partner') {
-        // Partner ไปหน้า dashboard ของพาร์ทเนอร์
-        const redirect = searchParams.get('redirect')
-        window.location.href = redirect?.startsWith('/partner') ? redirect : '/partner/dashboard'
+        // Partner ไปหน้า dashboard ของพาร์ทเนอร์ — restrict to /partner/*
+        const redirect = safeInternalPath(searchParams.get('redirect'))
+        window.location.href =
+          redirect && /^\/partner(\/|$)/.test(redirect) ? redirect : '/partner/dashboard'
       } else {
         // User ไปหน้าแรก หรือ redirect URL (ใช้ full page reload เพื่อให้ Navbar re-mount)
-        const redirect = searchParams.get('redirect') || '/'
+        const redirect = safeInternalPath(searchParams.get('redirect')) || '/'
         window.location.href = redirect
-        router.refresh()
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -313,32 +328,44 @@ function LoginContent() {
   return (
     <div className="min-h-screen pt-24 pb-12 bg-slate-50">
       {/* ============================================================
-          Header Section - Gradient Background
+          Two-column desktop / single-column mobile.
+          - Left  (lg+): editorial brand panel with image + benefits
+          - Right       : the actual auth form (unchanged logic)
           ============================================================ */}
-      <div className="bg-white border-b border-slate-200 py-12">
-        <div className="max-w-md mx-auto px-6 sm:px-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-3 tracking-tight">
-            {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
-          </h1>
-          <p className="text-base text-slate-500 font-light">
-            {lang === 'th' ? 'เข้าสู่ระบบเพื่อดูประวัติการจอง' : 'Login to view your booking history'}
-          </p>
-        </div>
-      </div>
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-4">
+        <BrandPanel variant="login" />
 
-      {/* ============================================================
-          Login Form Card
-          ============================================================ */}
-      <div className="max-w-md mx-auto px-6 sm:px-8 mt-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-              <LogIn className="w-8 h-8 text-slate-900" />
-            </div>
+        <div className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto">
+          {/* Mobile-only headline (desktop has the brand panel) */}
+          <div className="text-center lg:hidden mb-6">
+            <h1 className="text-3xl md:text-4xl font-display font-medium text-slate-900 mb-2 tracking-tight">
+              {lang === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
+            </h1>
+            <p className="text-sm text-slate-500 font-light">
+              {lang === 'th' ? 'เข้าสู่ระบบเพื่อดูประวัติการจอง' : 'Login to view your booking history'}
+            </p>
           </div>
 
-          {/* Success Message - แสดงเมื่อสมัครสมาชิกสำเร็จ */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-7 sm:p-8">
+            {/* Desktop heading inside the form card */}
+            <div className="hidden lg:block mb-6">
+              <h1 className="text-2xl font-display font-medium text-slate-900 tracking-tight mb-1">
+                {lang === 'th' ? 'เข้าสู่ระบบ' : 'Sign in'}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {lang === 'th' ? 'เข้าสู่ระบบเพื่อดูประวัติการจอง' : 'Welcome back — enter your details'}
+              </p>
+            </div>
+
+            {/* Mobile-only icon as the visual anchor (desktop has the
+                brand panel for that) */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center">
+                <LogIn className="w-7 h-7 text-slate-900" />
+              </div>
+            </div>
+
+            {/* Success Message - แสดงเมื่อสมัครสมาชิกสำเร็จ */}
           {showRegistered && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
@@ -428,17 +455,18 @@ function LoginContent() {
             lang={lang}
           />
 
-          {/* Links */}
-          <div className="mt-6 space-y-3 text-center">
-            {/* Link ไปหน้า Register */}
-            <p className="text-slate-500">
-              {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
-              <Link href="/register" className="text-slate-900 font-semibold hover:underline">
-                {lang === 'th' ? 'สมัครสมาชิก' : 'Register'}
-              </Link>
-            </p>
-          </div>
+            {/* Links */}
+            <div className="mt-6 space-y-3 text-center">
+              {/* Link ไปหน้า Register */}
+              <p className="text-slate-500">
+                {lang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?"}{' '}
+                <Link href="/register" className="text-slate-900 font-semibold hover:underline">
+                  {lang === 'th' ? 'สมัครสมาชิก' : 'Register'}
+                </Link>
+              </p>
+            </div>
 
+          </div>
         </div>
       </div>
     </div>
@@ -462,7 +490,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
       </div>
     }>
       <LoginContent />

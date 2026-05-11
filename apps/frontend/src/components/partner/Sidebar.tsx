@@ -122,7 +122,7 @@ export default function PartnerSidebar() {
           onClick={() => setIsMobileOpen(false)}
         >
           {/* Logo Icon */}
-          <div className="p-2 bg-indigo-600 rounded-xl">
+          <div className="p-2 bg-slate-900 rounded-xl">
             <Compass size={24} />
           </div>
           {/* Brand Name */}
@@ -146,7 +146,7 @@ export default function PartnerSidebar() {
                   onClick={() => setIsMobileOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                     isActive
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-slate-900 text-white'
                       : 'text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >

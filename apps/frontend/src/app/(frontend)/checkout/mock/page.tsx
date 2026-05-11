@@ -41,6 +41,20 @@ function MockCheckoutInner() {
     try {
       // Synthetic Stripe webhook event — the mock backend's
       // stripe.webhooks.constructEvent simply parses the body as JSON.
+      // booking_id MUST be present in metadata: the webhook handler
+      // keys booking-status updates off it (real Stripe puts metadata
+      // on the session; here it rides through the URL params).
+      const bookingId = searchParams.get('booking_id') || ''
+      const originalAmount = searchParams.get('original_amount') || ''
+      const discountAmount = searchParams.get('discount_amount') || ''
+      const couponCode = searchParams.get('coupon_code') || ''
+
+      const metadata: Record<string, string> = { booking_code: bookingCode }
+      if (bookingId) metadata.booking_id = bookingId
+      if (originalAmount) metadata.original_amount = originalAmount
+      if (discountAmount) metadata.discount_amount = discountAmount
+      if (couponCode) metadata.coupon_code = couponCode
+
       const event = {
         id: `evt_mock_${Date.now()}`,
         type: 'checkout.session.completed',
@@ -51,9 +65,7 @@ function MockCheckoutInner() {
             payment_status: 'paid',
             status: 'complete',
             payment_intent: `pi_mock_${Date.now()}`,
-            metadata: {
-              booking_code: bookingCode,
-            },
+            metadata,
             customer_email: searchParams.get('email') || null,
             amount_total: amount * 100,
             currency: currency.toLowerCase(),

@@ -311,7 +311,7 @@ export default function CouponsManager({
                   }
                   required
                   placeholder="SUMMER2026"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                 />
               </div>
 
@@ -326,7 +326,7 @@ export default function CouponsManager({
                     setForm({ ...form, description: e.target.value })
                   }
                   placeholder="ส่วนลดต้อนรับฤดูร้อน"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function CouponsManager({
                         discount_type: e.target.value as 'PERCENT' | 'FIXED',
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   >
                     <option value="PERCENT">เปอร์เซ็นต์ (%)</option>
                     <option value="FIXED">จำนวนเงิน (฿)</option>
@@ -363,7 +363,7 @@ export default function CouponsManager({
                       setForm({ ...form, discount_value: e.target.value })
                     }
                     required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
               </div>
@@ -381,7 +381,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, min_spend: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
 
@@ -398,7 +398,7 @@ export default function CouponsManager({
                       setForm({ ...form, max_discount: e.target.value })
                     }
                     placeholder="ไม่จำกัด"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function CouponsManager({
                       applies_to: e.target.value as 'ALL' | 'HOTEL' | 'CAR',
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                 >
                   <option value="ALL">ทุกประเภท</option>
                   <option value="HOTEL">โรงแรมเท่านั้น</option>
@@ -434,7 +434,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, starts_at: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
 
@@ -448,7 +448,7 @@ export default function CouponsManager({
                     onChange={(e) =>
                       setForm({ ...form, expires_at: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
                   />
                 </div>
               </div>

@@ -12,6 +12,7 @@ import { ChevronDown, Loader2 } from 'lucide-react'
 import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
 import { useToast } from '@/components/shared/Toast'
 import { useConfirm } from '@/components/shared/ConfirmDialog'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Constants
@@ -75,10 +76,9 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
 
       setLoading(true)
       try {
-        const res = await fetch(`/api/bookings/${bookingCode}/cancel`, {
+        const res = await apiFetch(`/api/bookings/${bookingCode}/cancel`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reason: 'ยกเลิกโดย Admin' }),
+          body: { reason: 'ยกเลิกโดย Admin' },
         })
         if (res.ok) {
           toast.success('ยกเลิกการจองสำเร็จ')

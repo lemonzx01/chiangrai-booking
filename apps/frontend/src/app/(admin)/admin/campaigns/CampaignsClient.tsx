@@ -365,7 +365,7 @@ export default function CampaignsClient({
             role="status"
             className="rounded-xl bg-slate-100 border border-slate-200 p-4 text-sm"
           >
-            <div className="flex items-center gap-2 text-indigo-800 font-bold mb-1">
+            <div className="flex items-center gap-2 text-slate-900 font-bold mb-1">
               <Users size={14} />
               จะส่งถึง {previewResult.count.toLocaleString()} คน
             </div>

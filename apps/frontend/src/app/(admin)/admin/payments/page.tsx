@@ -309,7 +309,7 @@ export default async function AdminPaymentsPage() {
       title: 'อัตราความสำเร็จ',
       value: `${stats.successRate}%`,
       icon: CreditCard,
-      color: 'bg-purple-500',
+      color: 'bg-slate-700',
     },
   ]
 

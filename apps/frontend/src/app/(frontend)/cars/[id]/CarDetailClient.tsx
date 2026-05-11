@@ -85,7 +85,7 @@ export default function CarDetailClient({ car }: CarDetailClientProps) {
 
           {/* Detail column */}
           <div>
-            <span className="text-sm font-bold text-slate-900 bg-indigo-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
+            <span className="text-sm font-bold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-full uppercase tracking-wider">
               {carType}
             </span>
 

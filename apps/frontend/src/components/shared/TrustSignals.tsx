@@ -93,7 +93,7 @@ export default function TrustSignals({ variant = 'compact' }: TrustSignalsProps)
           role="listitem"
           className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 hover:border-slate-200 transition-colors"
         >
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center mb-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-3">
             <Icon size={20} className="text-slate-900" />
           </div>
           <div className="text-sm font-bold text-slate-900">{titleTh}</div>

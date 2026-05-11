@@ -258,7 +258,7 @@ export default async function DashboardPage() {
       title: 'การจองทั้งหมด',
       value: stats.totalBookings,
       icon: Calendar,
-      color: 'bg-purple-500',
+      color: 'bg-slate-700',
     },
     {
       title: 'รายได้รวม',

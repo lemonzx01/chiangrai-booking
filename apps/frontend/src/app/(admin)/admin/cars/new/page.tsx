@@ -209,7 +209,7 @@ export default function NewCarPage() {
                   <textarea
                     value={formData.description_th}
                     onChange={(e) => setFormData({ ...formData, description_th: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -220,7 +220,7 @@ export default function NewCarPage() {
                   <textarea
                     value={formData.description_en}
                     onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200 min-h-[100px]"
                     required
                   />
                 </div>
@@ -309,7 +309,7 @@ export default function NewCarPage() {
                       onChange={(e) => setNewIncludeTh(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInclude('th'))}
                       placeholder="เพิ่มรายการ"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addInclude('th')} size="sm">
                       <Plus size={16} />
@@ -344,7 +344,7 @@ export default function NewCarPage() {
                       onChange={(e) => setNewIncludeEn(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInclude('en'))}
                       placeholder="Add item"
-                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                      className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                     />
                     <Button type="button" onClick={() => addInclude('en')} size="sm">
                       <Plus size={16} />
@@ -396,7 +396,7 @@ export default function NewCarPage() {
                   onChange={(e) => setNewImage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
                   placeholder="หรือใส่ URL รูปภาพ"
-                  className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-indigo-500 hover:border-slate-300 transition-all duration-200"
+                  className="flex-1 px-4 py-2 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 hover:border-slate-300 transition-all duration-200"
                 />
                 <Button type="button" onClick={addImage} size="sm">
                   <Plus size={16} />

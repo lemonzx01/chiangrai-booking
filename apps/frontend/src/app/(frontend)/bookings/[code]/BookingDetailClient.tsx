@@ -53,6 +53,7 @@ import { useConfirm } from '@/components/shared/ConfirmDialog'
 import { apiFetch } from '@/lib/api'
 import ModificationRequestModal from '@/components/shared/ModificationRequestModal'
 import TrustSignals from '@/components/shared/TrustSignals'
+import { BookingDetailSkeleton } from '@/components/shared/Skeletons'
 
 // ---------------------------------------------------------------
 // Types — narrow shape we actually render. Booking has many more
@@ -192,12 +193,7 @@ export default function BookingDetailClient({
   // ---- Render branches -----------------------------------------
 
   if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <Loader2 className="animate-spin text-indigo-500 mx-auto" size={32} />
-        <p className="text-sm text-slate-500 mt-3">กำลังโหลด...</p>
-      </div>
-    )
+    return <BookingDetailSkeleton />
   }
 
   if (needsEmail) {
@@ -271,7 +267,7 @@ export default function BookingDetailClient({
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-4">
           <div className="px-5 sm:px-6 py-5 border-b border-slate-100">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                 {booking.booking_type === 'CAR' ? (
                   <CarIcon className="text-slate-900" size={20} />
                 ) : (
@@ -348,7 +344,7 @@ export default function BookingDetailClient({
               <button
                 type="button"
                 onClick={() => setShowReschedule(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-900 hover:bg-indigo-50"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-900 hover:bg-slate-50 hover:border-slate-300"
               >
                 <CalendarClock size={16} />
                 ขอเลื่อนวัน
@@ -561,7 +557,7 @@ function LookupForm({
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
-        <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
           <Search className="text-slate-900" size={20} />
         </div>
         <h1 className="text-lg sm:text-xl font-bold text-slate-900 text-center">

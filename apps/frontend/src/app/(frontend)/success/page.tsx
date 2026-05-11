@@ -224,7 +224,7 @@ function SuccessContent() {
           <a
             href={`/api/bookings/${booking.booking_code}/invoice${email ? `?email=${encodeURIComponent(email)}` : ''}`}
             download
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-slate-900 text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-slate-900 text-slate-900 font-bold rounded-xl hover:bg-slate-50 transition-colors"
           >
             <Download className="w-5 h-5" />
             {t('success.downloadInvoice') || 'ดาวน์โหลดใบเสร็จ'}

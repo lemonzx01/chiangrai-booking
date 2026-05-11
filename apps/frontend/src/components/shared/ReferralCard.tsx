@@ -195,7 +195,7 @@ export default function ReferralCard() {
       </p>
 
       {/* Code box — primary affordance */}
-      <div className="bg-indigo-50 border border-slate-200 rounded-xl p-4 mb-4">
+      <div className="bg-slate-100 border border-slate-200 rounded-xl p-4 mb-4">
         <p className="text-xs uppercase tracking-wide text-slate-900 mb-2">
           {lang === 'th' ? 'รหัสแนะนำของคุณ' : 'Your referral code'}
         </p>
@@ -320,7 +320,7 @@ function Stat({
   const toneStyles: Record<typeof tone, string> = {
     default: 'bg-slate-50 text-slate-700 border-slate-200',
     amber: 'bg-amber-50 text-amber-700 border-amber-200',
-    indigo: 'bg-indigo-50 text-slate-900 border-slate-200',
+    indigo: 'bg-slate-100 text-slate-900 border-slate-200',
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   }
   return (
