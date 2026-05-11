@@ -25,8 +25,8 @@ export const metadata = {
     'นโยบายความเป็นส่วนตัว Got Journey Thailand ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) — Privacy Policy and PDPA-compliant disclosures.',
 }
 
-const LAST_UPDATED_TH = '1 กุมภาพันธ์ 2568'
-const LAST_UPDATED_EN = 'February 1, 2025'
+const LAST_UPDATED_TH = '11 พฤษภาคม 2569'
+const LAST_UPDATED_EN = 'May 11, 2026'
 
 interface Section {
   title: { th: string; en: string }
@@ -235,6 +235,43 @@ const sections: Section[] = [
       'If you believe we have processed your data incorrectly, you may file a complaint with:',
       'Personal Data Protection Committee (PDPC)',
       'https://www.pdpc.or.th',
+    ],
+  },
+  {
+    title: { th: '13. การจัดการความยินยอม', en: '13. Consent Management' },
+    th: [
+      'เมื่อท่านเข้าใช้งานเว็บไซต์ครั้งแรก เราจะแสดงแบนเนอร์ขอความยินยอมเรื่องคุกกี้ที่ไม่จำเป็น (เช่น คุกกี้วิเคราะห์)',
+      'ท่านสามารถยอมรับ ปฏิเสธ หรือเลือกเฉพาะบางประเภทได้ และเปลี่ยนแปลงการตั้งค่าได้ในภายหลังผ่านลิงก์ "การตั้งค่าคุกกี้" ด้านล่างของทุกหน้า',
+      'การเพิกถอนความยินยอมจะไม่กระทบต่อความถูกต้องของการประมวลผลที่ดำเนินการก่อนหน้า',
+    ],
+    en: [
+      'On your first visit, we display a consent banner for non-essential cookies (e.g., analytics).',
+      'You may accept, decline, or selectively enable categories, and adjust your choices later via the "Cookie Settings" link in the site footer.',
+      'Withdrawing consent does not affect the lawfulness of processing carried out beforehand.',
+    ],
+  },
+  {
+    title: { th: '14. การแจ้งเหตุละเมิดข้อมูล', en: '14. Data Breach Notification' },
+    th: [
+      'หากเกิดเหตุการณ์ที่ข้อมูลส่วนบุคคลของท่านถูกละเมิดและมีความเสี่ยงสูง เราจะแจ้งสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (สคส.) ภายใน 72 ชั่วโมงนับแต่ทราบเหตุ',
+      'หากเหตุการณ์นั้นมีความเสี่ยงต่อสิทธิและเสรีภาพของท่านในระดับสูง เราจะแจ้งท่านโดยตรงผ่านอีเมลโดยเร็วที่สุด พร้อมระบุลักษณะเหตุการณ์ ข้อมูลที่ได้รับผลกระทบ และมาตรการที่เราดำเนินการ',
+    ],
+    en: [
+      'In the event of a personal data breach posing a risk to your rights, we will notify the Personal Data Protection Committee (PDPC) within 72 hours of becoming aware of the incident.',
+      'If the breach is likely to result in a high risk to your rights and freedoms, we will notify you directly by email without undue delay, describing the nature of the breach, the data affected, and the steps we are taking.',
+    ],
+  },
+  {
+    title: { th: '15. การตัดสินใจอัตโนมัติและการวิเคราะห์ข้อมูล', en: '15. Automated Decisions and Profiling' },
+    th: [
+      'เราไม่ใช้การตัดสินใจอัตโนมัติเพียงอย่างเดียวที่ส่งผลทางกฎหมายหรือกระทบท่านอย่างมีนัยสำคัญ',
+      'ระบบป้องกันการฉ้อโกงและการคัดกรองรีวิวอาจใช้กฎเกณฑ์อัตโนมัติช่วยกรองเบื้องต้น แต่การตัดสินใจขั้นสุดท้ายมีเจ้าหน้าที่ทบทวนเสมอ',
+      'ท่านสามารถขอให้ทบทวนการตัดสินใจที่เกี่ยวข้องด้วยมนุษย์ได้ที่ privacy@gotjourneythailand.com',
+    ],
+    en: [
+      'We do not use solely automated decision-making that produces legal effects or similarly significant impacts on you.',
+      'Fraud-prevention and review-moderation systems may apply automated rules for initial screening, but final decisions are always reviewed by a human operator.',
+      'You may request human review of any relevant decision by writing to privacy@gotjourneythailand.com.',
     ],
   },
 ]

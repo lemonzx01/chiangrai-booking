@@ -23,8 +23,8 @@ export const metadata = {
     'ข้อกำหนดและเงื่อนไขการใช้งาน Got Journey Thailand — Terms of Service for bookings, cancellations, refunds, and user conduct.',
 }
 
-const LAST_UPDATED_TH = '1 กุมภาพันธ์ 2568'
-const LAST_UPDATED_EN = 'February 1, 2025'
+const LAST_UPDATED_TH = '11 พฤษภาคม 2569'
+const LAST_UPDATED_EN = 'May 11, 2026'
 
 interface Section {
   title: { th: string; en: string }
@@ -166,7 +166,76 @@ const sections: Section[] = [
     ],
   },
   {
-    title: { th: '11. การติดต่อ', en: '11. Contact' },
+    title: { th: '11. ข้อห้ามและการใช้งานที่ไม่เหมาะสม', en: '11. Prohibited Conduct' },
+    th: [
+      'นอกเหนือจากข้อ 5 ผู้ใช้ตกลงจะไม่กระทำการดังต่อไปนี้:',
+      '• ทำ web scraping, crawling หรือดึงข้อมูลด้วยระบบอัตโนมัติโดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษร',
+      '• ใช้บัตรเครดิตที่ได้มาโดยทุจริต หรือทำธุรกรรมที่เข้าข่ายฉ้อโกง / ฟอกเงิน',
+      '• คุกคาม ข่มขู่ หรือใช้ถ้อยคำหยาบคายต่อพนักงาน พาร์ทเนอร์ หรือผู้ใช้รายอื่น',
+      '• สร้างบัญชีปลอม หรือใช้ข้อมูลของผู้อื่นโดยไม่ได้รับความยินยอม',
+      '• พยายามเจาะระบบ ทดสอบช่องโหว่ หรือรบกวนการให้บริการ',
+      'การฝ่าฝืนอาจส่งผลให้บัญชีถูกระงับและถูกดำเนินคดีตามกฎหมาย',
+    ],
+    en: [
+      'In addition to Section 5, users agree NOT to:',
+      '• Perform web scraping, crawling, or automated data extraction without prior written permission',
+      '• Use fraudulently obtained payment cards or engage in transactions amounting to fraud or money laundering',
+      '• Harass, threaten, or use abusive language toward staff, partners, or other users',
+      '• Create fake accounts or use another person’s information without their consent',
+      '• Attempt to penetrate, probe, or disrupt the Service',
+      'Violations may result in account suspension and legal action.',
+    ],
+  },
+  {
+    title: { th: '12. การระงับและยุติบัญชี', en: '12. Account Suspension and Termination' },
+    th: [
+      'เราขอสงวนสิทธิ์ในการระงับหรือยุติบัญชีของท่านได้ทันที หากตรวจพบการละเมิดข้อกำหนดเหล่านี้ การฉ้อโกง หรือการกระทำที่อาจก่อให้เกิดความเสียหายต่อผู้ใช้รายอื่นและพาร์ทเนอร์',
+      'การยุติบัญชีไม่กระทบต่อสิทธิเรียกร้องค่าเสียหายที่เกิดขึ้นก่อนหน้านั้น',
+      'ท่านสามารถปิดบัญชีของตนเองได้ตลอดเวลาผ่านการตั้งค่าบัญชี หรือโดยการติดต่อทีมงาน',
+    ],
+    en: [
+      'We reserve the right to suspend or terminate your account immediately upon detection of any breach of these Terms, fraud, or conduct likely to cause harm to other users and partners.',
+      'Termination does not affect any claim for damages that arose before termination.',
+      'You may close your own account at any time through account settings or by contacting our team.',
+    ],
+  },
+  {
+    title: { th: '13. เหตุสุดวิสัย', en: '13. Force Majeure' },
+    th: [
+      'เราไม่ต้องรับผิดต่อความล่าช้าหรือการไม่สามารถปฏิบัติตามข้อตกลงได้ อันเนื่องมาจากเหตุที่อยู่เหนือการควบคุมตามสมควร เช่น ภัยธรรมชาติ การระบาดของโรค สงคราม การจลาจล คำสั่งของรัฐ ระบบโครงสร้างพื้นฐานล่ม หรือการโจมตีทางไซเบอร์',
+      'ในกรณีดังกล่าว เราจะแจ้งให้ท่านทราบโดยเร็ว และดำเนินการตามสมควรเพื่อคืนเงินหรือเลื่อนการจอง',
+    ],
+    en: [
+      'We are not liable for delay or failure to perform caused by events beyond our reasonable control, including natural disasters, pandemics, war, civil unrest, government orders, infrastructure outages, or cyberattacks.',
+      'In such cases, we will notify you promptly and take reasonable steps to refund or reschedule bookings.',
+    ],
+  },
+  {
+    title: { th: '14. การระงับข้อพิพาท', en: '14. Dispute Resolution' },
+    th: [
+      'หากเกิดข้อพิพาท ทั้งสองฝ่ายตกลงที่จะเจรจาโดยสุจริตก่อน โดยติดต่อทีมงานที่ hello@gotjourneythailand.com',
+      'หากไม่สามารถยุติได้ภายใน 30 วัน คู่กรณีอาจเสนอข้อพิพาทเข้าสู่กระบวนการไกล่เกลี่ยของหน่วยงานคุ้มครองผู้บริโภคที่เกี่ยวข้อง',
+      'หากการไกล่เกลี่ยไม่สำเร็จ ให้นำคดีขึ้นสู่ศาลที่มีเขตอำนาจตามข้อ 10',
+    ],
+    en: [
+      'In the event of a dispute, both parties agree to first attempt good-faith negotiation by contacting hello@gotjourneythailand.com.',
+      'If unresolved within 30 days, either party may submit the dispute to mediation through the relevant consumer-protection authority.',
+      'If mediation fails, the dispute shall be brought before the courts with jurisdiction under Section 10.',
+    ],
+  },
+  {
+    title: { th: '15. การแยกข้อกำหนด', en: '15. Severability' },
+    th: [
+      'หากข้อกำหนดส่วนใดส่วนหนึ่งของข้อตกลงนี้ตกเป็นโมฆะหรือไม่สามารถบังคับใช้ได้ตามกฎหมาย ส่วนที่เหลือยังคงมีผลใช้บังคับได้อย่างสมบูรณ์',
+      'ข้อกำหนดที่เป็นโมฆะจะถูกตีความให้ใกล้เคียงเจตนาเดิมที่สุดเท่าที่กฎหมายอนุญาต',
+    ],
+    en: [
+      'If any provision of these Terms is held invalid or unenforceable, the remaining provisions shall remain in full force and effect.',
+      'The invalid provision shall be interpreted to most closely reflect its original intent within the limits permitted by law.',
+    ],
+  },
+  {
+    title: { th: '16. การติดต่อ', en: '16. Contact' },
     th: [
       'หากมีข้อสงสัยเกี่ยวกับข้อกำหนดเหล่านี้ กรุณาติดต่อที่:',
       'อีเมล: hello@gotjourneythailand.com',
