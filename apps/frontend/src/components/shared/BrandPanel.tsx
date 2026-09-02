@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { HERO_BLUR_DATA_URL } from '@/lib/blurPlaceholder'
 import Link from 'next/link'
 import { Compass, Sparkles, Heart, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -48,12 +49,17 @@ export default function BrandPanel({ variant = 'login' }: BrandPanelProps) {
 
   return (
     <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-slate-900 rounded-3xl p-10 min-h-[640px]">
+      {/* Same self-hosted asset as the home hero, so the two pages
+          share one optimiser cache entry rather than paying for two
+          encodes of the same photograph. */}
       <Image
-        src="https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80"
+        src="/images/hero-journey.jpg"
         alt=""
         fill
         sizes="50vw"
         className="object-cover opacity-40"
+        placeholder="blur"
+        blurDataURL={HERO_BLUR_DATA_URL}
         priority={false}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/60 to-slate-900/40" />

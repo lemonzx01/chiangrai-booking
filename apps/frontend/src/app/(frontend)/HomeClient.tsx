@@ -35,6 +35,7 @@ import { useTranslation } from 'react-i18next'
 /** Next.js components */
 import Link from 'next/link'
 import Image from 'next/image'
+import { HERO_BLUR_DATA_URL } from '@/lib/blurPlaceholder'
 
 /** Next.js hooks */
 import { useRouter } from 'next/navigation'
@@ -159,11 +160,25 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
             road with rice terraces, evokes the actual product
             (drive your own trip) rather than a generic beach. */}
         <div className="absolute inset-0 z-0">
+          {/* Self-hosted, deliberately.
+              This is the LCP element, and pointing it at Unsplash put a
+              third-party origin on the critical path: DNS + TLS + a
+              ~1 MB download had to complete before next/image could even
+              begin encoding, and a rate-limit or a changed photo id
+              would blank the homepage. The file now ships with the app.
+
+              placeholder="blur" is the other half. With `priority` but
+              no placeholder the hero was a flat grey rectangle until the
+              optimised file arrived — that grey box was the "slow" part,
+              more than the bytes were. */}
           <Image
-            src="https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=2400&q=80"
-            alt="Hero background"
+            src="/images/hero-journey.jpg"
+            alt=""
             fill
+            sizes="100vw"
             className="object-cover"
+            placeholder="blur"
+            blurDataURL={HERO_BLUR_DATA_URL}
             priority
           />
           {/* Gradient Overlay */}
