@@ -106,6 +106,11 @@ function SignupTrendCard({
   const max = Math.max(...trend.map((t) => t.count), 1)
   const totalSignups = trend.reduce((sum, t) => sum + t.count, 0)
 
+  // Two recessive gridlines (max and half) give the eye a scale to
+  // read heights against. Rounded up to a whole number so the label
+  // is not "6.5 people".
+  const midTick = Math.round(max / 2)
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center justify-between mb-1">
@@ -123,36 +128,113 @@ function SignupTrendCard({
         </div>
       </div>
 
-      {/* Bar chart — 30 vertical bars at uniform width */}
-      <div
-        className="flex items-end gap-1 h-24 mt-4"
-        role="img"
-        aria-label={`กราฟสมัครสมาชิก 30 วันล่าสุด รวม ${totalSignups} คน`}
-      >
-        {trend.map((d) => {
-          const heightPct = (d.count / max) * 100
-          return (
-            <div
-              key={d.date}
-              className="flex-1 bg-gradient-to-t from-slate-300 to-slate-700 rounded-t hover:from-slate-400 hover:to-slate-900 transition-colors relative group"
-              style={{ height: `${Math.max(heightPct, 4)}%` }}
-              title={`${d.date}: ${d.count} signup${d.count === 1 ? '' : 's'}`}
-            >
-              {/* Tooltip on hover */}
-              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                {d.date}: {d.count}
+      {/* ----------------------------------------------------------
+          Bar chart — 30 days of signups, one series.
+          ----------------------------------------------------------
+          Bars are a single flat ink. The previous version painted
+          every bar with an identical `from-slate-300 to-slate-700`
+          vertical gradient, which reads as an encoding ("darker =
+          something?") while carrying no information at all — the
+          first thing anyone asked about this chart was what the
+          colour meant. Height is the only encoding here, so colour
+          stays constant and recedes.
+
+          A scale was also missing entirely: with no axis, gridline
+          or value anywhere, no bar could be read as a quantity. Two
+          recessive gridlines plus a labelled peak fix that.
+          ---------------------------------------------------------- */}
+      <div className="mt-5 pl-7">
+        <div className="relative h-28">
+          {/* Gridlines + scale. aria-hidden: the values are already
+              available to assistive tech via the table below. */}
+          <div aria-hidden="true" className="absolute inset-0">
+            {[
+              { value: max, pct: 100 },
+              { value: midTick, pct: 50 },
+            ].map(({ value, pct }) => (
+              <div
+                key={pct}
+                className="absolute inset-x-0 flex items-center"
+                style={{ bottom: `${pct}%` }}
+              >
+                <span className="absolute -left-7 -translate-y-1/2 text-[10px] tabular-nums text-slate-400">
+                  {value}
+                </span>
+                <div className="w-full border-t border-dashed border-slate-200" />
               </div>
-            </div>
-          )
-        })}
+            ))}
+          </div>
+
+          {/* Bars */}
+          <div className="absolute inset-0 flex items-end gap-[2px]">
+            {trend.map((d) => {
+              const heightPct = (d.count / max) * 100
+
+              return (
+                <div
+                  key={d.date}
+                  className="group relative flex-1 h-full flex items-end"
+                >
+                  {/* A zero day is drawn as a 2px baseline stub, not a
+                      4%-of-height bar. The old floor made "nobody signed
+                      up" indistinguishable from a genuine low day. */}
+                  <div
+                    className={`w-full rounded-t-[3px] transition-colors ${
+                      d.count === 0
+                        ? 'bg-slate-200'
+                        : 'bg-slate-600 group-hover:bg-slate-900'
+                    }`}
+                    style={{
+                      height: d.count === 0 ? '2px' : `${Math.max(heightPct, 3)}%`,
+                    }}
+                  />
+
+                  {/* Hover tooltip. The old version ALSO set a native
+                      `title`, so hovering produced two overlapping
+                      tooltips saying the same thing. */}
+                  <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                    <span className="tabular-nums">{d.date.slice(5)}</span>
+                    <span className="mx-1 text-slate-500">·</span>
+                    <span className="tabular-nums font-semibold">{d.count}</span>
+                    <span className="ml-0.5 text-slate-300">คน</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Baseline — anchors the bars instead of letting them float. */}
+        <div className="border-t border-slate-300" />
+
+        {/* X-axis labels — first, middle, last */}
+        <div className="mt-1.5 flex justify-between text-[10px] tabular-nums text-slate-400">
+          <span>{trend[0]?.date.slice(5)}</span>
+          <span>{trend[Math.floor(trend.length / 2)]?.date.slice(5)}</span>
+          <span>{trend[trend.length - 1]?.date.slice(5)}</span>
+        </div>
       </div>
 
-      {/* X-axis labels — show first, middle, last */}
-      <div className="flex justify-between mt-2 text-xs text-slate-400">
-        <span>{trend[0]?.date.slice(5)}</span>
-        <span>{trend[Math.floor(trend.length / 2)]?.date.slice(5)}</span>
-        <span>{trend[trend.length - 1]?.date.slice(5)}</span>
-      </div>
+      {/* Table view — the chart is presentational, so the underlying
+          numbers stay reachable by screen reader rather than being
+          locked inside an aria-label summary. */}
+      <table className="sr-only">
+        <caption>สมัครสมาชิก 30 วันล่าสุด (รวม {totalSignups} คน)</caption>
+        <thead>
+          <tr>
+            <th scope="col">วันที่</th>
+            <th scope="col">จำนวนสมาชิกใหม่</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trend.map((d) => (
+            <tr key={d.date}>
+              <th scope="row">{d.date}</th>
+              <td>{d.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
