@@ -172,13 +172,12 @@ export default function CarsClient({
 
   return (
     <div className="min-h-screen pt-24 pb-12">
-      <div className="bg-white border-b border-slate-200 py-10 sm:py-14">
+      <div className="bg-white border-b border-slate-200 py-7 sm:py-9">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-medium text-slate-900 mb-3 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-slate-900 mb-2 tracking-tight">
             {t('navbar.cars')}
           </h1>
-          <div className="h-px w-12 bg-slate-300 mb-4" />
-          <p className="text-base sm:text-lg text-slate-600 mb-6 max-w-xl font-light">
+          <p className="text-sm sm:text-base text-slate-600 mb-5 max-w-xl font-light">
             {t('cars.subtitle') || 'ประกันชั้น 1 ทุกคัน ส่งฟรีในเขตเมือง ไม่ต้องวางบัตรค้ำประกัน'}
           </p>
           <div className="max-w-2xl">
@@ -193,7 +192,7 @@ export default function CarsClient({
           {/* Destination quick-chips — same parity as /hotels.
               Cars have no location field, so chips set the search
               query instead, acting as a popular-search shortcut. */}
-          <div className="mt-5">
+          <div className="mt-4">
             <DestinationChips
               current={filters.q}
               onChange={(loc) => setFilters((f) => ({ ...f, q: loc }))}
@@ -202,7 +201,7 @@ export default function CarsClient({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="flex gap-6">
           <FilterSidebar
             kind="car"

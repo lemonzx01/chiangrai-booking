@@ -456,13 +456,21 @@ function PriceRangeSlider({
   // previous indigo-500 fill was the loudest spot of color in
   // the entire sidebar.
   const thumbStyles =
-    '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-900 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-slate-900'
+    [
+      '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none',
+      '[&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:rounded-full',
+      '[&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-900',
+      '[&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-grab',
+      '[&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px]',
+      '[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2',
+      '[&::-moz-range-thumb]:border-slate-900 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab',
+    ].join(' ')
 
   return (
     <div className="relative h-6 select-none">
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200" />
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-slate-200" />
       <div
-        className="absolute top-1/2 -translate-y-1/2 h-0.5 bg-slate-900"
+        className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-slate-800"
         style={{ left: `${minPct}%`, width: `${Math.max(0, maxPct - minPct)}%` }}
       />
       <input
