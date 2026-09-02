@@ -29,6 +29,7 @@ import {
   verifyAdminToken,
   verifyUserToken,
   isMockMode,
+  isStripeMockMode,
   getUserRole,
 } from '@/lib/auth'
 
@@ -227,6 +228,91 @@ describe('isMockMode', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://myproject.supabase.co'
     expect(isMockMode()).toBe(false)
     process.env.NEXT_PUBLIC_SUPABASE_URL = original
+  })
+
+  // ------------------------------------------------------------
+  // Production fail-closed
+  // ------------------------------------------------------------
+  // Mock mode accepts hardcoded passwords ('admin123'), skips Stripe
+  // signature verification and serves an in-memory DB. Inferring it
+  // from a *missing* env var meant one forgotten variable on a
+  // production deploy turned the site into an open admin panel, with
+  // no error anywhere. These tests pin the refusal.
+  describe('production fail-closed', () => {
+    const withEnv = (
+      env: Record<string, string | undefined>,
+      run: () => void
+    ) => {
+      const saved: Record<string, string | undefined> = {}
+      for (const k of Object.keys(env)) {
+        saved[k] = process.env[k]
+        if (env[k] === undefined) delete process.env[k]
+        else process.env[k] = env[k] as string
+      }
+      try {
+        run()
+      } finally {
+        for (const k of Object.keys(saved)) {
+          if (saved[k] === undefined) delete process.env[k]
+          else process.env[k] = saved[k] as string
+        }
+      }
+    }
+
+    it('refuses to infer mock mode in production', () => {
+      withEnv(
+        {
+          NODE_ENV: 'production',
+          NEXT_PUBLIC_SUPABASE_URL: '',
+          ALLOW_MOCK_MODE: undefined,
+        },
+        () => expect(isMockMode()).toBe(false)
+      )
+    })
+
+    it('allows mock mode in production only with the explicit opt-in', () => {
+      withEnv(
+        {
+          NODE_ENV: 'production',
+          NEXT_PUBLIC_SUPABASE_URL: '',
+          ALLOW_MOCK_MODE: 'true',
+        },
+        () => expect(isMockMode()).toBe(true)
+      )
+    })
+
+    it('still infers mock mode outside production', () => {
+      withEnv(
+        {
+          NODE_ENV: 'development',
+          NEXT_PUBLIC_SUPABASE_URL: '',
+          ALLOW_MOCK_MODE: undefined,
+        },
+        () => expect(isMockMode()).toBe(true)
+      )
+    })
+
+    it('refuses Stripe mock mode in production (webhooks would skip signature checks)', () => {
+      withEnv(
+        {
+          NODE_ENV: 'production',
+          STRIPE_SECRET_KEY: '',
+          ALLOW_MOCK_MODE: undefined,
+        },
+        () => expect(isStripeMockMode()).toBe(false)
+      )
+    })
+
+    it('allows Stripe mock mode in production with the explicit opt-in', () => {
+      withEnv(
+        {
+          NODE_ENV: 'production',
+          STRIPE_SECRET_KEY: '',
+          ALLOW_MOCK_MODE: 'true',
+        },
+        () => expect(isStripeMockMode()).toBe(true)
+      )
+    })
   })
 })
 

@@ -60,6 +60,30 @@ const isSupabaseConfigured = () => {
   )
 }
 
+/**
+ * Guard the mock-client fallback.
+ *
+ * `isMockMode()` in lib/auth already refuses to infer mock mode in
+ * production. This gate has to agree with it — otherwise a production
+ * deploy missing SUPABASE_SERVICE_ROLE_KEY would take the *real* code
+ * path in every route (because isMockMode() is false) while silently
+ * being handed an in-memory database, so writes would appear to succeed
+ * and vanish on the next cold start.
+ *
+ * Failing loudly here turns that silent data-loss mode into an error
+ * the deploy surfaces immediately.
+ */
+const assertMockFallbackAllowed = () => {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_MOCK_MODE !== 'true') {
+    throw new Error(
+      '[SECURITY] Supabase is not configured (need NEXT_PUBLIC_SUPABASE_URL, ' +
+        'NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY) but NODE_ENV=production. ' +
+        'Refusing to fall back to the in-memory mock database. ' +
+        'Set ALLOW_MOCK_MODE=true if this is an intentional demo deploy.'
+    )
+  }
+}
+
 // ============================================================
 // Regular Client (Client ทั่วไป)
 // ============================================================
@@ -89,6 +113,7 @@ const isSupabaseConfigured = () => {
  */
 export async function createClient() {
   if (!isSupabaseConfigured()) {
+    assertMockFallbackAllowed()
     // Mock mode: return in-memory mock client so every route works without real Supabase
     return createMockSupabaseClient() as any
   }
@@ -179,6 +204,7 @@ export async function createClient() {
  */
 export async function createAdminClient() {
   if (!isSupabaseConfigured()) {
+    assertMockFallbackAllowed()
     // Mock mode: return in-memory mock client (admin operations also use the same store)
     return createMockSupabaseClient() as any
   }

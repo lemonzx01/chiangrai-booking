@@ -251,9 +251,48 @@ export function isMockMode() {
   // 1. ไม่มี SUPABASE_URL
   // 2. URL เป็น placeholder
   // 3. URL เป็น string ว่าง
-  return !supabaseUrl ||
-         supabaseUrl === 'https://placeholder.supabase.co' ||
-         supabaseUrl === ''
+  const looksUnconfigured =
+    !supabaseUrl ||
+    supabaseUrl === 'https://placeholder.supabase.co' ||
+    supabaseUrl === ''
+
+  if (!looksUnconfigured) return false
+
+  // ------------------------------------------------------------
+  // Fail closed in production.
+  // ------------------------------------------------------------
+  // Mock mode is a *development* affordance: it accepts hardcoded
+  // passwords ('admin123'), skips Stripe signature verification and
+  // serves an in-memory database. Deciding to enable all of that
+  // purely because an env var is missing means one forgotten
+  // NEXT_PUBLIC_SUPABASE_URL on a production deploy silently turns
+  // the site into an open admin panel.
+  //
+  // So in production we refuse to infer it. An operator who genuinely
+  // wants a mock production deploy (a demo/staging box) has to say so
+  // out loud with ALLOW_MOCK_MODE=true.
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_MOCK_MODE !== 'true') {
+    warnMockModeRefusedOnce()
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Log the "refused to enable mock mode" warning at most once per
+ * process, so a misconfigured deploy is loud in the logs without
+ * flooding them on every single request.
+ */
+let mockModeWarningEmitted = false
+function warnMockModeRefusedOnce() {
+  if (mockModeWarningEmitted) return
+  mockModeWarningEmitted = true
+  console.error(
+    '[SECURITY] NEXT_PUBLIC_SUPABASE_URL is not configured but NODE_ENV=production. ' +
+      'Refusing to fall back to mock mode (which accepts hardcoded credentials). ' +
+      'Configure Supabase, or set ALLOW_MOCK_MODE=true if this is an intentional demo deploy.'
+  )
 }
 
 /**
@@ -264,7 +303,20 @@ export function isMockMode() {
  */
 export function isStripeMockMode() {
   const key = process.env.STRIPE_SECRET_KEY
-  return !key || key === '' || key.startsWith('sk_test_mock') || key === 'placeholder'
+  const looksUnconfigured =
+    !key || key === '' || key.startsWith('sk_test_mock') || key === 'placeholder'
+
+  if (!looksUnconfigured) return false
+
+  // Same fail-closed rule as isMockMode(): Stripe mock mode disables
+  // webhook signature verification, so a missing STRIPE_SECRET_KEY in
+  // production would let anyone POST a forged `checkout.session.completed`
+  // and mark their own booking paid. Require the explicit opt-in.
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_MOCK_MODE !== 'true') {
+    return false
+  }
+
+  return true
 }
 
 /**
