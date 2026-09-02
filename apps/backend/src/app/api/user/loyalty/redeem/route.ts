@@ -27,6 +27,7 @@ import { requireUser } from '../../../../../lib/authz'
 import { redeemPointsForCoupon } from '../../../../../lib/loyalty'
 import { logger } from '../../../../../lib/logger'
 import { rateLimitAsync } from '../../../../../middleware/rate-limit'
+import { verifyCsrfToken } from '../../../../../lib/csrf'
 
 export async function POST(request: Request) {
   // Rate limit BEFORE auth — keeps an unauthenticated attacker
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
   // a few IPs still hit it quickly.
   const limitResponse = await rateLimitAsync(request, '/api/user/loyalty/redeem')
   if (limitResponse) return limitResponse
+
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
 
   const auth = await requireUser()
   if (!auth.ok) return auth.response

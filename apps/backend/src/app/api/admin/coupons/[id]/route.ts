@@ -25,6 +25,7 @@ import {
 } from '../../../../../lib/errors'
 import { logger } from '../../../../../lib/logger'
 import { normalizeCouponCode } from '../../../../../lib/coupons'
+import { verifyCsrfToken } from '../../../../../lib/csrf'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -62,6 +63,12 @@ export async function GET(_request: Request, { params }: Params) {
 // PATCH — update coupon
 // ============================================================
 export async function PATCH(request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 
@@ -118,6 +125,12 @@ export async function PATCH(request: Request, { params }: Params) {
 // DELETE — delete coupon
 // ============================================================
 export async function DELETE(_request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(_request)
+  if (csrfFail) return csrfFail
+
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 

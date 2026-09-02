@@ -37,6 +37,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../
 import { MOCK_HOTELS } from '../../../../lib/constants'
 import { logger } from '../../../../lib/logger'
 import { logAdminAction } from '../../../../lib/audit'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 // ============================================================
 // Type Definitions
@@ -209,6 +210,12 @@ export async function GET(request: Request, { params }: Params) {
  *   Body: { "price_per_night": 2000 }
  */
 export async function PUT(request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin
@@ -275,6 +282,12 @@ export async function PUT(request: Request, { params }: Params) {
  *   DELETE /api/hotels/123e4567-e89b-12d3-a456-426614174000
  */
 export async function DELETE(request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     const auth = await verifyAdminToken()
     if (!auth.success) {

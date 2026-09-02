@@ -24,6 +24,7 @@ import {
 } from '../../../../lib/errors'
 import { logger } from '../../../../lib/logger'
 import { normalizeCouponCode } from '../../../../lib/coupons'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 // ============================================================
 // GET — list coupons
@@ -74,6 +75,12 @@ export async function GET(request: Request) {
 // POST — create coupon
 // ============================================================
 export async function POST(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 

@@ -45,6 +45,7 @@ import {
 } from '../../../lib/auth'
 import { logger } from '../../../lib/logger'
 import { withPublicCache, withPrivateNoStore } from '../../../lib/cache'
+import { verifyCsrfToken } from '../../../lib/csrf'
 
 // ============================================================
 // GET Handler - ดึงรายการรถเช่า
@@ -207,6 +208,12 @@ export async function GET(request: Request) {
  *   }
  */
 export async function POST(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin หรือ Partner

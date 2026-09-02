@@ -19,7 +19,8 @@
  *
  * ============================================================
  */
-export const dynamic = 'force-dynamic'
+
+export const dynamic = 'force-dynamic'
 
 
 // ============================================================
@@ -39,6 +40,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../../
 import { PartnerType } from '@chiangrai/shared/types'
 import { logger } from '../../../../lib/logger'
 import { logAdminAction } from '../../../../lib/audit'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 // ============================================================
 // GET Handler - ดึงข้อมูลพาร์ทเนอร์
@@ -95,6 +97,12 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin
@@ -171,6 +179,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin

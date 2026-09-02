@@ -31,12 +31,19 @@ import { requireAdmin } from '../../../../../../lib/authz'
 import { createAdminClient } from '../../../../../../lib/supabase/server'
 import { logAdminAction } from '../../../../../../lib/audit'
 import { logger } from '../../../../../../lib/logger'
+import { verifyCsrfToken } from '../../../../../../lib/csrf'
 
 interface Params {
   params: Promise<{ userId: string }>
 }
 
 export async function POST(request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 

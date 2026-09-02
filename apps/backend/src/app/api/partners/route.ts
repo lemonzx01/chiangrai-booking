@@ -42,6 +42,7 @@ import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib
 /** Types */
 import { PartnerType } from '@chiangrai/shared/types'
 import { logger } from '../../../lib/logger'
+import { verifyCsrfToken } from '../../../lib/csrf'
 
 // ============================================================
 // GET Handler - ดึงรายการพาร์ทเนอร์
@@ -159,6 +160,12 @@ export async function GET(request: Request) {
  *   }
  */
 export async function POST(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin

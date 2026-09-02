@@ -37,6 +37,7 @@ import { NextResponse } from 'next/server'
 /** ฟังก์ชันตรวจสอบสิทธิ์ Admin */
 import { verifyAdminToken, unauthorizedResponse, isMockMode } from '../../../lib/auth'
 import { logger } from '../../../lib/logger'
+import { verifyCsrfToken } from '../../../lib/csrf'
 
 // ============================================================
 // GET Handler - ดึงรายการประเภทห้อง
@@ -142,6 +143,12 @@ export async function GET(request: Request) {
  *   }
  */
 export async function POST(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin

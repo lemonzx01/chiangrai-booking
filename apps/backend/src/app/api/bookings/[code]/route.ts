@@ -43,6 +43,7 @@ import { findMockBookingByCode } from '../../../../lib/mock-data'
 /** Status transition rules */
 import { VALID_STATUS_TRANSITIONS } from '@chiangrai/shared/types'
 import { logAdminAction } from '../../../../lib/audit'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 // ============================================================
 // Type Definitions
@@ -204,6 +205,12 @@ export async function GET(request: Request, { params }: Params) {
  *   Body: { "status": "CONFIRMED" }
  */
 export async function PATCH(request: Request, { params }: Params) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     // ----------------------------------------------------------
     // ตรวจสอบสิทธิ์ Admin

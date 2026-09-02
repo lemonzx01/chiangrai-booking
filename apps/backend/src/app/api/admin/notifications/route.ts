@@ -25,6 +25,7 @@ import { requireAdmin } from '../../../../lib/authz'
 import { createAdminClient } from '../../../../lib/supabase/server'
 import { apiBadRequest, apiServerError, apiSuccess } from '../../../../lib/errors'
 import { logger } from '../../../../lib/logger'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 export async function GET(request: Request) {
   const auth = await requireAdmin()
@@ -101,6 +102,12 @@ export async function GET(request: Request) {
 const MAX_BULK_IDS = 200
 
 export async function POST(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 

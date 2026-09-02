@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import { verifyUserToken, createToken, isMockMode } from '../../../../lib/auth'
 import { createAdminClient } from '../../../../lib/supabase/server'
 import { logger } from '../../../../lib/logger'
+import { verifyCsrfToken } from '../../../../lib/csrf'
 
 export async function GET() {
   try {
@@ -67,6 +68,12 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  // CSRF: state-changing + authenticated, so it needs the
+  // double-submit check. Safe methods are skipped inside
+  // verifyCsrfToken itself.
+  const csrfFail = await verifyCsrfToken(request)
+  if (csrfFail) return csrfFail
+
   try {
     const auth = await verifyUserToken()
     if (!auth.success || !auth.user) {
