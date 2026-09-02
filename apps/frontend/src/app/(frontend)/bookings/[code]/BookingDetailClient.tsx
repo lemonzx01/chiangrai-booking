@@ -118,7 +118,7 @@ export default function BookingDetailClient({
         const query = lookupEmail
           ? `?email=${encodeURIComponent(lookupEmail)}`
           : ''
-        const res = await fetch(`/api/bookings/${code}${query}`, {
+        const res = await apiFetch(`/api/bookings/${code}${query}`, {
           credentials: 'include',
         })
 

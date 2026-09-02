@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { useToast } from '@/components/shared/Toast'
 import { useConfirm } from '@/components/shared/ConfirmDialog'
+import { apiFetch } from '@/lib/api'
 
 interface DeleteRoomTypeButtonProps {
   id: string
@@ -27,7 +28,7 @@ export default function DeleteRoomTypeButton({ id }: DeleteRoomTypeButtonProps) 
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/room-types/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/room-types/${id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'ไม่สามารถลบประเภทห้องได้')

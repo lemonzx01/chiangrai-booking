@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { Mail, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { apiFetch } from '@/lib/api'
 
 function VerifyEmailContent() {
   const { i18n } = useTranslation()
@@ -27,7 +28,7 @@ function VerifyEmailContent() {
 
     const verifyEmail = async () => {
       try {
-        const res = await fetch('/api/auth/verify-email', {
+        const res = await apiFetch('/api/auth/verify-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),

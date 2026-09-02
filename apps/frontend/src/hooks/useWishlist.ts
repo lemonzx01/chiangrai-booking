@@ -33,6 +33,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 const STORAGE_KEY = 'wishlist_v1'
 const MAX_ITEMS = 100 // Generous; mostly to bound storage size
@@ -92,7 +93,7 @@ interface ServerEntry {
 
 async function fetchServerList(): Promise<ServerEntry[] | null> {
   try {
-    const res = await fetch('/api/user/wishlist', { credentials: 'include' })
+    const res = await apiFetch('/api/user/wishlist', { credentials: 'include' })
     if (res.status === 401) return null // guest — no sync
     if (!res.ok) return null
     const json = (await res.json()) as { items?: ServerEntry[] }
@@ -110,7 +111,7 @@ async function syncMerge(items: WishlistEntry[]): Promise<void> {
       typeof document !== 'undefined'
         ? (document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/)?.[1] || '')
         : ''
-    await fetch('/api/user/wishlist', {
+    await apiFetch('/api/user/wishlist', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -136,7 +137,7 @@ async function syncAdd(kind: WishKind, id: string): Promise<void> {
       typeof document !== 'undefined'
         ? (document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/)?.[1] || '')
         : ''
-    await fetch('/api/user/wishlist', {
+    await apiFetch('/api/user/wishlist', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -177,7 +178,7 @@ async function syncClear(): Promise<void> {
       typeof document !== 'undefined'
         ? (document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/)?.[1] || '')
         : ''
-    await fetch('/api/user/wishlist?all=1', {
+    await apiFetch('/api/user/wishlist?all=1', {
       method: 'DELETE',
       credentials: 'include',
       headers: {

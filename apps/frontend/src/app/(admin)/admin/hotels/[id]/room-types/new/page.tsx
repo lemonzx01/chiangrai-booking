@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api'
 
 export default function NewRoomTypePage() {
   const router = useRouter()
@@ -30,7 +31,7 @@ export default function NewRoomTypePage() {
     // Load hotel name
     const loadHotel = async () => {
       try {
-        const res = await fetch(`/api/hotels/${hotelId}`)
+        const res = await apiFetch(`/api/hotels/${hotelId}`)
         if (res.ok) {
           const data = await res.json()
           setHotelName(data.name_th || '')
@@ -54,7 +55,7 @@ export default function NewRoomTypePage() {
         max_guests: parseInt(String(formData.max_guests)),
       }
 
-      const res = await fetch('/api/room-types', {
+      const res = await apiFetch('/api/room-types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

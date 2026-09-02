@@ -11,6 +11,7 @@ import SelectDropdown from '@/components/ui/SelectDropdown'
 import { Partner } from '@chiangrai/shared/types'
 import { CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
 import { Currency } from '@chiangrai/shared/types'
+import { apiFetch } from '@/lib/api'
 
 export default function NewCarPage() {
   const [loading, setLoading] = useState(false)
@@ -45,7 +46,7 @@ export default function NewCarPage() {
   useEffect(() => {
     const fetchPartners = async () => {
       try {
-        const res = await fetch('/api/partners?type=DRIVER&is_active=true')
+        const res = await apiFetch('/api/partners?type=DRIVER&is_active=true')
         const data = await res.json()
         if (data.data) {
           setPartners(data.data)
@@ -72,7 +73,7 @@ export default function NewCarPage() {
         currency: formData.currency,
       }
 
-      const res = await fetch('/api/cars', {
+      const res = await apiFetch('/api/cars', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

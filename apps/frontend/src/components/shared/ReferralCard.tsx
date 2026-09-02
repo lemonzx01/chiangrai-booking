@@ -36,6 +36,7 @@ import { Gift, Copy, Share2, CheckCircle2, Loader2, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/shared/Toast'
+import { apiFetch } from '@/lib/api'
 
 interface Invitee {
   refereeName: string | null
@@ -71,7 +72,7 @@ export default function ReferralCard() {
       setLoading(true)
       setError(false)
       try {
-        const res = await fetch('/api/user/referrals', { credentials: 'include' })
+        const res = await apiFetch('/api/user/referrals', { credentials: 'include' })
         if (!res.ok) {
           // 401 is not really an "error" here — the page itself
           // handles auth redirect, so we just stay quiet.

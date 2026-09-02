@@ -98,7 +98,7 @@ export default function BookingStatusSelect({ bookingCode, currentStatus }: Book
     // Normal status update
     setLoading(true)
     try {
-      const res = await fetch(`/api/bookings/${bookingCode}`, {
+      const res = await apiFetch(`/api/bookings/${bookingCode}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),

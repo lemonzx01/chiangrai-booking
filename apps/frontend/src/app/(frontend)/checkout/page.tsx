@@ -63,6 +63,7 @@ import useLocalize from '@/hooks/useLocalize'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { apiFetch } from '@/lib/api'
 
 type AppliedCoupon = Pick<
   Coupon,
@@ -142,7 +143,7 @@ function CheckoutContent() {
       try {
         // ดึงข้อมูลจาก API โดยใช้ booking_code
         const query = bookingEmail ? `?email=${encodeURIComponent(bookingEmail)}` : ''
-        const res = await fetch(`/api/bookings/${bookingCode}${query}`)
+        const res = await apiFetch(`/api/bookings/${bookingCode}${query}`)
         if (res.ok) {
           const data = await res.json()
           setBooking(data)
@@ -185,7 +186,7 @@ function CheckoutContent() {
     setCouponError('')
 
     try {
-      const response = await fetch('/api/coupons/validate', {
+      const response = await apiFetch('/api/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -239,7 +240,7 @@ function CheckoutContent() {
 
     try {
       // สร้าง Checkout Session
-      const checkoutRes = await fetch('/api/checkout', {
+      const checkoutRes = await apiFetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -18,6 +18,7 @@ import SelectDropdown from '@/components/ui/SelectDropdown'
 import { Partner } from '@chiangrai/shared/types'
 import { Currency } from '@chiangrai/shared/types'
 import { CURRENCY_OPTIONS } from '@chiangrai/shared/currency'
+import { apiFetch } from '@/lib/api'
 
 export default function NewHotelPage() {
   const [loading, setLoading] = useState(false)
@@ -52,7 +53,7 @@ export default function NewHotelPage() {
   useEffect(() => {
     const fetchPartners = async () => {
       try {
-        const res = await fetch('/api/partners?type=HOTEL&is_active=true')
+        const res = await apiFetch('/api/partners?type=HOTEL&is_active=true')
         const data = await res.json()
         if (data.data) {
           setPartners(data.data)
@@ -80,7 +81,7 @@ export default function NewHotelPage() {
         currency: formData.currency,
       }
 
-      const res = await fetch('/api/hotels', {
+      const res = await apiFetch('/api/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

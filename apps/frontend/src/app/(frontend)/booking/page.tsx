@@ -73,6 +73,7 @@ import { DetailPageSkeleton } from '@/components/shared/Skeletons'
 
 /** Profile auto-fill hook */
 import useCurrentUser from '@/hooks/useCurrentUser'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Booking Content Component
@@ -203,7 +204,7 @@ function BookingContent() {
 
         // ถ้าเป็นโรงแรม ให้ดึงประเภทห้อง
         if (type === 'HOTEL') {
-          const roomTypesRes = await fetch(`/api/room-types?hotel_id=${id}`)
+          const roomTypesRes = await apiFetch(`/api/room-types?hotel_id=${id}`)
           const roomTypesData = roomTypesRes.ok ? await roomTypesRes.json() : null
           // ใช้ room_types จาก API แยก หรือ fallback จาก hotel API
           const rtData = roomTypesData?.data?.length > 0
@@ -253,7 +254,7 @@ function BookingContent() {
 
       setCheckingAvailability(true)
       try {
-        const res = await fetch(`/api/availability?${params.toString()}`)
+        const res = await apiFetch(`/api/availability?${params.toString()}`)
         if (res.ok) {
           const data = await res.json()
           setAvailability(data)
@@ -337,7 +338,7 @@ function BookingContent() {
       // ----------------------------------------------------------
       // 1. สร้างการจอง
       // ----------------------------------------------------------
-      const bookingRes = await fetch('/api/bookings', {
+      const bookingRes = await apiFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

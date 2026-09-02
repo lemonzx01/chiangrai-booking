@@ -24,6 +24,7 @@ import {
   ArrowRight,
   Loader2,
 } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 interface Props {
   token: string
@@ -48,7 +49,7 @@ export default function EmailPreferencesClient({
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch('/api/email-preferences', {
+      const res = await apiFetch('/api/email-preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

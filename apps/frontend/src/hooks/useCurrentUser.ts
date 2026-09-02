@@ -22,6 +22,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 export interface CurrentUser {
   id: string
@@ -40,7 +41,7 @@ export function useCurrentUser() {
     let cancelled = false
     void (async () => {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' })
+        const res = await apiFetch('/api/auth/me', { credentials: 'include' })
         if (!cancelled) {
           if (res.ok) {
             const json = (await res.json()) as { user?: CurrentUser }

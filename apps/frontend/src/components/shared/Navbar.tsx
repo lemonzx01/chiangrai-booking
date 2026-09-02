@@ -30,6 +30,7 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Compass, User, LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from './LanguageSwitcher'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Constants (ค่าคงที่)
@@ -193,7 +194,7 @@ export default function Navbar() {
     }
 
     try {
-      const res = await fetch('/api/auth/me')
+      const res = await apiFetch('/api/auth/me')
       if (res.ok) {
         const data = await res.json()
         setUser(data.user)
@@ -213,7 +214,7 @@ export default function Navbar() {
    */
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await apiFetch('/api/auth/logout', { method: 'POST' })
     } catch {
       // ignore - ยังคง redirect ออก
     }

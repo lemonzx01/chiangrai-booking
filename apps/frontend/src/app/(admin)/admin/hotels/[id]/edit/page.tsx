@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { STAR_RATINGS } from '@chiangrai/shared/constants'
 import ImageUpload from '@/components/ui/ImageUpload'
 import SelectDropdown from '@/components/ui/SelectDropdown'
+import { apiFetch } from '@/lib/api'
 
 export default function EditHotelPage() {
   const params = useParams()
@@ -41,7 +42,7 @@ export default function EditHotelPage() {
   useEffect(() => {
     const loadHotel = async () => {
       try {
-        const res = await fetch(`/api/hotels/${id}`)
+        const res = await apiFetch(`/api/hotels/${id}`)
         if (!res.ok) {
           throw new Error('ไม่พบข้อมูลโรงแรม')
         }
@@ -88,7 +89,7 @@ export default function EditHotelPage() {
         star_rating: parseInt(String(formData.star_rating)),
       }
 
-      const res = await fetch(`/api/hotels/${id}`, {
+      const res = await apiFetch(`/api/hotels/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

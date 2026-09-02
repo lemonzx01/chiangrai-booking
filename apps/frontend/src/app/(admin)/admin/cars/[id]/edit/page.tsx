@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/ImageUpload'
+import { apiFetch } from '@/lib/api'
 
 export default function EditCarPage() {
   const params = useParams()
@@ -39,7 +40,7 @@ export default function EditCarPage() {
   useEffect(() => {
     const loadCar = async () => {
       try {
-        const res = await fetch(`/api/cars/${id}`)
+        const res = await apiFetch(`/api/cars/${id}`)
         if (!res.ok) {
           throw new Error('ไม่พบข้อมูลรถ')
         }
@@ -83,7 +84,7 @@ export default function EditCarPage() {
         max_passengers: parseInt(String(formData.max_passengers)),
       }
 
-      const res = await fetch(`/api/cars/${id}`, {
+      const res = await apiFetch(`/api/cars/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

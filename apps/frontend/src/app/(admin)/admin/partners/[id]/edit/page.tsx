@@ -49,6 +49,7 @@ import SelectDropdown from '@/components/ui/SelectDropdown'
 
 /** Type definitions */
 import { PartnerType, Partner } from '@chiangrai/shared/types'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Main Component
@@ -110,7 +111,7 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
     const fetchPartnerAndCheckStripe = async () => {
       setFetching(true);
       try {
-        const res = await fetch(`/api/partners/${params.id}`);
+        const res = await apiFetch(`/api/partners/${params.id}`);
         const data: unknown = await res.json();
 
         if (!res.ok) {
@@ -136,7 +137,7 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
         // Check Stripe status if returning from onboarding
         if (searchParams.get('stripe_return') === 'true') {
           setStripeCheckMessage('กำลังตรวจสอบสถานะการเชื่อมต่อกับ Stripe...');
-          const statusRes = await fetch(`/api/partners/${params.id}/stripe-status`);
+          const statusRes = await apiFetch(`/api/partners/${params.id}/stripe-status`);
           const statusData = await statusRes.json();
 
           if (!statusRes.ok) {
@@ -188,7 +189,7 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
       }
 
       // เรียก API เพื่ออัปเดตพาร์ทเนอร์
-      const res = await fetch(`/api/partners/${params.id}`, {
+      const res = await apiFetch(`/api/partners/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -212,7 +213,7 @@ export default function EditPartnerPage({ params }: { params: { id: string } }) 
     setIsConnectingStripe(true)
     setError('')
     try {
-      const res = await fetch(`/api/partners/${params.id}/stripe-connect`, {
+      const res = await apiFetch(`/api/partners/${params.id}/stripe-connect`, {
         method: 'POST',
       })
       const data = await res.json()

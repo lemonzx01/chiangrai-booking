@@ -43,6 +43,7 @@ import { Key, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Reset Password Content Component
@@ -107,7 +108,7 @@ function ResetPasswordContent() {
     // ตรวจสอบว่า token ถูกต้องหรือไม่
     const validateToken = async () => {
       try {
-        const res = await fetch(`/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`)
+        const res = await apiFetch(`/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`)
         const data = await res.json()
 
         if (!res.ok || !data.valid) {
@@ -181,7 +182,7 @@ function ResetPasswordContent() {
 
     try {
       // ส่งข้อมูลไป API
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

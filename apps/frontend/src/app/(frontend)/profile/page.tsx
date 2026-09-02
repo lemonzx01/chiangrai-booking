@@ -76,8 +76,8 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       const [profileRes, bookingsRes] = await Promise.all([
-        fetch('/api/user/profile'),
-        fetch('/api/user/bookings'),
+        apiFetch('/api/user/profile'),
+        apiFetch('/api/user/bookings'),
       ])
 
       if (!profileRes.ok) {
@@ -109,7 +109,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     setLoggingOut(true)
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await apiFetch('/api/auth/logout', { method: 'POST' })
       document.cookie = 'logged_in=; path=/; max-age=0'
       window.location.href = '/'
     } catch {
@@ -121,7 +121,7 @@ export default function ProfilePage() {
     setSendingVerification(true)
     setVerificationError(null)
     try {
-      const res = await fetch('/api/auth/resend-verification', { method: 'POST' })
+      const res = await apiFetch('/api/auth/resend-verification', { method: 'POST' })
       if (res.ok) {
         setVerificationSent(true)
         return

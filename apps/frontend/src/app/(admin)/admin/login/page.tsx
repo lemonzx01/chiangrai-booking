@@ -41,6 +41,7 @@ import { Compass } from 'lucide-react'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Main Component
@@ -94,7 +95,7 @@ export default function AdminLoginPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/admin/auth')
+        const res = await apiFetch('/api/admin/auth')
         if (res.ok) {
           const data = await res.json()
           if (data.user) {
@@ -143,7 +144,7 @@ export default function AdminLoginPage() {
       // ----------------------------------------------------------
       // เรียก API เพื่อ login
       // ----------------------------------------------------------
-      const res = await fetch('/api/admin/login', {
+      const res = await apiFetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

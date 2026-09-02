@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api'
 
 export default function EditRoomTypePage() {
   const router = useRouter()
@@ -32,14 +33,14 @@ export default function EditRoomTypePage() {
     const loadData = async () => {
       try {
         // Load hotel name
-        const hotelRes = await fetch(`/api/hotels/${hotelId}`)
+        const hotelRes = await apiFetch(`/api/hotels/${hotelId}`)
         if (hotelRes.ok) {
           const hotelData = await hotelRes.json()
           setHotelName(hotelData.name_th || '')
         }
 
         // Load room type
-        const res = await fetch(`/api/room-types/${roomTypeId}`)
+        const res = await apiFetch(`/api/room-types/${roomTypeId}`)
         if (!res.ok) {
           throw new Error('ไม่พบข้อมูลประเภทห้อง')
         }
@@ -79,7 +80,7 @@ export default function EditRoomTypePage() {
         is_active: formData.is_active,
       }
 
-      const res = await fetch(`/api/room-types/${roomTypeId}`, {
+      const res = await apiFetch(`/api/room-types/${roomTypeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

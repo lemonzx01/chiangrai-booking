@@ -11,6 +11,7 @@ import PartnerSidebar from '@/components/partner/Sidebar'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import SelectDropdown from '@/components/ui/SelectDropdown'
+import { apiFetch } from '@/lib/api'
 
 interface FormState {
   name_th: string
@@ -91,7 +92,7 @@ export default function NewPartnerCarPage() {
         is_active: formData.is_active,
       }
 
-      const response = await fetch('/api/cars', {
+      const response = await apiFetch('/api/cars', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

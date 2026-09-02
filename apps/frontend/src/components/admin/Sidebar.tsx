@@ -37,6 +37,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
 import { Compass, LayoutDashboard, Building2, Car, Calendar, LogOut, Menu, X, Users, CreditCard, Tag, MessageSquare, Bell, Send, Gift, Award } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Constants - Navigation Menu
@@ -98,7 +99,7 @@ export default function AdminSidebar() {
   // ----------------------------------------------------------
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/notifications?status=unread&limit=1', {
+      const res = await apiFetch('/api/admin/notifications?status=unread&limit=1', {
         credentials: 'include',
       })
       if (!res.ok) return
@@ -135,7 +136,7 @@ export default function AdminSidebar() {
    */
   const handleLogout = async () => {
     if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-      await fetch('/api/admin/auth', { method: 'DELETE' })
+      await apiFetch('/api/admin/auth', { method: 'DELETE' })
       router.push('/')
       router.refresh()
     }

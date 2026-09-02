@@ -21,6 +21,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, CreditCard, ShieldAlert, CheckCircle2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { apiFetch } from '@/lib/api'
 
 function MockCheckoutInner() {
   const router = useRouter()
@@ -73,7 +74,7 @@ function MockCheckoutInner() {
         },
       }
 
-      const res = await fetch('/api/webhook/stripe', {
+      const res = await apiFetch('/api/webhook/stripe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

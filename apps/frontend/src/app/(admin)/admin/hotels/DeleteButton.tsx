@@ -37,6 +37,7 @@ import { Trash2, Loader2 } from 'lucide-react'
 
 import { useToast } from '@/components/shared/Toast'
 import { useConfirm } from '@/components/shared/ConfirmDialog'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Component Props
@@ -92,7 +93,7 @@ export default function DeleteHotelButton({ id }: DeleteHotelButtonProps) {
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/hotels/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/hotels/${id}`, { method: 'DELETE' })
       if (res.ok) {
         toast.success('ลบโรงแรมสำเร็จ')
         router.refresh()

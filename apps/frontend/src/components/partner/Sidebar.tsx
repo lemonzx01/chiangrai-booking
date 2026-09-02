@@ -37,6 +37,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 /** Lucide icons สำหรับ UI */
 import { Compass, LayoutDashboard, Car, Calendar, CalendarX, LogOut, Menu, X, CreditCard, BarChart3 } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Constants - Navigation Menu
@@ -97,7 +98,7 @@ export default function PartnerSidebar() {
    */
   const handleLogout = async () => {
     if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await apiFetch('/api/auth/logout', { method: 'POST' })
       router.push('/')
       router.refresh()
     }

@@ -76,7 +76,7 @@ export default function ReviewsSection({ hotelId, carId }: ReviewsSectionProps) 
       }
 
       try {
-        const response = await fetch(`/api/reviews?${params.toString()}`)
+        const response = await apiFetch(`/api/reviews?${params.toString()}`)
         const data = (await response.json()) as ReviewResponse
 
         if (!response.ok) {

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Check, Loader2 } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 export default function NewsletterSignup() {
   const { i18n } = useTranslation()
@@ -19,7 +20,7 @@ export default function NewsletterSignup() {
     setStatus('submitting')
     setErrorMsg('')
     try {
-      const res = await fetch('/api/email/subscribe', {
+      const res = await apiFetch('/api/email/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

@@ -21,6 +21,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 function AuthCallbackContent() {
   const router = useRouter()
@@ -40,7 +41,7 @@ function AuthCallbackContent() {
         }
 
         // เรียก API เพื่อสร้าง cookie (ผ่าน proxy ไป backend)
-        const res = await fetch('/api/auth/set-cookie', {
+        const res = await apiFetch('/api/auth/set-cookie', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

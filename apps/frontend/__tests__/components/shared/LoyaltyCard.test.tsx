@@ -107,7 +107,6 @@ function Wrap({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   apiFetchMock.mockReset()
-  ;(global.fetch as ReturnType<typeof vi.fn>).mockReset()
   Object.assign(navigator, {
     clipboard: { writeText: vi.fn(async () => undefined) },
   })
@@ -119,7 +118,7 @@ afterEach(() => {
 
 describe('LoyaltyCard', () => {
   it('shows a loader while fetching', () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockReturnValue(
+    ;apiFetchMock.mockReturnValue(
       new Promise(() => {})
     )
     render(
@@ -131,7 +130,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('renders balance, tier badge, and progress on success', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    ;apiFetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => makeOverview(),
@@ -152,7 +151,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('shows "top tier reached" branch when no next tier', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    ;apiFetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () =>
@@ -177,7 +176,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('renders error banner when fetch fails', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+    ;apiFetchMock.mockRejectedValueOnce(
       new Error('network')
     )
 
@@ -194,7 +193,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('stays quiet on 401 (page handles auth redirect)', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    ;apiFetchMock.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: async () => ({}),
@@ -212,7 +211,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('disables redeem tiers when balance is below cost', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    ;apiFetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () =>
@@ -235,7 +234,7 @@ describe('LoyaltyCard', () => {
   })
 
   it('redeems points and shows the issued coupon panel on success', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    ;apiFetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => makeOverview(),

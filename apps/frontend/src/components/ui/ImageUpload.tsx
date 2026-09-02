@@ -26,6 +26,7 @@
 import { useState, useRef } from 'react'
 import { Upload, Loader2 } from 'lucide-react'
 import Button from './Button'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Types (ประกาศ Types)
@@ -140,7 +141,7 @@ export default function ImageUpload({
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch('/api/upload', {
+      const res = await apiFetch('/api/upload', {
         method: 'POST',
         body: formData,
       })

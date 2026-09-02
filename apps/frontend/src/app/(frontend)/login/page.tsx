@@ -48,6 +48,7 @@ import { LogIn, Loader2, CheckCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import BrandPanel from '@/components/shared/BrandPanel'
+import { apiFetch } from '@/lib/api'
 
 /**
  * Only allow internal, single-slash paths as redirect targets.
@@ -226,7 +227,7 @@ function LoginContent() {
       if (!hasCookie) return
 
       try {
-        const res = await fetch('/api/auth/me')
+        const res = await apiFetch('/api/auth/me')
         if (res.ok) {
           const redirect = safeInternalPath(searchParams.get('redirect')) || '/'
           router.push(redirect)
@@ -273,7 +274,7 @@ function LoginContent() {
 
     try {
       // ส่งข้อมูลไป API
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

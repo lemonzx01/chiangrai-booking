@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { Calendar, Sparkles, Heart, ArrowRight } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 
 interface ProfileSummaryProps {
   activeBookings: number
@@ -40,7 +41,7 @@ export default function ProfileSummary({ activeBookings, enabled = true }: Profi
     if (!enabled) return
     let alive = true
 
-    fetch('/api/user/wishlist')
+    apiFetch('/api/user/wishlist')
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((d) => {
         if (alive) setWishlistCount(Array.isArray(d.data) ? d.data.length : 0)
@@ -49,7 +50,7 @@ export default function ProfileSummary({ activeBookings, enabled = true }: Profi
         if (alive) setWishlistCount(0)
       })
 
-    fetch('/api/user/loyalty')
+    apiFetch('/api/user/loyalty')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!alive || !d) return

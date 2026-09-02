@@ -23,6 +23,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Types (ประกาศ Types)
@@ -96,7 +97,7 @@ export function useAuth() {
   const checkAuth = useCallback(async () => {
     try {
       // เรียก API ตรวจสอบ authentication
-      const response = await fetch('/api/admin/auth')
+      const response = await apiFetch('/api/admin/auth')
 
       if (response.ok) {
         const data = await response.json()
@@ -139,7 +140,7 @@ export function useAuth() {
    */
   const login = useCallback(async (email: string, password: string) => {
     // เรียก API ล็อกอิน
-    const response = await fetch('/api/admin/login', {
+    const response = await apiFetch('/api/admin/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,7 +175,7 @@ export function useAuth() {
    */
   const logout = useCallback(async () => {
     // เรียก API ลบ token
-    await fetch('/api/admin/auth', { method: 'DELETE' })
+    await apiFetch('/api/admin/auth', { method: 'DELETE' })
 
     // ล้าง user state
     setUser(null)

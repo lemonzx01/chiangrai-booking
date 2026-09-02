@@ -46,6 +46,7 @@ import { UserPlus, Loader2, Gift } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import BrandPanel from '@/components/shared/BrandPanel'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Main Component
@@ -189,7 +190,7 @@ function RegisterPageInner() {
     // ส่งข้อมูลไป API
     // ----------------------------------------------------------
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

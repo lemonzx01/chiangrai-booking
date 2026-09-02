@@ -91,7 +91,29 @@ export async function apiFetch(
   const isSafe = method === 'GET' || method === 'HEAD' || method === 'OPTIONS'
 
   const headers = new Headers(init.headers || {})
-  if (!headers.has('Content-Type') && init.body && typeof init.body === 'object') {
+
+  // Only JSON-ify plain objects. FormData, Blob, ArrayBuffer and
+  // URLSearchParams are all `typeof 'object'` too, and stamping
+  // application/json on them is actively harmful: a multipart upload
+  // needs the browser to generate `multipart/form-data; boundary=…`
+  // itself, and overriding that header strips the boundary so the
+  // server cannot parse a single field.
+  const isStructuredBody =
+    typeof FormData !== 'undefined' && init.body instanceof FormData
+      ? true
+      : typeof Blob !== 'undefined' && init.body instanceof Blob
+        ? true
+        : typeof URLSearchParams !== 'undefined' &&
+            init.body instanceof URLSearchParams
+          ? true
+          : init.body instanceof ArrayBuffer
+
+  if (
+    !headers.has('Content-Type') &&
+    init.body &&
+    typeof init.body === 'object' &&
+    !isStructuredBody
+  ) {
     headers.set('Content-Type', 'application/json')
   }
   if (!isSafe) {
@@ -102,7 +124,7 @@ export async function apiFetch(
   // Auto-stringify object bodies
   let body: BodyInit | undefined = undefined
   if (init.body !== undefined && init.body !== null) {
-    if (typeof init.body === 'string' || init.body instanceof FormData || init.body instanceof Blob) {
+    if (typeof init.body === 'string' || isStructuredBody) {
       body = init.body as BodyInit
     } else {
       body = JSON.stringify(init.body)

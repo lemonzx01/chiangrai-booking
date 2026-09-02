@@ -40,6 +40,7 @@ import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react'
 /** UI Components */
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Main Component
@@ -98,7 +99,7 @@ export default function ForgotPasswordPage() {
 
     try {
       // ส่งข้อมูลไป API
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

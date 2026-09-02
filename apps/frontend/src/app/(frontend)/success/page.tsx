@@ -52,6 +52,7 @@ import { formatCurrency, formatDate } from '@chiangrai/shared/utils'
 
 /** UI Components */
 import Button from '@/components/ui/Button'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Success Content Component
@@ -110,7 +111,7 @@ function SuccessContent() {
 
       // ดึงข้อมูลจาก API
       const query = email ? `?email=${encodeURIComponent(email)}` : ''
-      const res = await fetch(`/api/bookings/${code}${query}`)
+      const res = await apiFetch(`/api/bookings/${code}${query}`)
       if (res.ok) {
         const data = await res.json()
         setBooking(data)

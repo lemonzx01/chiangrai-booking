@@ -179,7 +179,7 @@ export default function LoyaltyCard() {
       setLoading(true)
       setError(false)
       try {
-        const res = await fetch('/api/user/loyalty', { credentials: 'include' })
+        const res = await apiFetch('/api/user/loyalty', { credentials: 'include' })
         if (!res.ok) {
           // Stay quiet on 401 — the page redirects to login.
           if (res.status !== 401) setError(true)

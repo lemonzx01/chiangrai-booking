@@ -37,6 +37,7 @@ import { useRouter } from 'next/navigation'
 
 import { useToast } from '@/components/shared/Toast'
 import { useConfirm } from '@/components/shared/ConfirmDialog'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Component Props
@@ -92,7 +93,7 @@ export default function DeletePartnerButton({ id }: DeletePartnerButtonProps) {
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/partners/${id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'ไม่สามารถลบพาร์ทเนอร์ได้')

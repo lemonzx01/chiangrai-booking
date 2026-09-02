@@ -47,6 +47,7 @@ import SelectDropdown from '@/components/ui/SelectDropdown'
 
 /** Type definitions */
 import { PartnerType } from '@chiangrai/shared/types'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Main Component
@@ -113,7 +114,7 @@ export default function NewPartnerPage() {
       }
 
       // เรียก API เพื่อสร้างพาร์ทเนอร์
-      const res = await fetch('/api/partners', {
+      const res = await apiFetch('/api/partners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

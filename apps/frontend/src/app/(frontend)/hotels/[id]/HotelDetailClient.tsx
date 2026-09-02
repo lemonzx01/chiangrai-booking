@@ -62,6 +62,7 @@ import WishlistButton from '@/components/shared/WishlistButton'
 
 /** Track viewing in localStorage */
 import useRecentlyViewed from '@/hooks/useRecentlyViewed'
+import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // Type Definitions
@@ -144,7 +145,7 @@ export default function HotelDetailClient({ hotel }: HotelDetailClientProps) {
   useEffect(() => {
     async function fetchRoomTypes() {
       try {
-        const res = await fetch(`/api/room-types?hotel_id=${hotel.id}`)
+        const res = await apiFetch(`/api/room-types?hotel_id=${hotel.id}`)
         if (res.ok) {
           const data = await res.json()
           setRoomTypes(data.data || [])
