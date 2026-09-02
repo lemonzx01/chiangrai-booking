@@ -55,6 +55,19 @@ const nextConfig = {
   // CSP TODO: switch to nonce-based once we move off
   // 'unsafe-inline' (planned post-launch).
   async headers() {
+    // 'unsafe-eval' is only needed by React Refresh / the dev overlay.
+    // Shipping it to production would let any injected string reach
+    // eval(), which is exactly the escape hatch an XSS payload wants,
+    // so it is dev-only.
+    const isDev = process.env.NODE_ENV !== 'production'
+    const scriptSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      ...(isDev ? ["'unsafe-eval'"] : []),
+      'https://js.stripe.com',
+      'https://*.vercel.app',
+    ].join(' ')
+
     const securityHeaders = [
       {
         key: 'Strict-Transport-Security',
@@ -72,7 +85,7 @@ const nextConfig = {
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.vercel.app",
+          `script-src ${scriptSrc}`,
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com data:",
           "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.stripe.com",
@@ -81,6 +94,15 @@ const nextConfig = {
           "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self' https://checkout.stripe.com",
+          // No Flash/Java/embed surface — closes a legacy XSS vector
+          // that default-src does not cover in older browsers.
+          "object-src 'none'",
+          // The PWA service worker is same-origin only; without this,
+          // an attacker who can host a file on an allowed origin could
+          // register a worker that outlives the page.
+          "worker-src 'self' blob:",
+          "manifest-src 'self'",
+          "media-src 'self'",
           'upgrade-insecure-requests',
         ].join('; '),
       },
