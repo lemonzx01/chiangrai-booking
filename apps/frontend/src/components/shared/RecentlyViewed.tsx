@@ -92,7 +92,7 @@ export default function RecentlyViewed({
           <Link
             key={`${item.kind}-${item.id}`}
             href={`/${item.kind}s/${item.id}`}
-            className="group flex-shrink-0 w-44 sm:w-52 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-all overflow-hidden"
+            className="group flex-shrink-0 w-44 sm:w-52 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-[box-shadow,border-color] overflow-hidden"
           >
             <div className="relative h-28 sm:h-32 bg-slate-100 overflow-hidden">
               {item.image ? (

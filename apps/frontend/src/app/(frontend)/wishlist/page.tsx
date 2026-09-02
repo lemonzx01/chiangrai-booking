@@ -165,7 +165,7 @@ function WishlistCard({
         type="button"
         onClick={onRemove}
         aria-label="ลบจากรายการที่ชอบ"
-        className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm shadow-md flex items-center justify-center text-slate-400 hover:text-red-600 hover:scale-110 transition-all"
+        className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm shadow-md flex items-center justify-center text-slate-400 hover:text-red-600 hover:scale-110 transition-[color,transform]"
       >
         <Trash2 size={14} />
       </button>

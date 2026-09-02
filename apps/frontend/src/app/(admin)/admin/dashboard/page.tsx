@@ -328,7 +328,7 @@ export default async function DashboardPage() {
                 stat.title.includes('รถ') ? '/admin/cars' :
                 '/admin/bookings'
               }
-              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all cursor-pointer group"
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-[box-shadow,border-color] cursor-pointer group"
             >
               {/* Card Header - Icon และ Arrow */}
               <div className="flex items-center justify-between mb-4">

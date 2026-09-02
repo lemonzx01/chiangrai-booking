@@ -56,7 +56,7 @@ export default function WishlistButton({
         onClick={onClick}
         aria-pressed={saved}
         aria-label={saved ? 'ลบจากรายการที่ชอบ' : 'บันทึกในรายการที่ชอบ'}
-        className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all hover:scale-110 ${
+        className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-[color,background-color,transform] hover:scale-110 ${
           saved
             ? 'bg-slate-900 text-white'
             : 'bg-white/90 text-slate-600 hover:text-slate-900'

@@ -128,11 +128,29 @@ export default function Navbar() {
     checkAuth()
   }, [])
 
-  /** ติดตาม scroll event */
+  /** ติดตาม scroll event
+   *
+   *  passive: true is load-bearing. A non-passive scroll listener may
+   *  call preventDefault(), so the browser has to run this handler and
+   *  wait for it before it is allowed to move the page — every wheel
+   *  tick blocks on React. Marking it passive lets scrolling proceed on
+   *  the compositor while the handler runs.
+   *
+   *  The rAF guard coalesces the burst of events a single wheel gesture
+   *  fires down to one read of window.scrollY per frame; reading it is
+   *  a forced layout, so doing it 60+ times a frame is wasted work. */
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10)
+    let ticking = false
+    const handleScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 10)
+        ticking = false
+      })
+    }
     handleScroll() // ตรวจสอบตำแหน่ง scroll ปัจจุบัน
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 

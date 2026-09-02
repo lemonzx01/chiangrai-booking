@@ -331,7 +331,7 @@ export default function HomeClient({ hotels, cars }: HomeClientProps) {
                     ============================================================ */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-slate-900 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-slate-800 transition-all active:scale-95 shadow-md hover:shadow-lg min-h-[60px] sm:min-h-[70px]"
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-4 m-2 bg-slate-900 text-white rounded-xl font-bold text-sm sm:text-base hover:bg-slate-800 transition-[background-color,box-shadow,transform] active:scale-95 shadow-md hover:shadow-lg min-h-[60px] sm:min-h-[70px]"
                 >
                   <Search size={20} className="flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('home.search.button')}</span>
