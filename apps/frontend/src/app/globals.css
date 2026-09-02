@@ -18,6 +18,69 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================================
+   Global keyboard focus indicator
+   ============================================================
+
+   Tailwind's preflight removes the browser's default focus ring,
+   and only Button/Input replaced it. Everything else — nav links,
+   card links, icon buttons, date-picker day cells, dropdown
+   triggers — had no visible focus state at all, which makes the
+   site unnavigable by keyboard and fails WCAG 2.4.7.
+
+   Rather than touching ~30 components, one base rule covers every
+   focusable element:
+
+   - `:where()` gives the selector ZERO specificity, so any
+     component that defines its own focus style still wins. This is
+     a floor, not a ceiling.
+   - `:focus-visible` (not `:focus`) means mouse clicks don't draw
+     a ring — only keyboard/AT navigation does.
+   - `currentColor` adapts automatically: on the dark footer and
+     navbar the text is light, so the outline is light; on white
+     surfaces it's dark. The indicator therefore contrasts with
+     whatever it sits on without maintaining a palette per surface.
+   - `outline` (not box-shadow) follows the element's border-radius
+     in modern browsers and never affects layout.
+   ============================================================ */
+:where(
+  a[href],
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   iOS: stop the viewport zooming on input focus
+   ============================================================
+
+   Mobile Safari zooms the page whenever a focused form control has
+   a computed font-size under 16px, and never zooms back out — the
+   user is left scrolled sideways mid-form. Our controls are 14px on
+   mobile (`text-sm sm:text-base`), so every field on every form
+   triggered it, which is worst exactly where it hurts most: the
+   booking and checkout flows on a phone.
+
+   `!important` is deliberate here — Tailwind's `.text-sm` utility
+   (0,1,0) outranks a bare element selector (0,0,1), so this is the
+   only way to hold the floor without editing every call site. The
+   rule is scoped to below the `sm` breakpoint, so desktop typography
+   is untouched.
+   ============================================================ */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

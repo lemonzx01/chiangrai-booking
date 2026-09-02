@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Loader2, X } from 'lucide-react'
 import Button from './Button'
 import { apiFetch } from '@/lib/api'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface CancelBookingModalProps {
   bookingCode: string
@@ -46,6 +47,38 @@ export default function CancelBookingModal({
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState('')
 
+  // ----------------------------------------------------------
+  // Dialog behaviour
+  // ----------------------------------------------------------
+  // This modal destroys a booking and can trigger a refund, so it
+  // is exactly the kind of dialog that must not leak focus to the
+  // page behind it — a keyboard user could otherwise tab out of the
+  // modal, hit a link, and lose the flow mid-cancellation.
+  const dialogRef = useFocusTrap<HTMLDivElement>(true)
+  const titleId = useId()
+  const reasonId = useId()
+
+  // Escape closes, matching every other dialog in the app
+  // (ConfirmDialog / Lightbox / BottomSheet). Suppressed while the
+  // request is in flight so the user can't dismiss the UI and be
+  // left unsure whether the cancellation went through.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !cancelling) onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [cancelling, onClose])
+
+  // Stop the page behind the modal scrolling under it on mobile.
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [])
+
   const refundPreview = bookingStatus === 'PAID'
     ? getRefundPreview(checkInDate)
     : { percentage: 0, label: bookingStatus === 'PENDING' ? 'ยังไม่ได้ชำระเงิน (ไม่มีการคืนเงิน)' : 'ไม่มีการคืนเงิน' }
@@ -75,18 +108,37 @@ export default function CancelBookingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      // Clicking the backdrop dismisses, but only the backdrop itself —
+      // the check stops clicks bubbling up from inside the panel.
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !cancelling) onClose()
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="w-5 h-5" />
-            <h2 className="text-lg font-bold">
+            <h2 id={titleId} className="text-lg font-bold">
               {lang === 'th' ? 'ยกเลิกการจอง' : 'Cancel Booking'}
             </h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={cancelling}
+            aria-label={lang === 'th' ? 'ปิด' : 'Close'}
+            className="rounded-md p-1 text-slate-400 hover:text-slate-600 disabled:opacity-50"
+          >
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -125,10 +177,14 @@ export default function CancelBookingModal({
 
         {/* Reason */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label
+            htmlFor={reasonId}
+            className="block text-sm font-medium text-slate-700 mb-1"
+          >
             {lang === 'th' ? 'เหตุผลในการยกเลิก (ไม่บังคับ)' : 'Reason for cancellation (optional)'}
           </label>
           <textarea
+            id={reasonId}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder={lang === 'th' ? 'ระบุเหตุผล...' : 'Enter reason...'}

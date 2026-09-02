@@ -21,10 +21,11 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Loader2, X, CalendarClock } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { useToast } from '@/components/shared/Toast'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export interface ModificationRequestModalProps {
   open: boolean
@@ -49,6 +50,25 @@ export default function ModificationRequestModal({
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Keep focus inside the dialog and restore it on close.
+  const dialogRef = useFocusTrap<HTMLDivElement>(open)
+  const titleId = useId()
+
+  // Escape to dismiss, matching the other dialogs. Ignored while the
+  // request is in flight so the modal can't vanish mid-submit.
+  //
+  // NOTE: these hooks must stay ABOVE the `if (!open)` early return —
+  // hooks have to run in the same order on every render, and bailing
+  // out first would skip them whenever the modal is closed.
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !loading) onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, loading, onClose])
 
   if (!open) return null
 
@@ -108,19 +128,26 @@ export default function ModificationRequestModal({
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !loading) onClose()
+      }}
     >
+      {/* role/aria-modal belong on the dialog panel, not the backdrop.
+          On the backdrop they told assistive tech the *overlay* was the
+          dialog, so its accessible name and contents didn't line up with
+          what was actually on screen. */}
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="bg-white rounded-2xl shadow-xl w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <CalendarClock size={18} className="text-slate-900" />
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 id={titleId} className="text-lg font-bold text-slate-900">
               ขอเลื่อนวันจอง
             </h2>
           </div>

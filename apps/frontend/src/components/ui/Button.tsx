@@ -77,7 +77,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
      *  rounded-lg (was rounded-xl) for a calmer, more editorial
      *  shape. Removed `shadow-lg` — saturated colored shadow on
      *  every button was the loudest "AI template" signal. */
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation min-h-[44px] sm:min-h-0'
+    const baseStyles = [
+      'inline-flex items-center justify-center font-medium rounded-lg',
+      'transition-colors duration-200 active:scale-[0.98]',
+      'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
+      'touch-manipulation min-h-[44px] sm:min-h-0',
+      // Keyboard focus indicator. Without this a keyboard user
+      // tabbing through a form has no idea where they are — the
+      // browser default outline is suppressed by Tailwind's reset.
+      // focus-visible (not focus) keeps it off for mouse clicks.
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+      'focus-visible:ring-slate-900 focus-visible:ring-offset-white',
+    ].join(' ')
 
     /** สไตล์ตามรูปแบบ (variant). Slate-900 for primary (was
      *  saturated indigo-600); editorial sites use a near-black
@@ -88,7 +99,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
       outline: 'border border-slate-300 text-slate-900 hover:border-slate-900 hover:bg-slate-50',
       ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-      danger: 'bg-red-600 text-white hover:bg-red-700',
+      danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600',
     }
 
     /** ขนาดปุ่มตาม size prop */
@@ -110,10 +121,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
         disabled={disabled || loading}
+        // Tells assistive tech the control is working rather than
+        // broken. `disabled` alone just reads as "unavailable".
+        aria-busy={loading || undefined}
         {...props}
       >
-        {/* แสดง spinner เมื่อ loading */}
-        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        {/* แสดง spinner เมื่อ loading.
+            aria-hidden: the spinner is decorative — the state is
+            already announced via aria-busy, so letting a screen
+            reader also hit the icon would just be noise. */}
+        {loading && (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+        )}
         {children}
       </button>
     )

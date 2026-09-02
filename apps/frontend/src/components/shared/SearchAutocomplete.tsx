@@ -23,7 +23,7 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Search, Loader2, X } from 'lucide-react'
@@ -146,6 +146,15 @@ export default function SearchAutocomplete({
       ? 'pl-9 pr-9 py-2 text-sm rounded-xl'
       : 'pl-11 pr-11 py-3 text-base rounded-2xl'
 
+  // ARIA combobox wiring. The pattern needs three linked pieces:
+  //   1. the input points at the popup with aria-controls
+  //   2. the input names the highlighted row with aria-activedescendant
+  //   3. each row carries role="option" + aria-selected
+  // Without them a screen reader announces an ordinary text box and
+  // never reads the suggestions the arrow keys are moving through.
+  const listboxId = useId()
+  const optionId = (i: number) => `${listboxId}-opt-${i}`
+
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative">
@@ -171,6 +180,10 @@ export default function SearchAutocomplete({
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
+          aria-controls={listboxId}
+          aria-activedescendant={
+            open && highlight >= 0 ? optionId(highlight) : undefined
+          }
         />
         {term && (
           <button
@@ -190,6 +203,7 @@ export default function SearchAutocomplete({
       {open && term.trim() && (
         <div
           role="listbox"
+          id={listboxId}
           className="absolute left-0 right-0 mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 max-h-[60vh] overflow-y-auto"
         >
           {loading && !results && (
@@ -203,12 +217,18 @@ export default function SearchAutocomplete({
               ไม่พบผลลัพธ์ — ลองคำอื่น
             </div>
           )}
+          {/* role="none" on the list wrappers: a listbox may only
+              contain options, so the ul/li are made transparent to the
+              accessibility tree and the buttons carry the roles. */}
           {results && results.length > 0 && (
-            <ul className="py-1">
+            <ul className="py-1" role="none">
               {results.map((r, i) => (
-                <li key={`${r.kind}-${r.id}`}>
+                <li key={`${r.kind}-${r.id}`} role="none">
                   <button
                     type="button"
+                    id={optionId(i)}
+                    role="option"
+                    aria-selected={highlight === i}
                     onClick={() => navigate(r)}
                     onMouseEnter={() => setHighlight(i)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
