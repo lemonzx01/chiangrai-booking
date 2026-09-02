@@ -60,6 +60,7 @@ import { checkLockout, recordAttempt, getClientIp } from '@/lib/lockout'
 
 /** Structured logger */
 import { logger } from '@/lib/logger'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 // ============================================================
 // POST Handler - เข้าสู่ระบบ Admin
@@ -86,6 +87,13 @@ import { logger } from '@/lib/logger'
  *   Body: { "email": "admin@example.com", "password": "admin123" }
  */
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Highest-value login on the site — cap it before doing any work.
+  const limitResponse = await rateLimitAsync(request, '/api/admin/login')
+  if (limitResponse) return limitResponse
+
   try {
     // ดึงข้อมูลจาก request body
     const body = await request.json()

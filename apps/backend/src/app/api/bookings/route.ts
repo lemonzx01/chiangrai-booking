@@ -53,6 +53,7 @@ import { checkRoomAvailability, checkCarAvailability } from '../../../lib/availa
 import { verifyAdminToken, verifyPartnerToken } from '../../../lib/auth'
 import { BookingStatusEnum, CurrencyEnum } from '@chiangrai/shared/types/supabase'
 import { logger } from '../../../lib/logger'
+import { rateLimitAsync } from '../../../middleware/rate-limit'
 
 const SUPPORTED_BOOKING_CURRENCIES: CurrencyEnum[] = ['THB', 'USD', 'EUR']
 
@@ -219,6 +220,13 @@ export async function GET(request: Request) {
  *   }
  */
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // PENDING bookings hold inventory, so spam here starves real customers.
+  const limitResponse = await rateLimitAsync(request, '/api/bookings')
+  if (limitResponse) return limitResponse
+
   try {
     // สร้าง Supabase Admin client
     const supabase = await createAdminClient()

@@ -38,6 +38,7 @@ import { jwtVerify } from 'jose'
 /** ฟังก์ชันตรวจสอบสิทธิ์และ Mock Mode */
 import { getJwtSecret, isMockMode } from '../../../../lib/auth'
 import { logger } from '../../../../lib/logger'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 // ============================================================
 // GET Handler - ตรวจสอบ reset token
@@ -59,6 +60,13 @@ import { logger } from '../../../../lib/logger'
  *   GET /api/auth/validate-reset-token?token=jwt-token-here
  */
 export async function GET(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Same token as reset-password, probed through a different door.
+  const limitResponse = await rateLimitAsync(request, '/api/auth/validate-reset-token')
+  if (limitResponse) return limitResponse
+
   try {
     // ดึง token จาก query parameters
     const url = new URL(request.url)

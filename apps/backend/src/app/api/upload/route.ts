@@ -25,7 +25,8 @@
  *
  * ============================================================
  */
-export const dynamic = 'force-dynamic'
+
+export const dynamic = 'force-dynamic'
 
 
 // ============================================================
@@ -38,6 +39,7 @@ import { createAdminClient } from '../../../lib/supabase/server'
 /** Next.js Response utility */
 import { NextResponse } from 'next/server'
 import { logger } from '../../../lib/logger'
+import { rateLimitAsync } from '../../../middleware/rate-limit'
 
 // ============================================================
 // Helper Functions
@@ -90,6 +92,13 @@ const isMockMode = () => {
  *   }
  */
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Each call writes to object storage — abuse here costs real money.
+  const limitResponse = await rateLimitAsync(request, '/api/upload')
+  if (limitResponse) return limitResponse
+
   try {
     // ดึง FormData จาก request
     const formData = await request.formData()

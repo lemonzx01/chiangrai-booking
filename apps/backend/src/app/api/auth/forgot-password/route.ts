@@ -24,7 +24,8 @@
  *
  * ============================================================
  */
-export const dynamic = 'force-dynamic'
+
+export const dynamic = 'force-dynamic'
 
 
 // ============================================================
@@ -51,7 +52,7 @@ import { renderPasswordResetEmail } from '../../../../services/notifications/tem
 import { findMockUser, findMockAdmin } from '../../../../lib/mock-data'
 
 /** Rate limiting middleware */
-import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 import { logger } from '../../../../lib/logger'
 
 // ============================================================
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // Rate Limiting - ป้องกัน spam
     // ----------------------------------------------------------
-    const rateLimitResponse = rateLimitMiddleware(request, '/api/auth/forgot-password')
+    const rateLimitResponse = await rateLimitAsync(request, '/api/auth/forgot-password')
     if (rateLimitResponse) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },

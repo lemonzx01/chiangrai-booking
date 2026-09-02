@@ -25,7 +25,8 @@
  *
  * ============================================================
  */
-export const dynamic = 'force-dynamic'
+
+export const dynamic = 'force-dynamic'
 
 
 // ============================================================
@@ -49,6 +50,7 @@ import { getJwtSecret, isMockMode } from '../../../../lib/auth'
 import { logger } from '../../../../lib/logger'
 import { validatePassword } from '../../../../lib/utils'
 import { findMockUser } from '../../../../lib/mock-data'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 // ============================================================
 // POST Handler - รีเซ็ตรหัสผ่าน
@@ -71,6 +73,13 @@ import { findMockUser } from '../../../../lib/mock-data'
  *   Body: { "token": "jwt-token-here", "password": "newpassword123" }
  */
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // The body carries a reset token; without a cap it is brute-forceable.
+  const limitResponse = await rateLimitAsync(request, '/api/auth/reset-password')
+  if (limitResponse) return limitResponse
+
   try {
     // ดึงข้อมูลจาก request body
     const body = await request.json()

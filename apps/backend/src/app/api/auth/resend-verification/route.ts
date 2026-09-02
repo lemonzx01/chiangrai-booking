@@ -6,12 +6,12 @@ import { SignJWT } from 'jose'
 import { getJwtSecret, isMockMode, verifyUserToken } from '../../../../lib/auth'
 import { sendEmail } from '../../../../services/notifications/email'
 import { renderEmailVerificationEmail } from '../../../../services/notifications/templates/emailVerification'
-import { rateLimitMiddleware } from '../../../../middleware/rate-limit'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 import { logger } from '../../../../lib/logger'
 
 export async function POST(request: Request) {
   try {
-    const rateLimitResponse = rateLimitMiddleware(request, '/api/auth/resend-verification')
+    const rateLimitResponse = await rateLimitAsync(request, '/api/auth/resend-verification')
     if (rateLimitResponse) {
       return NextResponse.json(
         { error: 'ส่งได้สูงสุด 3 ครั้งต่อชั่วโมง กรุณาลองใหม่ภายหลัง' },

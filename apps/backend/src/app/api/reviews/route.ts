@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/server'
 import { createAdminNotification } from '../../../services/notifications/admin-inbox'
 import { scoreReview } from '../../../lib/spam'
+import { rateLimitAsync } from '../../../middleware/rate-limit'
 
 export async function GET(request: Request) {
   try {
@@ -83,6 +84,13 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Spam volume control; lib/spam scores content, this caps frequency.
+  const limitResponse = await rateLimitAsync(request, '/api/reviews')
+  if (limitResponse) return limitResponse
+
   try {
     const body = await request.json().catch(() => null)
 

@@ -62,6 +62,7 @@ import { checkLockout, recordAttempt, getClientIp } from '@/lib/lockout'
 
 /** Structured logger */
 import { logger } from '@/lib/logger'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 // ============================================================
 // POST Handler - เข้าสู่ระบบ
@@ -86,6 +87,15 @@ import { logger } from '@/lib/logger'
  *   Body: { "email": "user@example.com", "password": "password123" }
  */
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Credential-stuffing cap on top of the per-account lockout below.
+    // Lockout protects one account; this protects the whole account
+    // list from being sprayed one attempt at a time.
+  const limitResponse = await rateLimitAsync(request, '/api/auth/login')
+  if (limitResponse) return limitResponse
+
   try {
     // ดึงข้อมูลจาก request body
     const body = await request.json()

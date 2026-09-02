@@ -39,7 +39,7 @@ import { NextResponse } from 'next/server'
 import { verifyAdminToken, unauthorizedResponse } from '../../../lib/auth'
 
 /** Security utilities */
-import { rateLimitMiddleware } from '../../../middleware/rate-limit'
+import { rateLimitAsync } from '../../../middleware/rate-limit'
 import { addSecurityHeaders } from '../../../lib/security'
 import { logger } from '../../../lib/logger'
 
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     // ----------------------------------------------------------
     // Rate Limiting
     // ----------------------------------------------------------
-    const rateLimitResponse = rateLimitMiddleware(request, '/api/payments')
+    const rateLimitResponse = await rateLimitAsync(request, '/api/payments')
     if (rateLimitResponse) {
       return addSecurityHeaders(rateLimitResponse)
     }

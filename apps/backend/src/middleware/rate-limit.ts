@@ -115,6 +115,57 @@ export const RATE_LIMIT_CONFIG = {
     maxRequests: 5,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
+  // Admin login - stricter than the customer login. There is a small,
+  // fixed set of admin accounts, so a legitimate admin never needs
+  // 20 attempts in 15 minutes, and this endpoint is the highest-value
+  // target on the site.
+  '/api/admin/login': {
+    maxRequests: 10,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+  },
+  // Reset password - the request carries a reset token. Without a cap
+  // the token space is brute-forceable at whatever rate the network
+  // allows; a real user submits this form once.
+  '/api/auth/reset-password': {
+    maxRequests: 10,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Validate reset token - the same token, probed via GET. Slightly
+  // more generous because the page calls it on load (including on
+  // refresh) before showing the form.
+  '/api/auth/validate-reset-token': {
+    maxRequests: 30,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Coupon validation - an unauthenticated endpoint that answers
+  // "is this a real coupon code?". Uncapped, it is a free oracle for
+  // enumerating discount codes (and the referral codes minted from
+  // them). 20/hr still covers a customer trying a few codes.
+  '/api/coupons/validate': {
+    maxRequests: 20,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Review submission - spam control on top of the spam-score
+  // heuristics in lib/spam. Scoring catches *what* was written;
+  // this caps *how often*.
+  '/api/reviews': {
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Upload - each call writes to object storage, so an uncapped
+  // endpoint is a billing risk as much as an abuse one.
+  '/api/upload': {
+    maxRequests: 20,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  // Booking creation - each PENDING booking holds inventory until it
+  // expires, so spamming this endpoint can starve real customers of
+  // rooms/cars without ever paying. 10/hr/caller is well above any
+  // genuine booking session.
+  '/api/bookings': {
+    maxRequests: 10,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   // Default สำหรับ endpoints อื่นๆ
   default: {
     maxRequests: 100, // 100 requests

@@ -4,8 +4,16 @@ import { NextResponse } from 'next/server'
 import { BookingType } from '@chiangrai/shared/types'
 import { createAdminClient } from '../../../../lib/supabase/server'
 import { validateCouponForBooking } from '../../../../lib/coupons'
+import { rateLimitAsync } from '../../../../middleware/rate-limit'
 
 export async function POST(request: Request) {
+  // ----------------------------------------------------------
+  // Rate limit
+  // ----------------------------------------------------------
+  // Stops this endpoint being a free coupon-code enumeration oracle.
+  const limitResponse = await rateLimitAsync(request, '/api/coupons/validate')
+  if (limitResponse) return limitResponse
+
   try {
     const body = await request.json().catch(() => null)
     const code = typeof body?.code === 'string' ? body.code : ''

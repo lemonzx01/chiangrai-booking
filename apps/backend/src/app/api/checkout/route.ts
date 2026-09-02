@@ -48,7 +48,7 @@ import {
 } from '../../../lib/errors'
 
 /** Security utilities */
-import { rateLimitMiddleware, getClientIP } from '../../../middleware/rate-limit'
+import { rateLimitAsync, getClientIP } from '../../../middleware/rate-limit'
 import { addSecurityHeaders, validateInput, isValidUUID } from '../../../lib/security'
 
 /** Currency conversion */
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     // ----------------------------------------------------------
     // Rate Limiting
     // ----------------------------------------------------------
-    const rateLimitResponse = rateLimitMiddleware(request, '/api/checkout')
+    const rateLimitResponse = await rateLimitAsync(request, '/api/checkout')
     if (rateLimitResponse) {
       return addSecurityHeaders(rateLimitResponse)
     }
