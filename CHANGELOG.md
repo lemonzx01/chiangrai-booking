@@ -6,6 +6,31 @@
 
 ## [Unreleased]
 
+### Security
+
+- **Mock mode now fails closed in production.** `isMockMode()` / `isStripeMockMode()` inferred mock mode from a *missing* `NEXT_PUBLIC_SUPABASE_URL` / `STRIPE_SECRET_KEY`, in any environment. Mock mode accepts hardcoded passwords (`admin123`), skips Stripe webhook signature verification and serves an in-memory DB — so one forgotten env var on a production deploy silently turned the site into an open admin panel that also accepted forged `checkout.session.completed` events. Both now refuse to infer it when `NODE_ENV=production` and log a `[SECURITY]` error; `ALLOW_MOCK_MODE=true` is the explicit opt-in for demo deploys. `supabase/server.ts` throws rather than handing back a mock DB, so the misconfiguration surfaces instead of silently discarding writes.
+- **CSRF protection actually works now.** `lib/csrf.ts` implemented double-submit verification and exported `issueCsrfToken()`, but nothing ever called it. The cookie was never set, so `getCsrfToken()` always returned null, no `X-CSRF-Token` header was ever sent, and every route behind `withCsrf`/`verifyCsrfToken` answered `403 CSRF_MISSING` — silently breaking booking cancellation, refunds, reschedules, manual bookings, campaigns, partner availability and wishlist writes. The backend middleware now issues the token to any caller without one.
+- **CSRF extended to 25 more handlers** across 18 authenticated mutating routes (hotels, cars, room-types, partners, coupons, notifications, reviews, referral void, loyalty adjust/redeem, user profile, booking status).
+- **Rate limiting added to 8 unprotected endpoints** — `/api/auth/login` (had a config entry that no route ever used), `/api/admin/login`, `/api/auth/reset-password`, `/api/auth/validate-reset-token`, `/api/coupons/validate` (was a free coupon-code enumeration oracle), `/api/reviews`, `/api/upload`, `/api/bookings`.
+- **Rate limiting now reaches Vercel KV.** Six call sites (including `/api/checkout` and password reset) used the synchronous in-memory limiter, which does not survive across serverless instances — the KV-backed `rateLimitAsync` was dead code in production. All call sites migrated.
+- **CSP hardened** — `'unsafe-eval'` is now dev-only (it only exists for React Refresh; in production it is an XSS escape hatch), plus `object-src 'none'`, `worker-src`, `manifest-src` and `media-src`.
+
+### Fixed
+
+- **`apiFetch` corrupted multipart uploads.** It stamped `Content-Type: application/json` on any `typeof 'object'` body, which includes `FormData` — overriding the browser-generated `multipart/form-data; boundary=…` so the server could not parse a single field. Now only plain objects are JSON-encoded.
+- **`ModificationRequestModal` put `role="dialog"`/`aria-modal` on the backdrop** rather than the panel, so assistive tech described the overlay instead of the dialog. Also gained a focus trap and Escape-to-close.
+- **`CancelBookingModal` had no dialog semantics at all** — no `role`, no focus trap, no Escape, no label association on the reason field. A keyboard user could tab out of a destructive confirmation into the page behind it.
+
+### Changed — accessibility & UX
+
+- **Site-wide keyboard focus indicator.** Tailwind's preflight removes the browser default and only Button/Input replaced it, so ~30 components had no visible focus state (WCAG 2.4.7). One zero-specificity `:where(...):focus-visible` base rule now covers every focusable element, using `currentColor` so it adapts to dark surfaces; any component may still override it.
+- **iOS no longer zooms on input focus.** Form controls were 14px on mobile; Safari zooms the viewport whenever a focused control is under 16px and never zooms back, which hit every field in the booking and checkout flows on a phone. Controls are pinned to 16px below the `sm` breakpoint.
+- **`Input` accessibility.** Labels were never associated with their inputs (no `id`/`htmlFor`), so clicking a label did nothing and screen readers announced "edit text, blank". Errors were unannounced and unlinked. Now: generated ids, `aria-invalid`, `aria-describedby`, `role="alert"` on errors, an optional `hint` prop, a required marker, and a focus ring. The password toggle was `tabIndex={-1}` with no accessible name — unreachable by keyboard and unnamed to screen readers; it now has a name, `aria-pressed`, and a place in the tab order.
+- **`SearchAutocomplete` combobox** was missing `aria-controls`, `aria-activedescendant` and `role="option"`, so arrow-key navigation moved a highlight no screen reader could follow.
+- **`Button`** gained a focus-visible ring and `aria-busy` for its loading state.
+- **69 client-side `fetch('/api/…')` calls across 41 files migrated to `apiFetch`**, so every mutating request carries the CSRF header and credentials by default.
+
+
 This stretch of work took the project from "MVP-grade" to "production-ready and beyond". Every commit type-checks both apps and tests pass (300+ backend, 100 frontend). All commits in date order: `git log --oneline f9ad382..HEAD`.
 
 ### Added — customer-facing
